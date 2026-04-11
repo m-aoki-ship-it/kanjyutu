@@ -3,85 +3,40 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>漢術師 - 安定版V2 -</title>
+<title>漢術師 - 最終安定版 -</title>
 <style>
 :root { --sumi: #0d0b08; --kin: #c9a84c; --shu: #c0392b; --washi: #f2ead8; }
-
-/* 画面の揺れやスクロールを徹底排除 */
-html, body { 
-  overflow: hidden; height: 100%; position: fixed; width: 100%; 
-  background: var(--sumi); color: var(--washi); font-family: sans-serif; 
-}
+html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; background: var(--sumi); color: var(--washi); font-family: sans-serif; }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
-
-/* 画面構成を「上・中・下」で固定 */
-#app { 
-  display: flex; flex-direction: column; height: 100dvh; 
-  padding: 10px; gap: 5px; 
-}
-
-/* 上部：敵エリア */
-#enemy-area { 
-  height: 60px; padding: 8px; background: rgba(192,57,43,0.2); 
-  border: 1px solid var(--shu); border-radius: 4px; flex-shrink: 0;
-}
+#app { display: flex; flex-direction: column; height: 100dvh; padding: 10px; gap: 5px; }
+#enemy-area { height: 60px; padding: 8px; background: rgba(192,57,43,0.2); border: 1px solid var(--shu); border-radius: 4px; flex-shrink: 0; }
 #hp-bar-bg { width: 100%; height: 6px; background: #333; margin-top: 4px; }
 #hp-bar { height: 100%; width: 100%; background: var(--shu); transition: width 0.3s; }
-
-/* 中央上：問題エリア */
-#mondai-area { 
-  height: 70px; text-align:center; display: flex; flex-direction: column; 
-  justify-content: center; flex-shrink: 0;
-}
-
-/* 中央：キャンバス（ここを可変にしてボタンを押し出さないようにする） */
-#canvas-container { 
-  position: relative; flex: 1; min-height: 0; /* flex-growで余った場所を埋める */
-  background: rgba(255,255,255,0.05); border: 1px solid var(--kin); border-radius: 8px;
-}
+#mondai-area { height: 70px; text-align:center; display: flex; flex-direction: column; justify-content: center; flex-shrink: 0; }
+#canvas-container { position: relative; flex: 1; min-height: 0; background: rgba(255,255,255,0.05); border: 1px solid var(--kin); border-radius: 8px; }
 #draw-canvas { width: 100%; height: 100%; display: block; }
-#hint-display { 
-  position: absolute; inset: 0; display: flex; align-items: center; 
-  justify-content: center; font-size: 180px; color: rgba(255, 255, 255, 0.05); 
-  pointer-events: none; z-index: 1; 
-}
-
-/* 下部：ボタンエリア（絶対に消えないように高さを固定） */
-#button-area { 
-  height: 60px; display: flex; gap: 8px; flex-shrink: 0; margin-top: 5px;
-}
-.action-btn { 
-  flex: 1; font-size: 16px; background: #1a1610; color: var(--kin); 
-  border: 1px solid var(--kin); font-weight: bold; border-radius: 4px;
-}
-#attack-btn { background: var(--shu); color: white; border-color: var(--shu-bright); flex: 2; }
-
-#loading { 
-  position: fixed; inset: 0; background: rgba(0,0,0,0.8); 
-  display: none; align-items: center; justify-content: center; z-index: 100; 
-}
+#hint-display { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 180px; color: rgba(255, 255, 255, 0.05); pointer-events: none; z-index: 1; }
+#button-area { height: 60px; display: flex; gap: 8px; flex-shrink: 0; margin-top: 5px; }
+.action-btn { flex: 1; font-size: 16px; background: #1a1610; color: var(--kin); border: 1px solid var(--kin); font-weight: bold; border-radius: 4px; }
+#attack-btn { background: var(--shu); color: white; border-color: #e74c3c; flex: 2; }
+#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 100; font-weight: bold; color: var(--kin); }
 </style>
 </head>
 <body>
-
 <div id="loading">鑑定中...</div>
-
 <div id="app">
   <div id="enemy-area">
-    <div style="font-size: 12px;">誤字の魔物</div>
+    <div style="font-size: 12px;">強敵：誤字の魔物</div>
     <div id="hp-bar-bg"><div id="hp-bar"></div></div>
   </div>
-
   <div id="mondai-area">
     <div id="mondai-bun" style="font-size: 18px; font-weight: bold;"></div>
     <div id="mondai-yomi" style="color: var(--kin); font-size: 14px;"></div>
   </div>
-
   <div id="canvas-container">
     <div id="hint-display"></div>
     <canvas id="draw-canvas"></canvas>
   </div>
-
   <div id="button-area">
     <button class="action-btn" onclick="clearCanvas()">拭く</button>
     <button class="action-btn" onclick="showHint()">助言</button>
@@ -95,7 +50,9 @@ const MONDAI_LIST = [
   { kanji:'医', yomi:'い', bun:'___者に診てもらう' },
   { kanji:'運', yomi:'はこぶ', bun:'荷物を___ぶ' },
   { kanji:'漢', yomi:'かん', bun:'___字の練習' },
-  { kanji:'進', yomi:'すすむ', bun:'前へ___む' }
+  { kanji:'進', yomi:'すすむ', bun:'前へ___む' },
+  { kanji:'鉄', yomi:'てつ', bun:'___棒で遊ぶ' },
+  { kanji:'曜', yomi:'よう', bun:'日曜日の___' }
 ];
 
 let currentMondai = {};
@@ -108,14 +65,13 @@ const canvas = document.getElementById('draw-canvas');
 const ctx = canvas.getContext('2d');
 const hintDisplay = document.getElementById('hint-display');
 
-// キャンバス初期化（リサイズ対応）
 function setup() {
   const rect = canvas.getBoundingClientRect();
   canvas.width = rect.width;
   canvas.height = rect.height;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.lineWidth = 6;
+  ctx.lineWidth = 8;
   ctx.strokeStyle = '#ffffff';
 }
 
@@ -138,10 +94,9 @@ function clearCanvas() {
   inkData = [];
 }
 
-// 描画イベント（音のコードを完全削除）
 function startDrawing(x, y) {
   isDrawing = true;
-  currentStroke = [[x], [y], [Date.now()]];
+  currentStroke = [[x], [y], [0]];
   ctx.beginPath();
   ctx.moveTo(x, y);
 }
@@ -152,7 +107,7 @@ function moveDrawing(x, y) {
   ctx.stroke();
   currentStroke[0].push(x);
   currentStroke[1].push(y);
-  currentStroke[2].push(Date.now());
+  currentStroke[2].push(0);
 }
 
 function stopDrawing() {
@@ -160,49 +115,45 @@ function stopDrawing() {
   isDrawing = false;
 }
 
-// タッチイベント設定
 canvas.addEventListener('touchstart', e => {
   e.preventDefault();
   const r = canvas.getBoundingClientRect();
   startDrawing(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top);
 }, {passive: false});
-
 canvas.addEventListener('touchmove', e => {
   e.preventDefault();
   const r = canvas.getBoundingClientRect();
   moveDrawing(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top);
 }, {passive: false});
-
 window.addEventListener('touchend', stopDrawing);
 
-// マウスイベント設定
-canvas.addEventListener('mousedown', e => {
-  const r = canvas.getBoundingClientRect();
-  startDrawing(e.clientX - r.left, e.clientY - r.top);
-});
-window.addEventListener('mousemove', e => {
-  const r = canvas.getBoundingClientRect();
-  moveDrawing(e.clientX - r.left, e.clientY - r.top);
-});
-window.addEventListener('mouseup', stopDrawing);
-
-// 判定エンジン
 async function recognizeAndAttack() {
   if (inkData.length === 0) return;
-  document.getElementById('loading').style.display = 'flex';
+  const loader = document.getElementById('loading');
+  loader.style.display = 'flex';
+  
+  // URLを変更し、JSONP的な挙動を避けて単純なPOSTを試行
+  const url = `https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test`;
   
   try {
-    const res = await fetch('https://www.google.com.tw/inputtools/request?ime=handwriting&app=mobilesearch&cs=1&oe=UTF-8', {
+    const res = await fetch(url, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        options: "enable_pre_space",
-        requests: [{ 
-          writing_guide: { writing_area_width: canvas.width, writing_area_height: canvas.height },
-          ink: inkData, 
-          language: "ja" 
+        app_version: 0.4,
+        api_level: "537.36",
+        device: window.navigator.userAgent,
+        input_type: 0,
+        requests: [{
+          ink: inkData,
+          language: "ja",
+          writing_guide: { writing_area_width: canvas.width, writing_area_height: canvas.height }
         }]
       })
     });
+    
+    if (!res.ok) throw new Error(`HTTPエラー: ${res.status}`);
+    
     const data = await res.json();
     const result = data[1][0][1];
 
@@ -216,19 +167,16 @@ async function recognizeAndAttack() {
       }
       next();
     } else {
-      alert(`判定：${result ? result[0] : "？"}\nもっと丁寧に！`);
+      alert(`鑑定失敗：${result ? result[0] : "読解不能"}\n正解は「${currentMondai.kanji}」です`);
       clearCanvas();
     }
   } catch(e) {
-    alert("通信エラー");
+    alert("【通信エラー】\nGitHub Pagesの制限でGoogleに接続できませんでした。\nローカル（自分のPC内）で実行するか、ブラウザのセキュリティ設定を確認してください。\nエラー詳細: " + e.message);
   }
-  document.getElementById('loading').style.display = 'none';
+  loader.style.display = 'none';
 }
 
-window.onload = () => {
-  setup();
-  next();
-};
+window.onload = () => { setup(); next(); };
 window.onresize = setup;
 </script>
 </body>
