@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>漢術師 - 極 - (小学3年生編)</title>
+<title>漢術師 - 極 - (小学3年生 200字)</title>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;700;800&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -13,14 +13,12 @@
 }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
 body { background: var(--sumi); font-family: 'Noto Sans JP', sans-serif; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; color: var(--washi); }
-
 .ougi-shake { animation: ougiShake 0.5s infinite; }
 @keyframes ougiShake {
   0% { transform: translate(0,0); }
   25% { transform: translate(-8px, 4px); }
   75% { transform: translate(8px, -4px); }
 }
-
 .sumi-splash {
   position: fixed; width: 30px; height: 30px; background: var(--sumi);
   border-radius: 50%; pointer-events: none; z-index: 1000;
@@ -30,13 +28,11 @@ body { background: var(--sumi); font-family: 'Noto Sans JP', sans-serif; height:
   0% { transform: scale(1); opacity: 1; }
   100% { transform: scale(5) translate(var(--tx), var(--ty)); opacity: 0; }
 }
-
 .flash-white {
   position: fixed; inset: 0; background: white; z-index: 999;
   pointer-events: none; animation: flashAnim 0.4s ease-out forwards;
 }
 @keyframes flashAnim { 0% { opacity: 0.8; } 100% { opacity: 0; } }
-
 #app { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100dvh; padding: 12px; gap: 8px; }
 #enemy-area { display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--shu-dim); border: 1px solid var(--shu); border-radius: 4px; }
 #hp-bar-bg { flex: 1; height: 10px; background: #333; position: relative; }
@@ -47,7 +43,6 @@ body { background: var(--sumi); font-family: 'Noto Sans JP', sans-serif; height:
 </style>
 </head>
 <body>
-
 <div id="app">
   <div id="enemy-area">
     <div style="flex:1">
@@ -56,257 +51,238 @@ body { background: var(--sumi); font-family: 'Noto Sans JP', sans-serif; height:
     </div>
     <div id="enemy-char" style="font-size: 50px;">怨</div>
   </div>
-
   <div id="mondai-area" style="text-align:center; padding: 20px;">
     <div id="mondai-bun" style="font-size: 24px; margin-bottom: 10px;"></div>
     <div id="mondai-yomi" style="color: var(--kin);"></div>
     <div id="mondai-strokes" style="font-size: 12px; opacity: 0.6;"></div>
   </div>
-
   <canvas id="draw-canvas"></canvas>
-
   <div style="display:flex; gap:10px;">
     <button class="action-btn" onclick="clearCanvas()">墨を拭く</button>
     <button class="action-btn" id="attack-btn" onclick="tryAttack()">奥義発動！</button>
   </div>
 </div>
-
 <script>
 const MONDAI_LIST = [
-  { kanji:'悪', yomi:'あく/わるい', strokes:11, bun:'___いことをして謝った' },
-  { kanji:'安', yomi:'あん/やすい', strokes:6, bun:'値段が___くて助かる' },
+  { kanji:'悪', yomi:'あく/わるい', strokes:11, bun:'___いことをして謝る' },
+  { kanji:'安', yomi:'あん/やすい', strokes:6, bun:'値段が___いので買う' },
   { kanji:'暗', yomi:'あん/くらい', strokes:13, bun:'___い夜道を歩く' },
   { kanji:'医', yomi:'い', strokes:7, bun:'___者に診てもらう' },
-  { kanji:'委', yomi:'い', strokes:8, bun:'学級___員に選ばれた' },
+  { kanji:'委', yomi:'い', strokes:8, bun:'学級___員に選ばれる' },
   { kanji:'意', yomi:'い', strokes:13, bun:'自分の___見を言う' },
-  { kanji:'育', yomi:'いく/そだつ', strokes:8, bun:'花が元気に___つ' },
+  { kanji:'育', yomi:'いく/そだつ', strokes:8, bun:'植物が大きく___つ' },
   { kanji:'員', yomi:'いん', strokes:10, bun:'銀行の___員さん' },
   { kanji:'院', yomi:'いん', strokes:10, bun:'病___へお見舞いに行く' },
-  { kanji:'飲', yomi:'いん/のむ', strokes:12, bun:'冷たい水を___む' },
-  { kanji:'運', yomi:'うん/はこぶ', strokes:12, bun:'荷物を___ぶ' },
-  { kanji:'泳', yomi:'えい/およぐ', strokes:8, bun:'プールで___ぐ' },
-  { kanji:'駅', yomi:'えき', strokes:14, bun:'___のホームで待つ' },
-  { kanji:'央', yomi:'おう', strokes:5, bun:'道のの中___を歩く' },
-  { kanji:'横', yomi:'おう/よこ', strokes:15, bun:'___断歩道をわたる' },
-  { kanji:'屋', yomi:'おく/や', strokes:9, bun:'本___さんへ行く' },
-  { kanji:'温', yomi:'おん/あたたかい', strokes:12, bun:'___かいお風呂に入る' },
-  { kanji:'化', yomi:'か/ばける', strokes:4, bun:'キツネが___ける' },
-  { kanji:'荷', yomi:'か/に', strokes:10, bun:'重い___物をもつ' },
-  { kanji:'界', yomi:'かい', strokes:9, bun:'世___一周の旅' },
-  { kanji:'開', yomi:'かい/あける', strokes:12, bun:'ドアを___ける' },
-  { kanji:'階', yomi:'かい', strokes:12, bun:'二___の部屋にいる' },
-  { kanji:'貝', yomi:'かい', strokes:7, bun:'砂浜で___をひろう' },
-  { kanji:'外', yomi:'がい/そと', strokes:5, bun:'___国へ旅行する' },
-  { kanji:'害', yomi:'がい', strokes:10, bun:'公___をなくそう' },
-  { kanji:'街', yomi:'がい/まち', strokes:12, bun:'商店___を歩く' },
-  { kanji:'各', yomi:'かく/おのおの', strokes:6, bun:'___自で用意する' },
-  { kanji:'覚', yomi:'かく/おぼえる', strokes:12, bun:'漢字を___える' },
-  { kanji:'角', yomi:'かく/かど', strokes:7, bun:'四角い___を曲がる' },
-  { kanji:'格', yomi:'かく', strokes:10, bun:'合___おめでとう' },
-  { kanji:'活', yomi:'かつ', strokes:9, bun:'生___のリズムを整える' },
-  { kanji:'渇', yomi:'かつ/かわく', strokes:11, bun:'のどが___く' },
-  { kanji:'間', yomi:'かん/あいだ', strokes:12, bun:'時間の___にあう' },
-  { kanji:'寒', yomi:'かん/さむい', strokes:12, bun:'___い冬が来る' },
-  { kanji:'感', yomi:'かん', strokes:13, bun:'心から___動する' },
-  { kanji:'緩', yomi:'かん/ゆるい', strokes:15, bun:'くつのひもを___める' },
-  { kanji:'漢', yomi:'かん', strokes:13, bun:'___字のテストを受ける' },
+  { kanji:'飲', yomi:'いん/のむ', strokes:12, bun:'ジュースを___む' },
+  { kanji:'運', yomi:'うん/はこぶ', strokes:12, bun:'重い荷物を___ぶ' },
+  { kanji:'泳', yomi:'えい/およぐ', strokes:8, bun:'海で___ぐ' },
+  { kanji:'駅', yomi:'えき', strokes:14, bun:'___で電車を待つ' },
+  { kanji:'央', yomi:'おう', strokes:5, bun:'道の中___を歩く' },
+  { kanji:'横', yomi:'おう/よこ', strokes:15, bun:'___断歩道を渡る' },
+  { kanji:'屋', yomi:'おく/や', strokes:9, bun:'パン___さんで買う' },
+  { kanji:'温', yomi:'おん/あたたかい', strokes:12, bun:'___かいスープを飲む' },
+  { kanji:'化', yomi:'か/ばける', strokes:4, bun:'タヌキが___ける' },
+  { kanji:'荷', yomi:'か/に', strokes:10, bun:'手___物がいっぱいだ' },
+  { kanji:'界', yomi:'かい', strokes:9, bun:'世___一周の旅に出る' },
+  { kanji:'開', yomi:'かい/あける', strokes:12, bun:'窓を___けて空気をかえる' },
+  { kanji:'階', yomi:'かい', strokes:12, bun:'三___だての建物' },
+  { kanji:'寒', yomi:'かん/さむい', strokes:12, bun:'今日はとても___い' },
+  { kanji:'感', yomi:'かん', strokes:13, bun:'___動の涙を流す' },
+  { kanji:'漢', yomi:'かん', strokes:13, bun:'___字の練習をする' },
   { kanji:'館', yomi:'かん', strokes:16, bun:'図書___で本を借りる' },
-  { kanji:'岸', yomi:'がん/きし', strokes:8, bun:'海岸の___が見える' },
-  { kanji:'起', yomi:'き/お起きる', strokes:10, bun:'朝早く___きる' },
-  { kanji:'期', yomi:'き', strokes:12, bun:'___待して待つ' },
-  { kanji:'客', yomi:'きゃく', strokes:9, bun:'お客___を案内する' },
-  { kanji:'究', yomi:'きゅう/きわめる', strokes:7, bun:'星を研___する' },
+  { kanji:'岸', yomi:'がん/きし', strokes:8, bun:'海岸の___で遊ぶ' },
+  { kanji:'起', yomi:'き/おきる', strokes:10, bun:'朝六時に___きる' },
+  { kanji:'期', yomi:'き', strokes:12, bun:'楽しみに___待する' },
+  { kanji:'客', yomi:'きゃく', strokes:9, bun:'お___様をお迎えする' },
+  { kanji:'究', yomi:'きゅう/きわめる', strokes:7, bun:'宇宙を研___する' },
   { kanji:'急', yomi:'きゅう/いそぐ', strokes:9, bun:'___いで準備する' },
-  { kanji:'級', yomi:'きゅう', strokes:9, bun:'進___おめでとう' },
-  { kanji:'宮', yomi:'きゅう/みや', strokes:10, bun:'神___にお参りする' },
-  { kanji:'球', yomi:'きゅう/たま', strokes:11, bun:'野___を練習する' },
+  { kanji:'級', yomi:'きゅう', strokes:9, bun:'三___に進級する' },
+  { kanji:'宮', yomi:'きゅう/みや', strokes:10, bun:'お___参りに行く' },
+  { kanji:'球', yomi:'きゅう/たま', strokes:11, bun:'野___の試合を見る' },
   { kanji:'去', yomi:'きょ/さる', strokes:5, bun:'昨___のことを思い出す' },
-  { kanji:'橋', yomi:'きょう/はし', strokes:16, bun:'大きな___をわたる' },
-  { kanji:'業', yomi:'ぎょう', strokes:13, bun:'授___をがんばる' },
-  { kanji:'曲', yomi:'きょく/まがる', strokes:6, bun:'音楽の___を聴く' },
+  { kanji:'橋', yomi:'きょう/はし', strokes:16, bun:'長い___を渡る' },
+  { kanji:'業', yomi:'ぎょう', strokes:13, bun:'授___中に手をあげる' },
+  { kanji:'曲', yomi:'きょく/まがる', strokes:6, bun:'好きな___を歌う' },
   { kanji:'局', yomi:'きょく', strokes:7, bun:'郵便___へ行く' },
-  { kanji:'銀', yomi:'ぎん', strokes:14, bun:'___色のコイン' },
-  { kanji:'区', yomi:'く', strokes:4, bun:'東京都千代田___' },
-  { kanji:'苦', yomi:'く/くるしい', strokes:8, bun:'___しい練習にたえる' },
-  { kanji:'具', yomi:'ぐ', strokes:8, bun:'道___を大切にする' },
-  { kanji:'君', yomi:'くん/きみ', strokes:7, bun:'___は元気かい？' },
-  { kanji:'係', yomi:'けい/かかり', strokes:9, bun:'給食の___になる' },
-  { kanji:'軽', yomi:'けい/かるい', strokes:12, bun:'___い荷物をもつ' },
-  { kanji:'血', yomi:'けつ/ち', strokes:6, bun:'___が止まらない' },
-  { kanji:'決', yomi:'けつ/きめる', strokes:7, bun:'心を___める' },
-  { kanji:'研', yomi:'けん/とぐ', strokes:9, bun:'刃物を___ぐ' },
-  { kanji:'県', yomi:'けん', strokes:9, bun:'埼玉___に住んでいる' },
-  { kanji:'庫', yomi:'こ', strokes:10, bun:'車___に車を止める' },
-  { kanji:'湖', yomi:'こ/みずうみ', strokes:12, bun:'広い___が見える' },
-  { kanji:'向', yomi:'こう/むく', strokes:6, bun:'右を___く' },
-  { kanji:'幸', yomi:'こう/しあわせ', strokes:8, bun:'___せな気持ちになる' },
-  { kanji:'港', yomi:'こう/みなと', strokes:12, bun:'___に船が着く' },
-  { kanji:'号', yomi:'ごう', strokes:5, bun:'信___を守る' },
-  { kanji:'根', yomi:'こん/ね', strokes:10, bun:'木の___っこ' },
-  { kanji:'祭', yomi:'さい/まつり', strokes:11, bun:'夏の___りにいく' },
-  { kanji:'皿', yomi:'さら', strokes:5, bun:'___を洗う' },
-  { kanji:'仕', yomi:'し', strokes:5, bun:'お___事をおぼえる' },
+  { kanji:'銀', yomi:'ぎん', strokes:14, bun:'___色のメダル' },
+  { kanji:'区', yomi:'く', strokes:4, bun:'港___に住んでいる' },
+  { kanji:'苦', yomi:'く/くるしい', strokes:8, bun:'___しい練習に耐える' },
+  { kanji:'具', yomi:'ぐ', strokes:8, bun:'文房___をそろえる' },
+  { kanji:'君', yomi:'くん/きみ', strokes:7, bun:'___の名前を教えて' },
+  { kanji:'係', yomi:'けい/かかり', strokes:9, bun:'生き物___になる' },
+  { kanji:'軽', yomi:'けい/かるい', strokes:12, bun:'___いカバンを持つ' },
+  { kanji:'血', yomi:'けつ/ち', strokes:6, bun:'ころんで___が出る' },
+  { kanji:'決', yomi:'けつ/きめる', strokes:7, bun:'リーダーを___める' },
+  { kanji:'研', yomi:'けん/とぐ', strokes:9, bun:'石を研___する' },
+  { kanji:'県', yomi:'けん', strokes:9, bun:'お隣の___へ行く' },
+  { kanji:'庫', yomi:'こ', strokes:10, bun:'冷___庫のアイス' },
+  { kanji:'湖', yomi:'こ/みずうみ', strokes:12, bun:'___でボートに乗る' },
+  { kanji:'向', yomi:'こう/むく', strokes:6, bun:'前を___いて歩く' },
+  { kanji:'幸', yomi:'こう/しあわせ', strokes:8, bun:'___せな毎日を過ごす' },
+  { kanji:'港', yomi:'こう/みなと', strokes:12, bun:'___に大きな船が着く' },
+  { kanji:'号', yomi:'ごう', strokes:5, bun:'信___をよく見る' },
+  { kanji:'根', yomi:'こん/ね', strokes:10, bun:'大___の料理を食べる' },
+  { kanji:'祭', yomi:'さい/まつり', strokes:11, bun:'お___りで屋台を見る' },
+  { kanji:'皿', yomi:'さら', strokes:5, bun:'___をきれいに洗う' },
+  { kanji:'仕', yomi:'し', strokes:5, bun:'親の___事を見学する' },
   { kanji:'死', yomi:'し/しぬ', strokes:6, bun:'必___にがんばる' },
-  { kanji:'使', yomi:'し/つかう', strokes:8, bun:'道具を___う' },
-  { kanji:'始', yomi:'し/はじめる', strokes:8, bun:'勉強を___める' },
-  { kanji:'指', yomi:'し/ゆび', strokes:9, bun:'___でさし示す' },
-  { kanji:'歯', yomi:'し/は', strokes:12, bun:'___をみがく' },
-  { kanji:'詩', yomi:'し', strokes:13, bun:'___を作る' },
-  { kanji:'次', yomi:'じ/つぎ', strokes:6, bun:'___のページをめくる' },
-  { kanji:'事', yomi:'じ/こと', strokes:8, bun:'大事な用___がある' },
-  { kanji:'持', yomi:'じ/もつ', strokes:9, bun:'荷物を___つ' },
-  { kanji:'式', yomi:'しき', strokes:6, bun:'卒業___に出る' },
-  { kanji:'実', yomi:'じつ/みのる', strokes:8, bun:'___がなる木' },
-  { kanji:'写', yomi:'しゃ/うつす', strokes:5, bun:'写真を___す' },
-  { kanji:'者', yomi:'しゃ/もの', strokes:8, bun:'医___になる' },
-  { kanji:'主', yomi:'しゅ/ぬし', strokes:5, bun:'家___になる' },
-  { kanji:'守', yomi:'しゅ/まもる', strokes:6, bun:'約束を___る' },
-  { kanji:'取', yomi:'しゅ/とる', strokes:8, bun:'天下を___る' },
-  { kanji:'酒', yomi:'しゅ/さけ', strokes:10, bun:'___をのむ' },
+  { kanji:'使', yomi:'し/つかう', strokes:8, bun:'お箸を上手に___う' },
+  { kanji:'始', yomi:'し/はじめる', strokes:8, bun:'宿題を___める' },
+  { kanji:'指', yomi:'し/ゆび', strokes:9, bun:'___で方向をさす' },
+  { kanji:'歯', yomi:'し/は', strokes:12, bun:'虫___を治してもらう' },
+  { kanji:'詩', yomi:'し', strokes:13, bun:'___を音読する' },
+  { kanji:'次', yomi:'じ/つぎ', strokes:6, bun:'___の駅で降りる' },
+  { kanji:'事', yomi:'じ/こと', strokes:8, bun:'大___な約束を守る' },
+  { kanji:'持', yomi:'じ/もつ', strokes:9, bun:'傘を___って出かける' },
+  { kanji:'式', yomi:'しき', strokes:6, bun:'入学___に出席する' },
+  { kanji:'実', yomi:'じつ/みのる', strokes:8, bun:'努力が___を結ぶ' },
+  { kanji:'写', yomi:'しゃ/うつす', strokes:5, bun:'景色を写真に___す' },
+  { kanji:'者', yomi:'しゃ/もの', strokes:8, bun:'若___が集まる場所' },
+  { kanji:'主', yomi:'しゅ/ぬし', strokes:5, bun:'___人公を応援する' },
+  { kanji:'守', yomi:'しゅ/まもる', strokes:6, bun:'自然を大切に___る' },
+  { kanji:'取', yomi:'しゅ/とる', strokes:8, bun:'満点を___る' },
+  { kanji:'酒', yomi:'しゅ/サケ', strokes:10, bun:'大人はお___を飲む' },
   { kanji:'受', yomi:'じゅ/うける', strokes:8, bun:'テストを___ける' },
-  { kanji:'州', yomi:'しゅう/す', strokes:6, bun:'九___へ旅行する' },
-  { kanji:'拾', yomi:'しゅう/ひろう', strokes:9, bun:'ゴミを___う' },
-  { kanji:'終', yomi:'しゅう/おわる', strokes:11, bun:'授業が___わる' },
-  { kanji:'習', yomi:'しゅう/ならう', strokes:11, bun:'漢字を___う' },
-  { kanji:'集', yomi:'しゅう/あつめる', strokes:12, bun:'切手を___める' },
-  { kanji:'住', yomi:'じゅう/すむ', strokes:7, bun:'東京に___む' },
-  { kanji:'重', yomi:'じゅう/おもい', strokes:9, bun:'___い荷物' },
-  { kanji:'宿', yomi:'しゅく/やど', strokes:11, bun:'___題をやる' },
-  { kanji:'所', yomi:'しょ/ところ', strokes:8, bun:'近所の___へ行く' },
-  { kanji:'暑', yomi:'しょ/あつい', strokes:12, bun:'___い夏の日' },
-  { kanji:'助', yomi:'じょ/たすける', strokes:7, bun:'友達を___ける' },
-  { kanji:'昭', yomi:'しょう', strokes:9, bun:'___和の時代' },
-  { kanji:'消', yomi:'しょう/きえる', strokes:10, bun:'火が___える' },
-  { kanji:'商', yomi:'しょう', strokes:11, bun:'___売がはんじょうする' },
-  { kanji:'章', yomi:'しょう', strokes:11, bun:'文章の___立て' },
-  { kanji:'勝', yomi:'しょう/かつ', strokes:12, bun:'試合に___つ' },
-  { kanji:'乗', yomi:'じょう/のる', strokes:9, bun:'電車に___る' },
-  { kanji:'植', yomi:'しょく/うえる', strokes:12, bun:'苗を___える' },
+  { kanji:'州', yomi:'しゅう/す', strokes:6, bun:'本___は日本で一番大きい' },
+  { kanji:'拾', yomi:'しゅう/ひろう', strokes:9, bun:'きれいな石を___う' },
+  { kanji:'終', yomi:'しゅう/おわる', strokes:11, bun:'映画が___わる' },
+  { kanji:'習', yomi:'しゅう/ならう', strokes:11, bun:'ピアノを___う' },
+  { kanji:'集', yomi:'しゅう/あつめる', strokes:12, bun:'カードを___める' },
+  { kanji:'住', yomi:'じゅう/すむ', strokes:7, bun:'今の町に長く___む' },
+  { kanji:'重', yomi:'じゅう/おもい', strokes:9, bun:'___い荷物を運ぶ' },
+  { kanji:'宿', yomi:'しゅく/やど', strokes:11, bun:'___題を忘れない' },
+  { kanji:'所', yomi:'しょ/ところ', strokes:8, bun:'住所を書きとめる' },
+  { kanji:'暑', yomi:'しょ/あつい', strokes:12, bun:'___い夏休み' },
+  { kanji:'助', yomi:'じょ/たすける', strokes:7, bun:'困った人を___ける' },
+  { kanji:'昭', yomi:'しょう', strokes:9, bun:'___和の時代を調べる' },
+  { kanji:'消', yomi:'しょう/きえる', strokes:10, bun:'ろうそくの火が___える' },
+  { kanji:'商', yomi:'しょう', strokes:11, bun:'___売をする店' },
+  { kanji:'章', yomi:'しょう', strokes:11, bun:'文章の第___' },
+  { kanji:'勝', yomi:'しょう/かつ', strokes:12, bun:'リレーで___つ' },
+  { kanji:'乗', yomi:'じょう/のる', strokes:9, bun:'自転車に___る' },
+  { kanji:'植', yomi:'しょく/うえる', strokes:12, bun:'庭に花を___える' },
   { kanji:'申', yomi:'しん/もうす', strokes:5, bun:'名前を___し上げる' },
-  { kanji:'身', yomi:'しん/み', strokes:7, bun:'___長をはかる' },
-  { kanji:'神', yomi:'しん/かみ', strokes:9, bun:'___社でお参りする' },
-  { kanji:'真', yomi:'しん/ま', strokes:10, bun:'___剣にがんばる' },
-  { kanji:'深', yomi:'しん/ふかい', strokes:11, bun:'海の___くへもぐる' },
-  { kanji:'進', yomi:'しん/すすむ', strokes:11, bun:'前に___む' },
-  { kanji:'世', yomi:'せい/よ', strokes:5, bun:'___界を旅する' },
-  { kanji:'整', yomi:'せい/ととのえる', strokes:16, bun:'部屋を___える' },
-  { kanji:'昔', yomi:'せき/むかし', strokes:8, bun:'___の話を聞く' },
-  { kanji:'全', yomi:'ぜん', strokes:6, bun:'___員集合！' },
-  { kanji:'相', yomi:'そう/あい', strokes:9, bun:'___談にのる' },
-  { kanji:'送', yomi:'そう/おくる', strokes:9, bun:'手紙を___る' },
-  { kanji:'想', yomi:'そう/おもう', strokes:13, bun:'理想を空___する' },
-  { kanji:'息', yomi:'そく/いき', strokes:10, bun:'___を切らして走る' },
-  { kanji:'速', yomi:'そく/はやい', strokes:10, bun:'走るのが___い' },
-  { kanji:'族', yomi:'ぞく', strokes:11, bun:'家___で旅行する' },
-  { kanji:'他', yomi:'た/ほか', strokes:5, bun:'___の人に聞く' },
-  { kanji:'打', yomi:'だ/うつ', strokes:5, bun:'ボールを___つ' },
-  { kanji:'対', yomi:'たい', strokes:7, bun:'一___一で戦う' },
-  { kanji:'待', yomi:'たい/まつ', strokes:9, bun:'人を___つ' },
-  { kanji:'代', yomi:'だい/かわる', strokes:5, bun:'親の___わりにいく' },
-  { kanji:'第', yomi:'だい', strokes:11, bun:'___一回大会' },
-  { kanji:'題', yomi:'だい', strokes:18, bun:'宿___を出す' },
-  { kanji:'炭', yomi:'たん/すみ', strokes:9, bun:'___火焼き' },
-  { kanji:'短', yomi:'たん/みじかい', strokes:12, bun:'えんぴつが___い' },
-  { kanji:'談', yomi:'だん', strokes:15, bun:'相談にのる' },
-  { kanji:'着', yomi:'ちゃく/きる', strokes:12, bun:'服を___る' },
-  { kanji:'注', yomi:'ちゅう/そそぐ', strokes:8, bun:'___意深く聞く' },
-  { kanji:'柱', yomi:'ちゅう/はしら', strokes:9, bun:'家の___をささえる' },
-  { kanji:'帳', yomi:'ちょう', strokes:11, bun:'手___に書きこむ' },
-  { kanji:'調', yomi:'ちょう/しらべる', strokes:15, bun:'辞書で___べる' },
-  { kanji:'追', yomi:'つい/おう', strokes:9, bun:'にげた犯人を___う' },
-  { kanji:'丁', yomi:'てい', strokes:2, bun:'二___目を曲がる' },
-  { kanji:'庭', yomi:'てい/にわ', strokes:10, bun:'___で遊ぶ' },
-  { kanji:'笛', yomi:'てき/ふえ', strokes:11, bun:'___をふく' },
-  { kanji:'鉄', yomi:'てつ', strokes:13, bun:'___の棒' },
-  { kanji:'転', yomi:'てん/ころぶ', strokes:11, bun:'自転車に___ぶ' },
-  { kanji:'都', yomi:'と/みやこ', strokes:11, bun:'東京___庁' },
-  { kanji:'度', yomi:'ど/たび', strokes:9, bun:'今___こそ勝つ' },
-  { kanji:'投', yomi:'とう/なげる', strokes:7, bun:'ボールを___げる' },
-  { kanji:'豆', yomi:'とう/まめ', strokes:7, bun:'___を食べる' },
-  { kanji:'島', yomi:'とう/しま', strokes:10, bun:'小さな___に渡る' },
-  { kanji:'湯', yomi:'とう/ゆ', strokes:12, bun:'お___をわかす' },
-  { kanji:'登', yomi:'とう/のぼる', strokes:12, bun:'山に___る' },
-  { kanji:'等', yomi:'とう/ひとしい', strokes:12, bun:'___級を上げる' },
-  { kanji:'動', yomi:'どう/うごく', strokes:11, bun:'体が___く' },
-  { kanji:'童', yomi:'どう/わらべ', strokes:12, bun:'___話を読む' },
-  { kanji:'道', yomi:'どう/みち', strokes:12, bun:'___を歩く' },
-  { kanji:'特', yomi:'とく', strokes:10, bun:'___別なプレゼント' },
-  { kanji:'得', yomi:'とく/える', strokes:11, bun:'点を___る' },
-  { kanji:'毒', yomi:'どく', strokes:8, bun:'___を消す' },
+  { kanji:'身', yomi:'しん/み', strokes:7, bun:'___長がのびる' },
+  { kanji:'神', yomi:'しん/かみ', strokes:9, bun:'___社へお参りに行く' },
+  { kanji:'真', yomi:'しん/ま', strokes:10, bun:'___っ白な雪' },
+  { kanji:'深', yomi:'しん/ふかい', strokes:11, bun:'___い森を歩く' },
+  { kanji:'進', yomi:'しん/すすむ', strokes:11, bun:'時計の針が___む' },
+  { kanji:'世', yomi:'せい/よ', strokes:5, bun:'お___話になりました' },
+  { kanji:'整', yomi:'せい/ととのえる', strokes:16, bun:'列を___えて並ぶ' },
+  { kanji:'昔', yomi:'せき/むかし', strokes:8, bun:'___ばなしを聞く' },
+  { kanji:'全', yomi:'ぜん', strokes:6, bun:'力___開で走る' },
+  { kanji:'相', yomi:'そう/あい', strokes:9, bun:'___談に乗ってもらう' },
+  { kanji:'送', yomi:'そう/おくる', strokes:9, bun:'プレゼントを___る' },
+  { kanji:'想', yomi:'そう/おもう', strokes:13, bun:'将来のゆめを___像する' },
+  { kanji:'息', yomi:'そく/いき', strokes:10, bun:'大きくため___をつく' },
+  { kanji:'速', yomi:'そく/はやい', strokes:10, bun:'___いスピードで走る' },
+  { kanji:'族', yomi:'ぞく', strokes:11, bun:'家___で食事をする' },
+  { kanji:'他', yomi:'た/ほか', strokes:5, bun:'___の人の意見を聞く' },
+  { kanji:'打', yomi:'だ/うつ', strokes:5, bun:'太鼓を___つ' },
+  { kanji:'対', yomi:'たい', strokes:7, bun:'一___一の対決' },
+  { kanji:'待', yomi:'たい/まつ', strokes:9, bun:'公園で友達を___つ' },
+  { kanji:'代', yomi:'だい/かわる', strokes:5, bun:'父の___わりに買い物に行く' },
+  { kanji:'第', yomi:'だい', strokes:11, bun:'___一のコース' },
+  { kanji:'題', yomi:'だい', strokes:18, bun:'難しい問___を解く' },
+  { kanji:'炭', yomi:'たん/すみ', strokes:9, bun:'石___を運ぶ' },
+  { kanji:'短', yomi:'たん/みじかい', strokes:12, bun:'夜の時間が___い' },
+  { kanji:'談', yomi:'だん', strokes:15, bun:'放課後のじょう___' },
+  { kanji:'着', yomi:'ちゃく/きる', strokes:12, bun:'上着を___る' },
+  { kanji:'注', yomi:'ちゅう/そそぐ', strokes:8, bun:'___意事項を読む' },
+  { kanji:'柱', yomi:'ちゅう/はしら', strokes:9, bun:'家の太い___' },
+  { kanji:'丁', yomi:'てい', strokes:2, bun:'三___目を左に曲がる' },
+  { kanji:'帳', yomi:'ちょう', strokes:11, bun:'連絡___を書く' },
+  { kanji:'調', yomi:'ちょう/しらべる', strokes:15, bun:'図鑑で___べる' },
+  { kanji:'追', yomi:'つい/おう', strokes:9, bun:'逃げる敵を___いかける' },
+  { kanji:'定', yomi:'てい/さだめる', strokes:8, bun:'予定を___める' },
+  { kanji:'庭', yomi:'てい/にわ', strokes:10, bun:'___に花が咲く' },
+  { kanji:'笛', yomi:'てき/ふえ', strokes:11, bun:'ホイッスルの___を吹く' },
+  { kanji:'鉄', yomi:'てつ', strokes:13, bun:'___棒で遊ぶ' },
+  { kanji:'転', yomi:'てん/ころぶ', strokes:11, bun:'自転車を運___する' },
+  { kanji:'都', yomi:'と/みやこ', strokes:11, bun:'___合が悪くなる' },
+  { kanji:'度', yomi:'ど/たび', strokes:9, bun:'もう一___挑戦する' },
+  { kanji:'投', yomi:'とう/なげる', strokes:7, bun:'全力で投げる' },
+  { kanji:'豆', yomi:'とう/まめ', strokes:7, bun:'大___を食べる' },
+  { kanji:'島', yomi:'とう/しま', strokes:10, bun:'小さな無人___' },
+  { kanji:'湯', yomi:'とう/ゆ', strokes:12, bun:'お___を沸かす' },
+  { kanji:'登', yomi:'とう/のぼる', strokes:12, bun:'富士山に___る' },
+  { kanji:'等', yomi:'とう/ひとしい', strokes:12, bun:'一___賞をとる' },
+  { kanji:'動', yomi:'どう/うごく', strokes:11, bun:'___物が好きだ' },
+  { kanji:'童', yomi:'どう/わらべ', strokes:12, bun:'___謡を歌う' },
+  { kanji:'道', yomi:'どう/みち', strokes:12, bun:'書___を習う' },
+  { kanji:'特', yomi:'とく', strokes:10, bun:'___急列車に乗る' },
+  { kanji:'得', yomi:'とく/える', strokes:11, bun:'ヒントを___る' },
+  { kanji:'毒', yomi:'どく', strokes:8, bun:'消毒をする' },
   { kanji:'独', yomi:'どく/ひとり', strokes:9, bun:'___り立ちする' },
-  { kanji:'読', yomi:'どく/よむ', strokes:14, bun:'本を___む' },
-  { kanji:'内', yomi:'ない/うち', strokes:4, bun:'国___へ旅行する' },
-  { kanji:'南', yomi:'なん/みなみ', strokes:9, bun:'___の方へ行く' },
-  { kanji:'難', yomi:'なん/むずかしい', strokes:18, bun:'___問をとく' },
-  { kanji:'二', yomi:'に/ふたつ', strokes:2, bun:'___番目' },
-  { kanji:'肉', yomi:'にく', strokes:6, bun:'___を食べる' },
-  { kanji:'日', yomi:'にち/ひ', strokes:4, bun:'毎___の練習' },
-  { kanji:'入', yomi:'にゅう/はいる', strokes:2, bun:'中へ___る' },
-  { kanji:'熱', yomi:'ねつ/あつい', strokes:15, bun:'___いお茶' },
-  { kanji:'年', yomi:'ねん/とし', strokes:6, bun:'___に一度の行事' },
-  { kanji:'念', yomi:'ねん', strokes:8, bun:'___願がかなう' },
-  { kanji:'波', yomi:'は/なみ', strokes:8, bun:'___が高い' },
-  { kanji:'配', yomi:'はい/くばる', strokes:10, bun:'プリントを___る' },
-  { kanji:'倍', yomi:'ばい', strokes:10, bun:'二___の速さ' },
-  { kanji:'箱', yomi:'はこ', strokes:15, bun:'おもちゃの___' },
-  { kanji:'畑', yomi:'はたけ', strokes:9, bun:'___を耕す' },
-  { kanji:'発', yomi:'はつ', strokes:9, bun:'爆___する' },
-  { kanji:'反', yomi:'はん/そる', strokes:4, bun:'___対する' },
-  { kanji:'坂', yomi:'はん/さか', strokes:7, bun:'___をのぼる' },
-  { kanji:'板', yomi:'はん/いた', strokes:8, bun:'木の___' },
-  { kanji:'皮', yomi:'ひ/かわ', strokes:5, bun:'みかんの___' },
-  { kanji:'悲', yomi:'ひ/かなしい', strokes:12, bun:'___しいニュース' },
-  { kanji:'美', yomi:'び/うつくしい', strokes:9, bun:'___しい景色' },
-  { kanji:'鼻', yomi:'び/はな', strokes:14, bun:'___をかむ' },
-  { kanji:'筆', yomi:'ひつ/ふで', strokes:12, bun:'___ペンで書く' },
-  { kanji:'氷', yomi:'ひょう/こおり', strokes:5, bun:'___がとける' },
-  { kanji:'表', yomi:'ひょう/おもて', strokes:8, bun:'___情がゆたか' },
-  { kanji:'秒', yomi:'びょう', strokes:9, bun:'十___数える' },
-  { kanji:'病', yomi:'びょう/やまい', strokes:10, bun:'___気にかかる' },
-  { kanji:'品', yomi:'ひん/しな', strokes:9, bun:'作___を作る' },
-  { kanji:'負', yomi:'ふ/まける', strokes:9, bun:'試合に___ける' },
-  { kanji:'部', yomi:'ぶ', strokes:11, bun:'全___で何人？' },
-  { kanji:'服', yomi:'ふく', strokes:8, bun:'___をきる' },
-  { kanji:'福', yomi:'ふく', strokes:13, bun:'___引きをする' },
-  { kanji:'物', yomi:'ぶつ/もの', strokes:8, bun:'食べ___' },
-  { kanji:'平', yomi:'へい/たいら', strokes:5, bun:'___和な毎日' },
-  { kanji:'返', yomi:'へん/かえす', strokes:7, bun:'本を___す' },
-  { kanji:'勉', yomi:'べん/つとめる', strokes:10, bun:'___強をする' },
-  { kanji:'放', yomi:'ほう/はなす', strokes:8, bun:'___課後に遊ぶ' },
-  { kanji:'味', yomi:'み/あじ', strokes:8, bun:'___見をする' },
-  { kanji:'命', yomi:'めい/いのち', strokes:8, bun:'___を大切にする' },
-  { kanji:'面', yomi:'めん/おもて', strokes:9, bun:'表___をみがく' },
-  { kanji:'問', yomi:'もん/とう', strokes:11, bun:'___題をとく' },
-  { kanji:'役', yomi:'やく', strokes:7, bun:'主___を演じる' },
-  { kanji:'薬', yomi:'やく/くすり', strokes:16, bun:'___をのむ' },
-  { kanji:'由', yomi:'ゆう/よし', strokes:5, bun:'自___奔放' },
-  { kanji:'油', yomi:'ゆう/あぶら', strokes:8, bun:'___であげる' },
-  { kanji:'有', yomi:'ゆう/ある', strokes:6, bun:'名が___名' },
-  { kanji:'遊', yomi:'ゆう/あそぶ', strokes:12, bun:'公園で___ぶ' },
-  { kanji:'予', yomi:'よ', strokes:4, bun:'___定を決める' },
-  { kanji:'羊', yomi:'よう/ひつじ', strokes:6, bun:'___の毛' },
-  { kanji:'洋', yomi:'よう', strokes:9, bun:'大西___' },
-  { kanji:'葉', yomi:'よう/は', strokes:12, bun:'木の___' },
-  { kanji:'陽', yomi:'よう', strokes:12, bun:'太陽の___光' },
-  { kanji:'様', yomi:'よう/さま', strokes:14, bun:'王___になる' },
-  { kanji:'落', yomi:'らく/おちる', strokes:12, bun:'谷底に___ちる' },
-  { kanji:'流', yomi:'りゅう/ながれる', strokes:10, bun:'川が___れる' },
-  { kanji:'旅', yomi:'りょ/たび', strokes:10, bun:'___に出る' },
-  { kanji:'両', yomi:'りょう', strokes:6, bun:'___手に持つ' },
-  { kanji:'緑', yomi:'りょく/みどり', strokes:14, bun:'___の草原' },
-  { kanji:'礼', yomi:'れい', strokes:5, bun:'お___を言う' },
-  { kanji:'列', yomi:'れつ', strokes:6, bun:'___を作って待つ' },
-  { kanji:'練', yomi:'れん/ねる', strokes:14, bun:'___習をがんばる' },
-  { kanji:'路', yomi:'ろ/じ', strokes:13, bun:'道___を歩く' },
-  { kanji:'和', yomi:'わ/やわらぐ', strokes:8, bun:'平___を願う' },
-  { kanji:'漢', yomi:'かん', strokes:13, bun:'最強の___術師' }
+  { kanji:'読', yomi:'どく/よむ', strokes:14, bun:'音___の練習' },
+  { kanji:'内', yomi:'ない/うち', strokes:4, bun:'案内所へ行く' },
+  { kanji:'南', yomi:'なん/みなみ', strokes:9, bun:'___極大陸へ行く' },
+  { kanji:'肉', yomi:'にく', strokes:6, bun:'牛___を焼く' },
+  { kanji:'日', yomi:'にち/ひ', strokes:4, bun:'昨___のことを話す' },
+  { kanji:'入', yomi:'にゅう/はいる', strokes:2, bun:'お風呂に___る' },
+  { kanji:'熱', yomi:'ねつ/あつい', strokes:15, bun:'___い情熱を燃やす' },
+  { kanji:'年', yomi:'ねん/とし', strokes:6, bun:'一___生の時の思い出' },
+  { kanji:'念', yomi:'ねん', strokes:8, bun:'残念ながら負けた' },
+  { kanji:'波', yomi:'は/なみ', strokes:8, bun:'___乗りをする' },
+  { kanji:'配', yomi:'はい/くばる', strokes:10, bun:'お菓子を___る' },
+  { kanji:'倍', yomi:'ばい', strokes:10, bun:'体積が二___になる' },
+  { kanji:'箱', yomi:'はこ', strokes:15, bun:'宝物の___' },
+  { kanji:'畑', yomi:'はたけ', strokes:9, bun:'ジャガイモ___' },
+  { kanji:'発', yomi:'はつ', strokes:9, bun:'発明をする' },
+  { kanji:'反', yomi:'はん/そる', strokes:4, bun:'___対意見を言う' },
+  { kanji:'坂', yomi:'はん/さか', strokes:7, bun:'長い___道をのぼる' },
+  { kanji:'板', yomi:'はん/いた', strokes:8, bun:'黒___の文字を写す' },
+  { kanji:'皮', yomi:'ひ/かわ', strokes:5, bun:'リンゴの___をむく' },
+  { kanji:'悲', yomi:'ひ/かなしい', strokes:12, bun:'___しい別れ' },
+  { kanji:'美', yomi:'び/うつくしい', strokes:9, bun:'___しい夕焼け' },
+  { kanji:'鼻', yomi:'び/はな', strokes:14, bun:'___がつまる' },
+  { kanji:'筆', yomi:'ひつ/ふで', strokes:12, bun:'___箱の中身' },
+  { kanji:'氷', yomi:'ひょう/こおり', strokes:5, bun:'かき___を食べる' },
+  { kanji:'表', yomi:'ひょう/おもて', strokes:8, bun:'時計の___面' },
+  { kanji:'秒', yomi:'びょう', strokes:9, bun:'タイムを___単位ではかる' },
+  { kanji:'病', yomi:'びょう/やまい', strokes:10, bun:'___気にならない体' },
+  { kanji:'品', yomi:'ひん/しな', strokes:9, bun:'手芸作___' },
+  { kanji:'負', yomi:'ふ/まける', strokes:9, bun:'勝___を決める' },
+  { kanji:'部', yomi:'ぶ', strokes:11, bun:'全部でいくら？' },
+  { kanji:'服', yomi:'ふく', strokes:8, bun:'洋___を着替える' },
+  { kanji:'福', yomi:'ふく', strokes:13, bun:'___岡県へ行く' },
+  { kanji:'物', yomi:'ぶつ/もの', strokes:8, bun:'忘れ___をしない' },
+  { kanji:'平', yomi:'へい/たいら', strokes:5, bun:'___和な世界' },
+  { kanji:'返', yomi:'へん/かえす', strokes:7, bun:'返事をする' },
+  { kanji:'勉', yomi:'べん/つとめる', strokes:10, bun:'___強をがんばる' },
+  { kanji:'放', yomi:'ほう/はなす', strokes:8, bun:'放送を聴く' },
+  { kanji:'味', yomi:'み/あじ', strokes:8, bun:'___方を変える' },
+  { kanji:'命', yomi:'めい/いのち', strokes:8, bun:'___令を守る' },
+  { kanji:'面', yomi:'めん/おもて', strokes:9, bun:'地面の上を歩く' },
+  { kanji:'問', yomi:'もん/とう', strokes:11, bun:'問題に答える' },
+  { kanji:'役', yomi:'やく', strokes:7, bun:'役に立つ道具' },
+  { kanji:'薬', yomi:'やく/くすり', strokes:16, bun:'目___をさす' },
+  { kanji:'由', yomi:'ゆう/よし', strokes:5, bun:'理由を説明する' },
+  { kanji:'油', yomi:'ゆう/あぶら', strokes:8, bun:'___絵を描く' },
+  { kanji:'有', yomi:'ゆう/ある', strokes:6, bun:'有名な場所' },
+  { kanji:'遊', yomi:'ゆう/あそぶ', strokes:12, bun:'友達と___ぶ' },
+  { kanji:'予', yomi:'よ', strokes:4, bun:'予想が当たる' },
+  { kanji:'羊', yomi:'よう/ひつじ', strokes:6, bun:'___の毛で作った服' },
+  { kanji:'洋', yomi:'よう', strokes:9, bun:'___服を買う' },
+  { kanji:'葉', yomi:'よう/は', strokes:12, bun:'木の___がゆれる' },
+  { kanji:'陽', yomi:'よう', strokes:12, bun:'太___の光を浴びる' },
+  { kanji:'様', yomi:'よう/さま', strokes:14, bun:'色々な___子' },
+  { kanji:'落', yomi:'らく/おちる', strokes:12, bun:'落とし物をする' },
+  { kanji:'流', yomi:'りゅう/ながれる', strokes:10, bun:'流行の曲' },
+  { kanji:'旅', yomi:'りょ/たび', strokes:10, bun:'旅行カバン' },
+  { kanji:'両', yomi:'りょう', strokes:6, bun:'___親を大切にする' },
+  { kanji:'緑', yomi:'りょく/みどり', strokes:14, bun:'___豊かな公園' },
+  { kanji:'礼', yomi:'れい', strokes:5, bun:'お___状を書く' },
+  { kanji:'列', yomi:'れつ', strokes:6, bun:'一___になって並ぶ' },
+  { kanji:'練', yomi:'れん/ねる', strokes:14, bun:'___習を積み重ねる' },
+  { kanji:'路', yomi:'ろ/じ', strokes:13, bun:'線___の近く' },
+  { kanji:'和', yomi:'わ/やわらぐ', strokes:8, bun:'___服を着る' }
 ];
 
 let currentMondai = {};
 let paths = [];
 let isDrawing = false;
 let enemyHp = 100;
-
 const canvas = document.getElementById('draw-canvas');
 const ctx = canvas.getContext('2d');
 
@@ -360,12 +336,10 @@ function draw(e) {
   }
 }
 function end() { isDrawing = false; }
-
 function clearCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   paths = [];
 }
-
 function tryAttack() {
   const userStrokes = paths.length;
   if (userStrokes === currentMondai.strokes) {
@@ -374,7 +348,6 @@ function tryAttack() {
     alert(`画数が違います！ あなた：${userStrokes}画 / 正解：${currentMondai.strokes}画`);
   }
 }
-
 function executeOugi() {
   document.getElementById('app').classList.add('ougi-shake');
   const flash = document.createElement('div');
@@ -401,14 +374,13 @@ function executeOugi() {
     document.getElementById('enemy-char').style.filter = 'none';
     flash.remove();
     if(enemyHp <= 0) {
-      alert("敵を完全に討ち取ったり！");
+      alert("敵を討ち取ったり！");
       enemyHp = 100;
       document.getElementById('hp-bar').style.width = '100%';
     }
     nextQuestion();
   }, 600);
 }
-
 window.onload = () => {
   setupCanvas();
   nextQuestion();
