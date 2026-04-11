@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>真・漢術師 - 墨の試練 -</title>
+<title>真・漢術師 - 小三墨の試練 -</title>
 <style>
 :root {
   --sumi: #0a0a0a; --washi: #e8dcc4; --kin: #d4af37; --shu: #b22222; --ai: #003366; --ai-bright: #0088ff;
@@ -12,40 +12,32 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
 #app { display: flex; flex-direction: column; height: 100dvh; padding: 12px; gap: 10px; max-width: 500px; margin: 0 auto; position: relative; }
 
-/* 敵エリア */
-#enemy-area { height: 130px; display: flex; align-items: center; padding: 15px; background: rgba(178,34,34,0.1); border: 2px solid var(--shu); border-radius: 12px; z-index: 10; transition: background 0.2s; }
+#enemy-area { height: 130px; display: flex; align-items: center; padding: 15px; background: rgba(178,34,34,0.1); border: 2px solid var(--shu); border-radius: 12px; z-index: 10; }
 #enemy-visual { width: 80px; height: 100px; flex-shrink: 0; }
 #enemy-info { flex: 1; margin-left: 10px; }
 #enemy-hp-bar-bg { width: 100%; height: 12px; background: #222; border-radius: 6px; border: 1px solid var(--shu); margin-top: 5px; }
 #enemy-hp-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #600, var(--shu)); transition: width 0.3s; }
 
-/* キャンバス */
 #canvas-container { position: relative; flex: 1; background: #111; border: 2px solid var(--kin); border-radius: 12px; overflow: visible; }
 #draw-canvas { width: 100%; height: 100%; display: block; z-index: 5; position: relative; }
 
-/* 浮き上がる文字のエフェクト */
 .floating-kanji {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 100;
+    position: absolute; inset: 0; pointer-events: none; z-index: 100;
     filter: drop-shadow(0 0 20px var(--ai-bright)) brightness(1.8);
     animation: kanji-float-up 1.0s ease-out forwards;
 }
-
 @keyframes kanji-float-up {
     0% { transform: scale(1) translateY(0); opacity: 1; }
     50% { transform: scale(1.3) translateY(-30px); opacity: 1; }
     100% { transform: scale(1.5) translateY(-60px); opacity: 0; }
 }
 
-/* 漢術師エリア */
 #player-area { height: 120px; display: flex; align-items: center; padding: 10px; background: linear-gradient(135deg, #001a33, #000); border: 2px solid var(--ai); border-radius: 12px; }
 #player-avatar { width: 100px; height: 100px; border-radius: 8px; border: 1px solid var(--ai-bright); overflow: hidden; background: #000; flex-shrink: 0; }
 #player-avatar img { width: 100%; height: 100%; object-fit: cover; }
 #player-info { flex: 1; padding-left: 15px; }
-.status-label { font-size: 12px; color: var(--ai-bright); font-weight: bold; }
-.kanji-display { font-size: 20px; font-weight: bold; margin-top: 5px; }
+.status-label { font-size: 11px; color: var(--ai-bright); font-weight: bold; letter-spacing: 1px; }
+.kanji-display { font-size: 18px; font-weight: bold; margin-top: 5px; }
 
 #button-area { display: flex; gap: 10px; height: 60px; }
 .btn { flex: 1; border-radius: 8px; font-weight: bold; font-size: 16px; border: none; cursor: pointer; }
@@ -65,9 +57,9 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
       <svg viewBox="0 0 100 120"><path d="M50 10 C20 30 5 60 15 90 C25 110 75 110 85 90 C95 60 80 30 50 10 Z" fill="#000" stroke="#b22222" stroke-width="2"/></svg>
     </div>
     <div id="enemy-info">
-      <div style="font-size: 11px; color: #ff4d4d;">怨霊：誤字の魔物</div>
+      <div style="font-size: 11px; color: #ff4d4d;">怨霊：小三漢字の魔</div>
       <div id="enemy-hp-bar-bg"><div id="enemy-hp-bar"></div></div>
-      <div id="mondai-bun" style="font-size: 18px; font-weight: bold; margin-top: 8px;"></div>
+      <div id="mondai-bun" style="font-size: 16px; font-weight: bold; margin-top: 8px;"></div>
     </div>
   </div>
 
@@ -80,7 +72,7 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
       <img src="IMG_7089.png" alt="漢術師">
     </div>
     <div id="player-info">
-      <div class="status-label">正統派漢術師</div>
+      <div class="status-label">正統派漢術師（小三修業中）</div>
       <div id="mondai-yomi" class="kanji-display"></div>
     </div>
   </div>
@@ -92,52 +84,71 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
 </div>
 
 <script>
-// 音生成エンジン
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
 function playSound(type) {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
+    osc.connect(gain); gain.connect(audioCtx.destination);
     const now = audioCtx.currentTime;
-
-    if (type === 'shimmer') { // 文字が浮き上がる音
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, now);
-        osc.frequency.exponentialRampToValueAtTime(1760, now + 1);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 1);
-        osc.start();
-        osc.stop(now + 1);
-    } else if (type === 'hit') { // 敵に当たる音
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(150, now);
-        osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.linearRampToValueAtTime(0, now + 0.3);
-        osc.start();
-        osc.stop(now + 0.3);
-    } else if (type === 'fail') { // 失敗音
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(200, now);
-        osc.frequency.linearRampToValueAtTime(100, now + 0.5);
-        gain.gain.setValueAtTime(0.1, now);
-        gain.gain.linearRampToValueAtTime(0, now + 0.5);
-        osc.start();
-        osc.stop(now + 0.5);
-    }
+    if (type === 'shimmer') { osc.frequency.setValueAtTime(880, now); osc.frequency.exponentialRampToValueAtTime(1760, now + 1); gain.gain.setValueAtTime(0.1, now); osc.start(); osc.stop(now + 1); }
+    else if (type === 'hit') { osc.type = 'square'; osc.frequency.setValueAtTime(150, now); gain.gain.setValueAtTime(0.2, now); osc.start(); osc.stop(now + 0.3); }
+    else if (type === 'fail') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(200, now); gain.gain.setValueAtTime(0.1, now); osc.start(); osc.stop(now + 0.5); }
 }
 
+// 小学3年生 漢字201文字完全データ
 const MONDAI_LIST = [
-  { kanji:'悪', yomi:'読み：わるい', bun:'___いことをして謝る' },
-  { kanji:'医', yomi:'読み：い', bun:'___者に診てもらう' },
-  { kanji:'運', yomi:'読み：はこぶ', bun:'荷物を___ぶ' },
-  { kanji:'漢', yomi:'読み：かん', bun:'___字の練習' },
-  { kanji:'進', yomi:'読み：すすむ', bun:'前へ___む' },
-  { kanji:'鉄', yomi:'読み：てつ', bun:'___棒で遊ぶ' },
-  { kanji:'曜', yomi:'読み：よう', bun:'日曜日の___' }
+    { kanji: '悪', yomi: 'わるい', bun: '___いことをする' }, { kanji: '安', yomi: 'あんぜん', bun: '___ぜんな場所' }, { kanji: '暗', yomi: 'くらい', bun: '___い夜道' }, { kanji: '医', yomi: 'いしゃ', bun: '___しゃに行く' },
+    { kanji: '委', yomi: 'いいん', bun: '___いん会に出る' }, { kanji: '意', yomi: 'いけん', bun: '自分の___けん' }, { kanji: '育', yomi: 'そだてる', bun: '花を___てる' }, { kanji: '員', yomi: 'ぜんいん', bun: 'クラス___いん' },
+    { kanji: '院', yomi: 'びょういん', bun: '大きなびょう___' }, { kanji: '飲', yomi: 'のむ', bun: '水を___む' }, { kanji: '運', yomi: 'はこぶ', bun: '荷物を___ぶ' }, { kanji: '泳', yomi: 'およぐ', bun: 'プールで___ぐ' },
+    { kanji: '駅', yomi: 'えき', bun: '___のホーム' }, { kanji: '央', yomi: 'ちゅうおう', bun: 'ちゅう___分離帯' }, { kanji: '横', yomi: 'よこ', bun: '___を向く' }, { kanji: '屋', yomi: 'へや', bun: 'きれいな___や' },
+    { kanji: '温', yomi: 'あたたかい', bun: '___かいお風呂' }, { kanji: '化', yomi: 'おばけ', bun: 'お___け屋敷' }, { kanji: '荷', yomi: 'にもつ', bun: '___もつを運ぶ' }, { kanji: '界', yomi: 'せかい', bun: 'せ___一周' },
+    { kanji: '開', yomi: 'ひらく', bun: '本を___く' }, { kanji: '階', yomi: 'かいだん', bun: '___だんを上る' }, { kanji: '寒', yomi: 'さむい', bun: '___い冬の日' }, { kanji: '感', yomi: 'かんじる', bun: '寒さを___じる' },
+    { kanji: '漢', yomi: 'かんじ', bun: '___じの練習' }, { kanji: '館', yomi: 'としょかん', bun: 'としょ___で借りる' }, { kanji: '岸', yomi: 'かいがん', bun: 'かい___で遊ぶ' }, { kanji: '起', yomi: 'おきる', bun: '朝早く___きる' },
+    { kanji: '期', yomi: 'きかん', bun: 'テストの___かん' }, { kanji: '客', yomi: 'おきゃく', bun: '___きゃくさん' }, { kanji: '究', yomi: 'けんきゅう', bun: '虫のけん___' }, { kanji: '急', yomi: 'いそぐ', bun: '道を___ぐ' },
+    { kanji: '級', yomi: 'きゅう', bun: '三___のテスト' }, { kanji: '宮', yomi: 'きゅうでん', bun: '王様の___でん' }, { kanji: '球', yomi: 'たつきゅう', bun: 'たっ___をする' }, { kanji: '去', yomi: 'きょねん', bun: '___ねんの思い出' },
+    { kanji: '橋', yomi: 'はし', bun: '___をわたる' }, { kanji: '業', yomi: 'じゅぎょう', bun: '___ぎょうを受ける' }, { kanji: '曲', yomi: 'まがる', bun: '角を___がる' }, { kanji: '局', yomi: 'ゆうびんきょく', bun: 'ゆうびん___' },
+    { kanji: '銀', yomi: 'ぎんこう', bun: '___こうでお金をおろす' }, { kanji: '区', yomi: 'しなぐ', bun: '品川___' }, { kanji: '苦', yomi: 'くるしい', bun: '息が___しい' }, { kanji: '具', yomi: 'どうぐ', bun: '図工のどう___' },
+    { kanji: '君', yomi: 'きみ', bun: '___が大好きだ' }, { kanji: '係', yomi: 'かかり', bun: '給食___' }, { kanji: '軽', yomi: 'かるい', bun: '体重が___い' }, { kanji: '血', yomi: 'ち', bun: '___が止まる' },
+    { kanji: '決', yomi: 'きめる', bun: '役割を___める' }, { kanji: '研', yomi: 'けんきゅう', bun: '___きゅうを始める' }, { kanji: '県', yomi: 'さいたまけん', bun: '埼玉県（___）' }, { kanji: '庫', yomi: 'れいぞうこ', bun: 'れいぞう___' },
+    { kanji: '湖', yomi: 'みずうみ', bun: '大きな___' }, { kanji: '向', yomi: 'むく', bun: '前を___く' }, { kanji: '幸', yomi: 'しあわせ', bun: '___な毎日' }, { kanji: '港', yomi: 'みなと', bun: 'ふねが___に入る' },
+    { kanji: '号', yomi: 'ばんごう', bun: 'でんわばん___' }, { kanji: '根', yomi: 'ねっこ', bun: '木の___' }, { kanji: '祭', yomi: 'まつり', bun: '夏の___' }, { kanji: '皿', yomi: 'さら', bun: '___を洗う' },
+    { kanji: '仕', yomi: 'しごと', bun: '___ごとをする' }, { kanji: '死', yomi: 'しぬ', bun: '草が___ぬ' }, { kanji: '使', yomi: 'つかう', bun: 'ペンを___う' }, { kanji: '始', yomi: 'はじまる', bun: '会が___まる' },
+    { kanji: '指', yomi: 'ゆび', bun: '___をさす' }, { kanji: '歯', yomi: 'は', bun: '___をみがく' }, { kanji: '詩', yomi: 'し', bun: '___を作る' }, { kanji: '次', yomi: 'つぎ', bun: '___の番' },
+    { kanji: '事', yomi: 'しごと', bun: '大事な用___' }, { kanji: '持', yomi: 'もつ', bun: 'カバンを___つ' }, { kanji: '式', yomi: 'にゅうがくしき', bun: 'にゅうがく___' }, { kanji: '実', yomi: 'きのみ', bun: '木の___' },
+    { kanji: '写', yomi: 'しゃしん', bun: '___しんを撮る' }, { kanji: '者', yomi: 'いしゃ', bun: 'い___に診てもらう' }, { kanji: '主', yomi: 'しゅじん', bun: '___じん公' }, { kanji: '守', yomi: 'まもる', bun: '約束を___る' },
+    { kanji: '取', yomi: 'とる', bun: 'ゴミを___る' }, { kanji: '酒', yomi: 'さけ', bun: 'お___を飲む' }, { kanji: '受', yomi: 'うける', bun: 'テストを___ける' }, { kanji: '州', yomi: 'きゅうしゅう', bun: '九___地方' },
+    { kanji: '拾', yomi: 'ひろう', bun: '貝がらを___う' }, { kanji: '終', yomi: 'おわる', bun: '宿題が___わる' }, { kanji: '習', yomi: 'ならう', bun: 'ピアノを___う' }, { kanji: '集', yomi: 'あつめる', bun: '切手を___める' },
+    { kanji: '住', yomi: 'すむ', bun: '町に___む' }, { kanji: '重', yomi: 'おもい', bun: 'かばんが___い' }, { kanji: '宿', yomi: 'しゅくだい', bun: '___くだいをする' }, { kanji: '所', yomi: 'ばしょ', bun: '好きなば___' },
+    { kanji: '暑', yomi: 'あつい', bun: '___い夏休み' }, { kanji: '助', yomi: 'たすける', bun: '友だちを___ける' }, { kanji: '昭', yomi: 'しょうわ', bun: '___わ時代' }, { kanji: '消', yomi: 'きえる', bun: '火が___える' },
+    { kanji: '商', yomi: 'しょうばい', bun: '___ばいをする' }, { kanji: '章', yomi: 'だい一しょう', bun: '第一___' }, { kanji: '勝', yomi: 'かつ', bun: '試合に___つ' }, { kanji: '乗', yomi: 'のる', bun: 'バスに___る' },
+    { kanji: '植', yomi: 'うえる', bun: '苗を___える' }, { kanji: '申', yomi: 'もうす', bun: '名を___す' }, { kanji: '身', yomi: 'しんちょう', bun: '___ちょうを測る' }, { kanji: '神', yomi: 'かみさま', bun: '___さまにお祈り' },
+    { kanji: '真', yomi: 'まっしろ', bun: '___っ白な雪' }, { kanji: '深', yomi: 'ふかい', bun: '海が___い' }, { kanji: '進', yomi: 'すすむ', bun: '前へ___む' }, { kanji: '世', yomi: 'せかい', bun: '___かい平和' },
+    { kanji: '整', yomi: 'せいり', bun: 'せい___とん' }, { kanji: '昔', yomi: 'むかし', bun: '___ばなし' }, { kanji: '全', yomi: 'ぜんぶ', bun: '___ぶ食べる' }, { kanji: '相', yomi: 'あいて', bun: '___ての気持ち' },
+    { kanji: '送', yomi: 'おくる', bun: '手紙を___くる' }, { kanji: '想', yomi: 'よそう', bun: 'よ___外の出来事' }, { kanji: '息', yomi: 'いき', bun: '___を止める' }, { kanji: '速', yomi: 'はやい', bun: '足が___い' },
+    { kanji: '族', yomi: 'かぞく', bun: '___ぞく旅行' }, { kanji: '他', yomi: 'たにん', bun: '___にんの考え' }, { kanji: '打', yomi: 'うつ', bun: 'ボールを___つ' }, { kanji: '対', yomi: 'はんたい', bun: 'はん___する' },
+    { kanji: '待', yomi: 'まつ', bun: 'バスを___つ' }, { kanji: '代', yomi: 'かわりに', bun: '___わりにやる' }, { kanji: '第', yomi: 'だい一', bun: '___一回目' }, { kanji: '題', yomi: 'もんだい', bun: 'もん___を解く' },
+    { kanji: '炭', yomi: 'すみ', bun: '___火焼き' }, { kanji: '短', yomi: 'みじかい', bun: '鉛筆が___い' }, { kanji: '談', yomi: 'そうだん', bun: 'そう___に乗る' }, { kanji: '着', yomi: 'きる', bun: '服を___る' },
+    { kanji: '注', yomi: 'ちゅうい', bun: '___いを受ける' }, { kanji: '柱', yomi: 'はしら', bun: '家の___ら' }, { kanji: '帳', yomi: 'てちょう', bun: 'て___に書く' }, { kanji: '調', yomi: 'しらべる', bun: '意味を___べる' },
+    { kanji: '追', yomi: 'おう', bun: '犯人を___う' }, { kanji: '鉄', yomi: 'てつぼう', bun: '___ぼうの練習' }, { kanji: '典', yomi: 'じてん', bun: 'じ___を引く' }, { kanji: '伝', yomi: 'つたえる', bun: '気持ちを___える' },
+    { kanji: '都', yomi: 'みやこ', bun: '___の花園' }, { kanji: '度', yomi: 'いちど', bun: '一___だけ' }, { kanji: '投', yomi: 'なげる', bun: 'ボールを___げる' }, { kanji: '豆', yomi: 'まめ', bun: '___をまく' },
+    { kanji: '島', yomi: 'しま', bun: '南の___' }, { kanji: '湯', yomi: 'おゆ', bun: '___をわかす' }, { kanji: '登', yomi: 'のぼる', bun: '山に___る' }, { kanji: '等', yomi: 'びょうどう', bun: 'びょう___に分ける' },
+    { kanji: '動', yomi: 'うごく', bun: '体が___く' }, { kanji: '童', yomi: 'どうわ', bun: '___わ作家' }, { kanji: '農', yomi: 'のうぎょう', bun: '___ぎょうを営む' }, { kanji: '波', yomi: 'なみ', bun: '___が高い' },
+    { kanji: '配', yomi: 'くばる', bun: 'プリントを___る' }, { kanji: '倍', yomi: 'にばい', bun: '二___になる' }, { kanji: '箱', yomi: 'はこ', bun: '___に入れる' }, { kanji: '畑', yomi: 'はたけ', bun: '___で野菜を作る' },
+    { kanji: '発', yomi: 'はっぴょう', bun: '___ぴょうする' }, { kanji: '反', yomi: 'はんたい', bun: '___たいする' }, { kanji: '坂', yomi: 'さか', bun: '___道を上る' }, { kanji: '板', yomi: 'いた', bun: '木の___' },
+    { kanji: '皮', yomi: 'かわ', bun: 'りんごの___' }, { kanji: '悲', yomi: 'かなしい', bun: '___しい知らせ' }, { kanji: '美', yomi: 'うつくしい', bun: '___しい景色' }, { kanji: '鼻', yomi: 'はな', bun: '___が高い' },
+    { kanji: '筆', yomi: 'ふで', bun: '___で書く' }, { kanji: '氷', yomi: 'こおり', bun: '___を食べる' }, { kanji: '表', yomi: 'おもて', bun: '___を向く' }, { kanji: '秒', yomi: 'びょう', bun: '一___だけ' },
+    { kanji: '病', yomi: 'びょうき', bun: '___きになる' }, { kanji: '品', yomi: 'しなもの', bun: 'よい___もの' }, { kanji: '負', yomi: 'まける', bun: '試合に___ける' }, { kanji: '部', yomi: 'へや', bun: '___屋の掃除' },
+    { kanji: '服', yomi: 'ふく', bun: '___を着る' }, { kanji: '福', yomi: 'こうふく', bun: 'こう___な人生' }, { kanji: '物', yomi: 'もの', bun: 'わすれ___' }, { kanji: '平', yomi: 'たいら', bun: '___らな地面' },
+    { kanji: '返', yomi: 'かえす', bun: '本を___す' }, { kanji: '勉', yomi: 'べんきょう', bun: '___きょうする' }, { kanji: '放', yomi: 'はなす', bun: '金魚を___す' }, { kanji: '味', yomi: 'あじ', bun: 'いい___がする' },
+    { kanji: '命', yomi: 'いのち', bun: '___を大切に' }, { kanji: '面', yomi: 'かお', bun: '地面（じ___）' }, { kanji: '問', yomi: 'もんだい', bun: '___だいを解く' }, { kanji: '役', yomi: 'やくめ', bun: '大事な___め' },
+    { kanji: '薬', yomi: 'くすり', bun: '___を飲む' }, { kanji: '由', yomi: 'りゆう', bun: 'り___を言う' }, { kanji: '油', yomi: 'あぶら', bun: '___で揚げる' }, { kanji: '有', yomi: 'ゆうめい', bun: '___めいな人' },
+    { kanji: '遊', yomi: 'あそぶ', bun: '外で___ぶ' }, { kanji: '予', yomi: 'よてい', bun: '___てい表' }, { kanji: '羊', yomi: 'ひつじ', bun: '___の毛' }, { kanji: '洋', yomi: 'ようふく', bun: '___ふくを着る' },
+    { kanji: '葉', yomi: 'はっぱ', bun: '木の___' }, { kanji: '陽', yomi: 'たいよう', bun: 'たい___の光' }, { kanji: '様', yomi: 'おきゃくさま', bun: 'おきゃく___' }, { kanji: '落', yomi: 'おちる', bun: '木の実が___る' },
+    { kanji: '流', yomi: 'ながれる', bun: '川が___れる' }, { kanji: '旅', yomi: 'たび', bun: '___に出る' }, { kanji: '両', yomi: 'りょうほう', bun: '___ほうの足' }, { kanji: '緑', yomi: 'みどり', bun: '___の草原' },
+    { kanji: '礼', yomi: 'おれい', bun: '___を言う' }, { kanji: '列', yomi: 'ぎょうれつ', bun: '___に並ぶ' }, { kanji: '練', yomi: 'れんしゅう', bun: '___しゅうする' }, { kanji: '路', yomi: 'どうろ', bun: 'どう___を歩く' },
+    { kanji: '和', yomi: 'わしょく', bun: '___食を食べる' }, { kanji: '守', yomi: 'まもる', bun: '約束を___る' }, { kanji: '庭', yomi: 'にわ', bun: '___の掃除' }, { kanji: '泳', yomi: 'およぐ', bun: 'プールで___ぐ' },
+    { kanji: '整', yomi: 'せいり', bun: '___り整頓' }, { kanji: '商', yomi: 'あきなう', bun: '___いをする' }, { kanji: '放', yomi: 'はなす', bun: '___課後' }, { kanji: '拾', yomi: 'ひろう', bun: 'ごみを___う' },
+    { kanji: '登', yomi: 'のぼる', bun: '___山する' }, { kanji: '横', yomi: 'よこ', bun: '___断歩道' }, { kanji: '温', yomi: 'あたたかい', bun: '___かいスープ' }, { kanji: '屋', yomi: 'へや', bun: '___上にあがる' }
 ];
 
 let currentMondai = {};
@@ -160,7 +171,7 @@ function setup() {
 function next() {
   currentMondai = MONDAI_LIST[Math.floor(Math.random() * MONDAI_LIST.length)];
   document.getElementById('mondai-bun').innerText = currentMondai.bun;
-  document.getElementById('mondai-yomi').innerText = currentMondai.yomi;
+  document.getElementById('mondai-yomi').innerText = '読み：' + currentMondai.yomi;
   clearCanvas();
 }
 
@@ -175,7 +186,7 @@ function createFloatUpEffect() {
     img.style.width = canvas.width + 'px';
     img.style.height = canvas.height + 'px';
     container.appendChild(img);
-    playSound('shimmer'); // 浮上音
+    playSound('shimmer');
     setTimeout(() => img.remove(), 1000);
 }
 
@@ -208,23 +219,19 @@ async function recognizeAndAttack() {
     if (result && result[0] === currentMondai.kanji) {
       createFloatUpEffect();
       setTimeout(() => {
-          playSound('hit'); // 攻撃ヒット音
+          playSound('hit');
           document.getElementById('enemy-area').classList.add('shake');
           enemyHp -= 34;
           enemyHpBar.style.width = Math.max(0, enemyHp) + '%';
           setTimeout(() => {
               document.getElementById('enemy-area').classList.remove('shake');
-              if (enemyHp <= 0) { 
-                alert("精神統一！浄化完了なり！"); 
-                enemyHp = 100; 
-                enemyHpBar.style.width = '100%'; 
-              }
+              if (enemyHp <= 0) { alert("浄化完了！見事なり。"); enemyHp = 100; enemyHpBar.style.width = '100%'; }
               next();
           }, 400);
       }, 400);
     } else {
-      playSound('fail'); // 失敗音
-      alert(`判定失敗。正解は「${currentMondai.kanji}」なり。`);
+      playSound('fail');
+      alert(`力不足！正解は「${currentMondai.kanji}」なり。`);
       clearCanvas();
     }
   } catch(e) { alert("通信エラー"); }
