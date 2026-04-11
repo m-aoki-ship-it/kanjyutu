@@ -14,42 +14,38 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
 #app { display: flex; flex-direction: column; height: 100dvh; padding: 12px; gap: 10px; max-width: 500px; margin: 0 auto; }
 
-/* 敵エリア：より禍々しく */
-#enemy-area { height: 130px; display: flex; align-items: center; padding: 15px; background: rgba(178,34,34,0.1); border: 2px solid var(--shu); border-radius: 12px; position: relative; overflow: hidden; }
-#enemy-visual { width: 90px; height: 110px; display: flex; align-items: center; justify-content: center; z-index: 2; }
-#enemy-info { flex: 1; margin-left: 10px; z-index: 2; }
+/* 敵エリア */
+#enemy-area { height: 130px; display: flex; align-items: center; padding: 15px; background: rgba(178,34,34,0.1); border: 2px solid var(--shu); border-radius: 12px; position: relative; }
+#enemy-visual { width: 90px; height: 110px; display: flex; align-items: center; justify-content: center; }
 #enemy-hp-bar-bg { width: 100%; height: 14px; background: #222; border-radius: 7px; border: 1px solid var(--shu); margin-top: 5px; box-shadow: 0 0 10px var(--shu); }
 #enemy-hp-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #600, var(--shu)); transition: width 0.3s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
 
-/* 筆運びエリア（キャンバス） */
+/* キャンバス：ヒントを削除 */
 #canvas-container { position: relative; flex: 1; background: radial-gradient(circle, #2a2a2a 0%, #0a0a0a 100%); border: 3px solid var(--kin); border-radius: 15px; box-shadow: 0 0 20px rgba(212,175,55,0.2); }
 #draw-canvas { width: 100%; height: 100%; display: block; z-index: 3; position: relative; }
-#hint-display { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 160px; color: rgba(255, 255, 255, 0.02); pointer-events: none; }
 
-/* 漢術師（プレイヤー）エリア：劇的変化 */
+/* 漢術師エリア */
 #player-area { height: 120px; display: flex; align-items: center; padding: 10px; background: linear-gradient(135deg, rgba(0,51,102,0.4), rgba(0,0,0,0.8)); border: 2px solid var(--ai); border-radius: 12px; border-left: 6px solid var(--ai-bright); }
 #player-avatar { width: 100px; height: 100px; border-radius: 8px; border: 1px solid var(--ai-bright); overflow: hidden; background: #000; flex-shrink: 0; }
 #player-avatar img { width: 100%; height: 100%; object-fit: cover; }
 #player-info { flex: 1; padding-left: 15px; }
 .status-label { font-size: 12px; color: var(--ai-bright); letter-spacing: 2px; }
-.kanji-display { font-size: 20px; font-weight: bold; color: var(--washi); margin-top: 5px; text-shadow: 0 0 5px #000; }
+.kanji-display { font-size: 20px; font-weight: bold; color: var(--washi); margin-top: 5px; }
 
 /* ボタン */
 #button-area { display: flex; gap: 10px; height: 60px; padding-bottom: 5px; }
 .btn { flex: 1; border-radius: 8px; font-weight: bold; font-size: 16px; transition: 0.2s; border: none; }
 .btn-sub { background: var(--sumi-light); color: var(--kin); border: 1px solid var(--kin); }
-.btn-main { flex: 2; background: linear-gradient(to bottom, var(--ai-bright), var(--ai)); color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5); border: 1px solid #fff; box-shadow: 0 4px 15px rgba(0,136,255,0.4); }
+.btn-main { flex: 2; background: linear-gradient(to bottom, var(--ai-bright), var(--ai)); color: white; border: 1px solid #fff; box-shadow: 0 4px 15px rgba(0,136,255,0.4); }
 
 /* エフェクト */
 .shake { animation: shake 0.4s both; }
 @keyframes shake { 0%,100%{transform:translate(0,0)} 25%{transform:translate(-5px,0)} 75%{transform:translate(5px,0)} }
-.flash { position: fixed; inset: 0; background: #fff; z-index: 100; opacity: 0; pointer-events: none; }
 #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1000; color: var(--kin); font-size: 20px; letter-spacing: 5px; }
 </style>
 </head>
 <body>
 <div id="loading">鑑定中...</div>
-<div id="flash-overlay" class="flash"></div>
 <div id="app">
   <div id="enemy-area">
     <div id="enemy-visual">
@@ -57,8 +53,8 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
         <path d="M50 10 C20 30 5 60 15 90 C25 110 75 110 85 90 C95 60 80 30 50 10 Z" fill="#000" stroke="#b22222" stroke-width="2">
           <animate attributeName="d" dur="2s" repeatCount="indefinite" values="M50 10 C20 30 5 60 15 90 C25 110 75 110 85 90 C95 60 80 30 50 10 Z; M50 15 C10 35 5 70 20 95 C30 115 70 115 80 95 C95 70 90 35 50 15 Z; M50 10 C20 30 5 60 15 90 C25 110 75 110 85 90 C95 60 80 30 50 10 Z" />
         </path>
-        <circle cx="35" cy="55" r="5" fill="#f00"><animate attributeName="opacity" values="1;0.2;1" dur="1s" repeatCount="indefinite" /></circle>
-        <circle cx="65" cy="55" r="5" fill="#f00"><animate attributeName="opacity" values="1;0.2;1" dur="1s" repeatCount="indefinite" /></circle>
+        <circle cx="35" cy="55" r="5" fill="#f00"></circle>
+        <circle cx="65" cy="55" r="5" fill="#f00"></circle>
       </svg>
     </div>
     <div id="enemy-info">
@@ -69,13 +65,12 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
   </div>
 
   <div id="canvas-container">
-    <div id="hint-display"></div>
     <canvas id="draw-canvas"></canvas>
   </div>
 
   <div id="player-area">
     <div id="player-avatar">
-      <img src="http://googleusercontent.com/generated_image_content/0" alt="漢術師">
+      <img src="https://img.imageimg.net/artists/gemini/kanjutshi_hero.png" onerror="this.src='https://raw.githubusercontent.com/m-aoki-ship-it/m-aoki-ship-it.github.io/main/kanjutshi.png'; this.onerror=null;" alt="漢術師">
     </div>
     <div id="player-info">
       <div class="status-label">正統派漢術師</div>
@@ -90,6 +85,7 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
 </div>
 
 <script>
+// 問題データ
 const MONDAI_LIST = [
   { kanji:'悪', yomi:'読み：わるい', bun:'___いことをして謝る' },
   { kanji:'医', yomi:'読み：い', bun:'___者に診てもらう' },
@@ -114,15 +110,13 @@ function setup() {
   const rect = canvas.parentNode.getBoundingClientRect();
   canvas.width = rect.width; canvas.height = rect.height;
   ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 10; ctx.strokeStyle = '#fff';
-  // 外側に発光エフェクトを追加
-  ctx.shadowBlur = 10; ctx.shadowColor = '#0088ff';
+  ctx.shadowBlur = 8; ctx.shadowColor = '#0088ff';
 }
 
 function next() {
   currentMondai = MONDAI_LIST[Math.floor(Math.random() * MONDAI_LIST.length)];
   document.getElementById('mondai-bun').innerText = currentMondai.bun;
   document.getElementById('mondai-yomi').innerText = currentMondai.yomi;
-  document.getElementById('hint-display').innerText = currentMondai.kanji;
   clearCanvas();
 }
 
@@ -156,28 +150,19 @@ async function recognizeAndAttack() {
     else if (result && result.slice(1, 3).includes(currentMondai.kanji)) { damage = 15; }
 
     if (damage > 0) {
-      const flash = document.getElementById('flash-overlay');
-      flash.style.opacity = '0.8';
       document.getElementById('enemy-area').classList.add('shake');
-      
       enemyHp -= damage;
       enemyHpBar.style.width = Math.max(0, enemyHp) + '%';
-      
       setTimeout(() => {
-        flash.style.opacity = '0';
         document.getElementById('enemy-area').classList.remove('shake');
-        if (enemyHp <= 0) { 
-          alert("魔物の怨念を浄化した！"); 
-          enemyHp = 100; 
-          enemyHpBar.style.width = '100%'; 
-        }
+        if (enemyHp <= 0) { alert("魔物を浄化した！"); enemyHp = 100; enemyHpBar.style.width = '100%'; }
         next();
       }, 400);
     } else {
-      alert(`判定失敗。正解は「${currentMondai.kanji}」です。`);
+      alert(`力不足！ 正解は「${currentMondai.kanji}」です。`);
       clearCanvas();
     }
-  } catch(e) { alert("通信エラーが発生しました"); }
+  } catch(e) { alert("通信エラー"); }
   document.getElementById('loading').style.display = 'none';
 }
 
