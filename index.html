@@ -3,71 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>真・漢術師 - 墨の試練（構図修正版） -</title>
+<title>真・漢術師 - 墨の試練（完全修復版）</title>
 <style>
 :root {
-  --sumi: #0a0a0a; --washi: #f4f0e0; --kin: #c9a063; --shu: #8e2a2a; --ai: #1a3651; --ai-bright: #3a82f6; --kuro-tetsuki: #2b2b2b;
+  --sumi: #0a0a0a; --kin: #c9a063; --shu: #8e2a2a; --ai-bright: #3a82f6;
 }
 html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; background: #000; color: #fff; font-family: serif; }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
 
-/* 背景とオーバーレイ */
-#app { display: flex; flex-direction: column; height: 100dvh; padding: 10px; gap: 8px; max-width: 500px; margin: 0 auto; position: relative; z-index: 10; }
-#bg-layer { position: fixed; inset: 0; background: url('IMG_7089.png') no-repeat center center; background-size: cover; filter: blur(5px) brightness(0.3); z-index: 0; }
+/* 背景レイヤー */
+#bg-layer { position: fixed; inset: 0; background: url('IMG_7089.png') no-repeat center center; background-size: cover; filter: brightness(0.2); z-index: 1; }
 
-/* 漢術師（右下配置） */
-#player-avatar-fixed { 
-    position: fixed; bottom: -30px; right: -30px; width: 90%; max-width: 450px; z-index: 5; pointer-events: none; opacity: 0.9;
+/* キャラクター（右側中層） */
+#player-avatar { 
+    position: fixed; bottom: -5vh; right: -5vw; width: 80vw; max-width: 450px; z-index: 5; pointer-events: none;
 }
-#player-avatar-fixed img { width: 100%; height: auto; display: block; filter: drop-shadow(0 0 15px #000); }
+#player-avatar img { width: 100%; height: auto; display: block; filter: drop-shadow(0 0 10px #000); }
 
-/* 左上：怨霊エリア */
-#enemy-area { position: relative; z-index: 20; width: 60%; align-self: flex-start; display: flex; align-items: center; padding: 10px; background: rgba(0,0,0,0.7); border: 2px solid var(--shu); border-radius: 10px; height: 90px; }
-#enemy-visual { width: 50px; height: 65px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
-#enemy-info { flex: 1; margin-left: 10px; }
-#enemy-hp-bar-bg { width: 100%; height: 8px; background: #222; border-radius: 4px; border: 1px solid var(--shu); margin-top: 3px; }
-#enemy-hp-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #600, var(--shu)); transition: width 0.3s; }
-#enemy-name { font-size: 10px; color: #ff8a8a; }
-#mondai-bun { font-size: 14px; font-weight: bold; margin-top: 5px; color: #fff; text-shadow: 1px 1px 2px #000; }
+/* UIメインコンテナ */
+#app { position: relative; display: flex; flex-direction: column; height: 100dvh; padding: 15px; z-index: 10; max-width: 500px; margin: 0 auto; }
 
-/* 中央：キャンバス（回答エリア） */
-#canvas-container { position: relative; z-index: 15; flex: 1; background: rgba(255,255,255,0.1); border: 2px solid var(--kin); border-radius: 10px; overflow: visible; margin: 5px 0; box-shadow: inset 0 0 15px rgba(0,0,0,0.5); }
-#draw-canvas { width: 100%; height: 100%; display: block; z-index: 15; position: relative; }
-.floating-kanji { position: absolute; inset: 0; pointer-events: none; z-index: 100; filter: drop-shadow(0 0 20px var(--ai-bright)) brightness(1.8); animation: kanji-float-up 1.0s ease-out forwards; }
-@keyframes kanji-float-up { 0% { transform: scale(1) translateY(0); opacity: 1; } 100% { transform: scale(1.5) translateY(-80px); opacity: 0; } }
+/* 怨霊エリア（左上） */
+#enemy-area { width: 65%; background: rgba(0,0,0,0.8); border: 2px solid var(--shu); border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+#enemy-hp-bar-bg { width: 100%; height: 8px; background: #222; border: 1px solid var(--shu); margin: 5px 0; }
+#enemy-hp-bar { height: 100%; width: 100%; background: var(--shu); transition: width 0.3s; }
+#mondai-bun { font-size: 1.2rem; font-weight: bold; text-shadow: 2px 2px 4px #000; }
 
-/* 下部UI（左下配置） */
-#bottom-ui { position: relative; z-index: 20; display: flex; flex-direction: column; gap: 5px; width: 60%; align-self: flex-start; }
-#mondai-info-row { display: flex; gap: 5px; }
-#mondai-yomi { flex: 2; padding: 8px; background: rgba(244,240,224,0.95); color: var(--sumi); border: 1px solid var(--kin); border-radius: 5px; font-size: 14px; font-weight: bold; text-align: center; }
-#player-status { flex: 1; padding: 8px; background: rgba(26,54,81,0.8); border: 1px solid var(--ai-bright); border-radius: 5px; font-size: 12px; color: #fff; text-align: center; display: flex; align-items: center; justify-content: center; }
+/* 手書きエリア（中央・最前面） */
+#canvas-container { 
+    flex: 1; position: relative; z-index: 100; /* キャラクタより手前に配置 */
+    background: rgba(255,255,255,0.05); border: 2px solid var(--kin); border-radius: 10px; margin: 10px 0;
+}
+#draw-canvas { width: 100%; height: 100%; cursor: crosshair; }
 
+/* 下部UI（左側） */
+#bottom-ui { width: 65%; display: flex; flex-direction: column; gap: 8px; }
+#mondai-yomi { background: rgba(244,240,224,0.9); color: var(--sumi); padding: 8px; border-radius: 5px; font-weight: bold; text-align: center; font-size: 0.9rem; }
 #button-area { display: flex; gap: 8px; height: 50px; }
-.btn { flex: 1; border-radius: 5px; font-weight: bold; font-size: 14px; border: none; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-.btn-sub { flex: 1; background: var(--kuro-tetsuki); color: var(--kin); border: 1px solid var(--kin); }
-.btn-main { flex: 2; background: linear-gradient(to bottom, var(--ai-bright), var(--ai)); color: white; border: 1px solid #fff; text-shadow: 1px 1px 2px #000;}
+.btn { flex: 1; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; font-size: 0.9rem; }
+.btn-sub { background: #333; color: var(--kin); border: 1px solid var(--kin); }
+.btn-main { flex: 1.5; background: linear-gradient(to bottom, var(--ai-bright), #1a3651); color: white; border: 1px solid #fff; }
 
-#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 1000; color: var(--kin); font-size: 18px; }
+#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; color: var(--kin); }
+.floating-kanji { position: absolute; pointer-events: none; z-index: 200; filter: brightness(2) drop-shadow(0 0 10px var(--ai-bright)); animation: floatUp 1s ease-out forwards; }
+@keyframes floatUp { from { transform: scale(1) translateY(0); opacity: 1; } to { transform: scale(1.5) translateY(-100px); opacity: 0; } }
 .shake { animation: shake 0.4s; }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-10px)} 75%{transform:translateX(10px)} }
 </style>
 </head>
 <body>
 <div id="bg-layer"></div>
-<div id="player-avatar-fixed">
-    <img src="https://raw.githubusercontent.com/m-aoki-ship-it/m-aoki-ship-it.github.io/main/IMG_7089.png" alt="漢術師">
+
+<div id="player-avatar">
+    <img src="8632236f-1a48-494f-baad-8a17ff9a36fd.png" alt="漢術師">
 </div>
 
 <div id="app">
   <div id="enemy-area">
-    <div id="enemy-visual">
-      <svg viewBox="0 0 100 120" width="100%" height="100%"><path d="M50 10 C20 30 5 60 15 90 C25 110 75 110 85 90 C95 60 80 30 50 10 Z" fill="#000" stroke="#b22222" stroke-width="2" /></svg>
-    </div>
-    <div id="enemy-info">
-      <div id="enemy-name">怨霊：誤字の魔物</div>
-      <div id="enemy-hp-bar-bg"><div id="enemy-hp-bar"></div></div>
-      <div id="mondai-bun"></div>
-    </div>
+    <div style="font-size: 0.7rem; color: #ff8a8a;">怨霊：文字崩れの怪</div>
+    <div id="enemy-hp-bar-bg"><div id="enemy-hp-bar"></div></div>
+    <div id="mondai-bun">---</div>
   </div>
 
   <div id="canvas-container">
@@ -75,13 +70,10 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
   </div>
 
   <div id="bottom-ui">
-    <div id="mondai-info-row">
-      <div id="mondai-yomi"></div>
-      <div id="player-status">漢術師</div>
-    </div>
+    <div id="mondai-yomi">読み：---</div>
     <div id="button-area">
-      <button class="btn btn-sub" onclick="clearCanvas()">拭く</button>
-      <button class="btn btn-main" onclick="recognizeAndAttack()">漢術発動</button>
+      <button class="btn btn-sub" onclick="clearCanvas()">墨を拭く</button>
+      <button class="btn btn-main" onclick="recognizeAndAttack()">漢術発動！</button>
     </div>
   </div>
 </div>
@@ -90,94 +82,74 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
 
 <script>
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
 function playSound(type) {
-    let audio;
-    if (type === 'write') {
-        audio = new Audio('https://raw.githubusercontent.com/m-aoki-ship-it/m-aoki-ship-it.github.io/main/%E6%96%87%E5%AD%97%E8%A1%A8%E7%A4%BA%E3%81%AE%E shock音1.mp3');
-    } else if (type === 'hit') {
-        audio = new Audio('https://raw.githubusercontent.com/m-aoki-ship-it/m-aoki-ship-it.github.io/main/%E6%94%BB%E6%92%83.mp3');
-    } else if (type === 'fail') {
-        // audio = new Audio('fail.mp3');
-    }
-    if (audio) {
+    const files = { 'write': '文字表示の衝撃音1.mp3', 'hit': '攻撃.mp3' };
+    if (files[type]) {
+        const audio = new Audio(files[type]);
         audio.volume = 0.5;
-        audio.play().catch(e => console.log("再生失敗:", e));
+        audio.play().catch(() => {});
     }
 }
 
-// 漢字データ省略（201文字のリストをここに挿入してください）
-const MONDAI_LIST = [ { kanji: '曜', yomi: 'よう', bun: '日曜日の___' }, { kanji: '悪', yomi: 'わるい', bun: '___いことをする' }];
+// 201文字のリスト（一部抜粋。元のリストをここに貼り付けてください）
+const MONDAI_LIST = [
+    { kanji: '悪', yomi: 'わるい', bun: '___いことをする' },
+    { kanji: '屋', yomi: 'へや', bun: 'きれいな___や' },
+    { kanji: '曜', yomi: 'よう', bun: '日曜日の___' }
+];
 
 let currentMondai = {}, inkData = [], currentStroke = [], isDrawing = false, enemyHp = 100;
 const canvas = document.getElementById('draw-canvas'), ctx = canvas.getContext('2d'), enemyHpBar = document.getElementById('enemy-hp-bar');
 
 function setup() {
-  const rect = canvas.parentNode.getBoundingClientRect();
-  canvas.width = rect.width; canvas.height = rect.height;
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 10; ctx.strokeStyle = '#fff'; ctx.shadowBlur = 4; ctx.shadowColor = '#0088ff';
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width; canvas.height = rect.height;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 10; ctx.strokeStyle = '#fff';
 }
 
 function next() {
-  currentMondai = MONDAI_LIST[Math.floor(Math.random() * MONDAI_LIST.length)];
-  document.getElementById('mondai-bun').innerText = currentMondai.bun;
-  document.getElementById('mondai-yomi').innerText = '読み：' + currentMondai.yomi;
-  clearCanvas(); setup(); 
+    currentMondai = MONDAI_LIST[Math.floor(Math.random() * MONDAI_LIST.length)];
+    document.getElementById('mondai-bun').innerText = currentMondai.bun;
+    document.getElementById('mondai-yomi').innerText = '読み：' + currentMondai.yomi;
+    clearCanvas();
 }
 
 function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); inkData = []; }
 
-function createFloatUpEffect() {
-    const dataUrl = canvas.toDataURL();
-    const img = document.createElement('img');
-    img.src = dataUrl;
-    img.className = 'floating-kanji';
-    document.getElementById('canvas-container').appendChild(img);
-    setTimeout(() => img.remove(), 1000);
-}
-
 function start(x, y) { 
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    isDrawing = true; playSound('write'); currentStroke = [[x], [y], [0]]; ctx.beginPath(); ctx.moveTo(x, y); 
+    isDrawing = true; playSound('write');
+    currentStroke = [[x], [y], [0]]; ctx.beginPath(); ctx.moveTo(x, y); 
 }
 function move(x, y) { if (!isDrawing) return; ctx.lineTo(x, y); ctx.stroke(); currentStroke[0].push(x); currentStroke[1].push(y); currentStroke[2].push(0); }
 function end() { if (isDrawing) inkData.push(currentStroke); isDrawing = false; }
 
-canvas.addEventListener('touchstart', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); start(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top); }, {passive: false});
-canvas.addEventListener('touchmove', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); move(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top); }, {passive: false});
+canvas.addEventListener('touchstart', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); start(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top); });
+canvas.addEventListener('touchmove', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); move(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top); });
 window.addEventListener('touchend', end);
-canvas.addEventListener('mousedown', e => { const r = canvas.getBoundingClientRect(); start(e.clientX-r.left, e.clientY-r.top); });
-window.addEventListener('mousemove', e => { if(isDrawing) { const r = canvas.getBoundingClientRect(); move(e.clientX-r.left, e.clientY-r.top); } });
-window.addEventListener('mouseup', end);
 
 async function recognizeAndAttack() {
-  if (inkData.length === 0) return;
-  document.getElementById('loading').style.display = 'flex';
-  try {
-    const res = await fetch(`https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ app_version: 0.4, requests: [{ ink: inkData, language: "ja" }] }) });
-    const data = await res.json();
-    const result = data[1][0][1];
-    
-    if (result && result[0] === currentMondai.kanji) {
-      createFloatUpEffect();
-      setTimeout(() => {
-          playSound('hit');
-          document.getElementById('enemy-area').classList.add('shake');
-          enemyHp -= 34; enemyHpBar.style.width = Math.max(0, enemyHp) + '%';
-          setTimeout(() => {
-              document.getElementById('enemy-area').classList.remove('shake');
-              if (enemyHp <= 0) { alert("怨霊を浄化した！"); enemyHp = 100; enemyHpBar.style.width = '100%'; }
-              next();
-          }, 400);
-      }, 400);
-    } else {
-      alert(`正解は「${currentMondai.kanji}」なり。`); clearCanvas(); setup(); 
-    }
-  } catch(e) { alert("通信エラー"); }
-  document.getElementById('loading').style.display = 'none';
+    if (inkData.length === 0) return;
+    document.getElementById('loading').style.display = 'flex';
+    try {
+        const res = await fetch(`https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ app_version: 0.4, requests: [{ ink: inkData, language: "ja" }] }) });
+        const data = await res.json();
+        const result = data[1][0][1];
+        if (result && result[0] === currentMondai.kanji) {
+            playSound('hit');
+            document.getElementById('enemy-area').classList.add('shake');
+            enemyHp -= 34; enemyHpBar.style.width = Math.max(0, enemyHp) + '%';
+            setTimeout(() => {
+                document.getElementById('enemy-area').classList.remove('shake');
+                if (enemyHp <= 0) { alert("浄化完了！"); enemyHp = 100; enemyHpBar.style.width = '100%'; }
+                next();
+            }, 400);
+        } else { alert(`力不足！正解は「${currentMondai.kanji}」`); clearCanvas(); }
+    } catch(e) { alert("通信エラー"); }
+    document.getElementById('loading').style.display = 'none';
 }
 
-window.onload = () => { next(); setup(); };
+window.onload = () => { setup(); next(); };
 window.onresize = setup;
 </script>
 </body>
