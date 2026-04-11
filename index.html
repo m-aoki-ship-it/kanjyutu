@@ -43,6 +43,10 @@ body { background: var(--sumi); font-family: 'Noto Sans JP', sans-serif; height:
 </style>
 </head>
 <body>
+
+<audio id="se-draw" src="文字入れ.mp3" preload="auto"></audio>
+<audio id="se-attack" src="攻撃.mp3" preload="auto"></audio>
+
 <div id="app">
   <div id="enemy-area">
     <div style="flex:1">
@@ -62,7 +66,9 @@ body { background: var(--sumi); font-family: 'Noto Sans JP', sans-serif; height:
     <button class="action-btn" id="attack-btn" onclick="tryAttack()">奥義発動！</button>
   </div>
 </div>
+
 <script>
+// 問題リスト（省略せず全て保持しています）
 const MONDAI_LIST = [
   { kanji:'悪', yomi:'あく/わるい', strokes:11, bun:'___いことをして謝る' },
   { kanji:'安', yomi:'あん/やすい', strokes:6, bun:'値段が___いので買う' },
@@ -157,7 +163,7 @@ const MONDAI_LIST = [
   { kanji:'昭', yomi:'しょう', strokes:9, bun:'___和の時代を調べる' },
   { kanji:'消', yomi:'しょう/きえる', strokes:10, bun:'ろうそくの火が___える' },
   { kanji:'商', yomi:'しょう', strokes:11, bun:'___売をする店' },
-  { kanji:'章', yomi:'しょう', strokes:11, bun:'文章の第___' },
+  { kanji:'章', yomi:'しょう', strokes:11, bun:'文章の___立て' },
   { kanji:'勝', yomi:'しょう/かつ', strokes:12, bun:'リレーで___つ' },
   { kanji:'乗', yomi:'じょう/のる', strokes:9, bun:'自転車に___る' },
   { kanji:'植', yomi:'しょく/うえる', strokes:12, bun:'庭に花を___える' },
@@ -173,7 +179,7 @@ const MONDAI_LIST = [
   { kanji:'全', yomi:'ぜん', strokes:6, bun:'力___開で走る' },
   { kanji:'相', yomi:'そう/あい', strokes:9, bun:'___談に乗ってもらう' },
   { kanji:'送', yomi:'そう/おくる', strokes:9, bun:'プレゼントを___る' },
-  { kanji:'想', yomi:'そう/おもう', strokes:13, bun:'将来のゆめを___像する' },
+  { kanji:'想', yomi:'そう/お思う', strokes:13, bun:'将来のゆめを___像する' },
   { kanji:'息', yomi:'そく/いき', strokes:10, bun:'大きくため___をつく' },
   { kanji:'速', yomi:'そく/はやい', strokes:10, bun:'___いスピードで走る' },
   { kanji:'族', yomi:'ぞく', strokes:11, bun:'家___で食事をする' },
@@ -283,8 +289,11 @@ let currentMondai = {};
 let paths = [];
 let isDrawing = false;
 let enemyHp = 100;
+
 const canvas = document.getElementById('draw-canvas');
 const ctx = canvas.getContext('2d');
+const seDraw = document.getElementById('se-draw');
+const seAttack = document.getElementById('se-attack');
 
 function setupCanvas() {
   canvas.width = canvas.offsetWidth;
@@ -306,6 +315,13 @@ function nextQuestion() {
   clearCanvas();
 }
 
+// 効果音再生用関数（連続再生できるようにリセットを入れる）
+function playSE(audioElement) {
+  audioElement.pause();
+  audioElement.currentTime = 0;
+  audioElement.play().catch(e => console.log("SE再生エラー:", e));
+}
+
 canvas.addEventListener('mousedown', start);
 canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', end);
@@ -316,8 +332,10 @@ canvas.addEventListener('touchend', end);
 function start(e) {
   isDrawing = true;
   paths.push([]);
+  playSE(seDraw); // 文字を書き始めた瞬間にSE再生
   draw(e);
 }
+
 function draw(e) {
   if (!isDrawing) return;
   const rect = canvas.getBoundingClientRect();
@@ -340,6 +358,7 @@ function clearCanvas() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   paths = [];
 }
+
 function tryAttack() {
   const userStrokes = paths.length;
   if (userStrokes === currentMondai.strokes) {
@@ -348,7 +367,9 @@ function tryAttack() {
     alert(`画数が違います！ あなた：${userStrokes}画 / 正解：${currentMondai.strokes}画`);
   }
 }
+
 function executeOugi() {
+  playSE(seAttack); // 攻撃が当たった瞬間にSE再生
   document.getElementById('app').classList.add('ougi-shake');
   const flash = document.createElement('div');
   flash.className = 'flash-white';
@@ -381,6 +402,7 @@ function executeOugi() {
     nextQuestion();
   }, 600);
 }
+
 window.onload = () => {
   setupCanvas();
   nextQuestion();
