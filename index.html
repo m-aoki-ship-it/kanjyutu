@@ -3,57 +3,99 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>漢術師 - 安定版 -</title>
+<title>漢術師 - 安定版V2 -</title>
 <style>
 :root { --sumi: #0d0b08; --kin: #c9a84c; --shu: #c0392b; --washi: #f2ead8; }
-html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; background: var(--sumi); color: var(--washi); font-family: sans-serif; }
+
+/* 画面の揺れやスクロールを徹底排除 */
+html, body { 
+  overflow: hidden; height: 100%; position: fixed; width: 100%; 
+  background: var(--sumi); color: var(--washi); font-family: sans-serif; 
+}
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
-#app { display: flex; flex-direction: column; height: 100dvh; padding: 12px; gap: 8px; }
-#enemy-area { padding: 10px; background: rgba(192,57,43,0.2); border: 1px solid var(--shu); border-radius: 4px; }
-#hp-bar-bg { width: 100%; height: 8px; background: #333; margin-top: 5px; }
+
+/* 画面構成を「上・中・下」で固定 */
+#app { 
+  display: flex; flex-direction: column; height: 100dvh; 
+  padding: 10px; gap: 5px; 
+}
+
+/* 上部：敵エリア */
+#enemy-area { 
+  height: 60px; padding: 8px; background: rgba(192,57,43,0.2); 
+  border: 1px solid var(--shu); border-radius: 4px; flex-shrink: 0;
+}
+#hp-bar-bg { width: 100%; height: 6px; background: #333; margin-top: 4px; }
 #hp-bar { height: 100%; width: 100%; background: var(--shu); transition: width 0.3s; }
-#canvas-container { position: relative; flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--kin); border-radius: 8px; }
-#draw-canvas { width: 100%; height: 100%; cursor: crosshair; }
-#hint-display { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 150px; color: rgba(255, 255, 255, 0.05); pointer-events: none; z-index: 1; }
-.action-btn { padding: 12px; font-size: 16px; background: #1a1610; color: var(--kin); border: 1px solid var(--kin); font-weight: bold; }
-#attack-btn { background: var(--shu); color: white; flex: 1; }
-#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 100; }
+
+/* 中央上：問題エリア */
+#mondai-area { 
+  height: 70px; text-align:center; display: flex; flex-direction: column; 
+  justify-content: center; flex-shrink: 0;
+}
+
+/* 中央：キャンバス（ここを可変にしてボタンを押し出さないようにする） */
+#canvas-container { 
+  position: relative; flex: 1; min-height: 0; /* flex-growで余った場所を埋める */
+  background: rgba(255,255,255,0.05); border: 1px solid var(--kin); border-radius: 8px;
+}
+#draw-canvas { width: 100%; height: 100%; display: block; }
+#hint-display { 
+  position: absolute; inset: 0; display: flex; align-items: center; 
+  justify-content: center; font-size: 180px; color: rgba(255, 255, 255, 0.05); 
+  pointer-events: none; z-index: 1; 
+}
+
+/* 下部：ボタンエリア（絶対に消えないように高さを固定） */
+#button-area { 
+  height: 60px; display: flex; gap: 8px; flex-shrink: 0; margin-top: 5px;
+}
+.action-btn { 
+  flex: 1; font-size: 16px; background: #1a1610; color: var(--kin); 
+  border: 1px solid var(--kin); font-weight: bold; border-radius: 4px;
+}
+#attack-btn { background: var(--shu); color: white; border-color: var(--shu-bright); flex: 2; }
+
+#loading { 
+  position: fixed; inset: 0; background: rgba(0,0,0,0.8); 
+  display: none; align-items: center; justify-content: center; z-index: 100; 
+}
 </style>
 </head>
 <body>
 
 <div id="loading">鑑定中...</div>
-<audio id="se-attack" src="攻撃.mp3" preload="auto"></audio>
 
 <div id="app">
   <div id="enemy-area">
-    <div id="enemy-name">誤字の魔物</div>
+    <div style="font-size: 12px;">誤字の魔物</div>
     <div id="hp-bar-bg"><div id="hp-bar"></div></div>
   </div>
-  <div id="mondai-area" style="text-align:center;">
-    <div id="mondai-bun" style="font-size: 20px; font-weight: bold;"></div>
-    <div id="mondai-yomi" style="color: var(--kin);"></div>
+
+  <div id="mondai-area">
+    <div id="mondai-bun" style="font-size: 18px; font-weight: bold;"></div>
+    <div id="mondai-yomi" style="color: var(--kin); font-size: 14px;"></div>
   </div>
+
   <div id="canvas-container">
     <div id="hint-display"></div>
     <canvas id="draw-canvas"></canvas>
   </div>
-  <div style="display:flex; gap:8px;">
-    <button class="action-btn" onclick="clearCanvas()">墨を拭く</button>
+
+  <div id="button-area">
+    <button class="action-btn" onclick="clearCanvas()">拭く</button>
     <button class="action-btn" onclick="showHint()">助言</button>
     <button class="action-btn" id="attack-btn" onclick="recognizeAndAttack()">奥義発動！</button>
   </div>
 </div>
 
 <script>
-// --- ゲームデータ（抜粋） ---
 const MONDAI_LIST = [
-  { kanji:'悪', yomi:'あく', bun:'___いことをして謝る' },
+  { kanji:'悪', yomi:'わるい', bun:'___いことをして謝る' },
   { kanji:'医', yomi:'い', bun:'___者に診てもらう' },
-  { kanji:'運', yomi:'うん', bun:'荷物を___ぶ' },
+  { kanji:'運', yomi:'はこぶ', bun:'荷物を___ぶ' },
   { kanji:'漢', yomi:'かん', bun:'___字の練習' },
-  { kanji:'曜', yomi:'よう', bun:'何曜日の___？' }
-  // 必要に応じて追加してください
+  { kanji:'進', yomi:'すすむ', bun:'前へ___む' }
 ];
 
 let currentMondai = {};
@@ -64,141 +106,130 @@ let enemyHp = 100;
 
 const canvas = document.getElementById('draw-canvas');
 const ctx = canvas.getContext('2d');
-const seAttack = document.getElementById('se-attack');
 const hintDisplay = document.getElementById('hint-display');
 
-function init() {
-    const rect = canvas.parentNode.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.lineWidth = 7;
-    ctx.strokeStyle = '#fff';
-    next();
+// キャンバス初期化（リサイズ対応）
+function setup() {
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = 6;
+  ctx.strokeStyle = '#ffffff';
 }
 
 function next() {
-    currentMondai = MONDAI_LIST[Math.floor(Math.random()*MONDAI_LIST.length)];
-    document.getElementById('mondai-bun').innerText = currentMondai.bun;
-    document.getElementById('mondai-yomi').innerText = `読み：${currentMondai.yomi}`;
-    hintDisplay.innerText = currentMondai.kanji;
-    hintDisplay.style.opacity = 0;
-    clearCanvas();
+  currentMondai = MONDAI_LIST[Math.floor(Math.random() * MONDAI_LIST.length)];
+  document.getElementById('mondai-bun').innerText = currentMondai.bun;
+  document.getElementById('mondai-yomi').innerText = `読み：${currentMondai.yomi}`;
+  hintDisplay.innerText = currentMondai.kanji;
+  hintDisplay.style.opacity = 0;
+  clearCanvas();
 }
 
 function showHint() {
-    hintDisplay.style.opacity = 1;
-    setTimeout(() => hintDisplay.style.opacity = 0, 1000);
+  hintDisplay.style.opacity = 1;
+  setTimeout(() => hintDisplay.style.opacity = 0, 800);
 }
 
 function clearCanvas() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    inkData = [];
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  inkData = [];
 }
 
-// --- 描画ロジック：音声を完全に排除して最速化 ---
-function start(x, y) {
-    isDrawing = true;
-    currentStroke = [[x], [y], [Date.now()]];
-    ctx.beginPath();
-    ctx.moveTo(x, y);
+// 描画イベント（音のコードを完全削除）
+function startDrawing(x, y) {
+  isDrawing = true;
+  currentStroke = [[x], [y], [Date.now()]];
+  ctx.beginPath();
+  ctx.moveTo(x, y);
 }
 
-function move(x, y) {
-    if (!isDrawing) return;
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    currentStroke[0].push(x);
-    currentStroke[1].push(y);
-    currentStroke[2].push(Date.now());
+function moveDrawing(x, y) {
+  if (!isDrawing) return;
+  ctx.lineTo(x, y);
+  ctx.stroke();
+  currentStroke[0].push(x);
+  currentStroke[1].push(y);
+  currentStroke[2].push(Date.now());
 }
 
-function end() {
-    if (isDrawing) inkData.push(currentStroke);
-    isDrawing = false;
+function stopDrawing() {
+  if (isDrawing) inkData.push(currentStroke);
+  isDrawing = false;
 }
 
-// イベントリスナーの整理
+// タッチイベント設定
 canvas.addEventListener('touchstart', e => {
-    e.preventDefault();
-    const t = e.touches[0];
-    const r = canvas.getBoundingClientRect();
-    start(t.clientX - r.left, t.clientY - r.top);
+  e.preventDefault();
+  const r = canvas.getBoundingClientRect();
+  startDrawing(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top);
 }, {passive: false});
 
 canvas.addEventListener('touchmove', e => {
-    e.preventDefault();
-    const t = e.touches[0];
-    const r = canvas.getBoundingClientRect();
-    move(t.clientX - r.left, t.clientY - r.top);
+  e.preventDefault();
+  const r = canvas.getBoundingClientRect();
+  moveDrawing(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top);
 }, {passive: false});
 
-window.addEventListener('touchend', end);
+window.addEventListener('touchend', stopDrawing);
 
+// マウスイベント設定
 canvas.addEventListener('mousedown', e => {
-    const r = canvas.getBoundingClientRect();
-    start(e.clientX - r.left, e.clientY - r.top);
+  const r = canvas.getBoundingClientRect();
+  startDrawing(e.clientX - r.left, e.clientY - r.top);
 });
-
 window.addEventListener('mousemove', e => {
-    if (!isDrawing) return;
-    const r = canvas.getBoundingClientRect();
-    move(e.clientX - r.left, e.clientY - r.top);
+  const r = canvas.getBoundingClientRect();
+  moveDrawing(e.clientX - r.left, e.clientY - r.top);
 });
+window.addEventListener('mouseup', stopDrawing);
 
-window.addEventListener('mouseup', end);
-
-// --- 判定ロジック ---
+// 判定エンジン
 async function recognizeAndAttack() {
-    if (inkData.length === 0) return;
-    document.getElementById('loading').style.display = 'flex';
-    
-    try {
-        const res = await fetch('https://www.google.com.tw/inputtools/request?ime=handwriting&app=mobilesearch&cs=1&oe=UTF-8', {
-            method: 'POST',
-            body: JSON.stringify({
-                options: "enable_pre_space",
-                requests: [{ 
-                    writing_guide: { writing_area_width: canvas.width, writing_area_height: canvas.height },
-                    ink: inkData, 
-                    language: "ja" 
-                }]
-            }),
-            headers: { "Content-Type": "application/json" }
-        });
-        const data = await res.json();
-        const cand = data[1][0][1];
+  if (inkData.length === 0) return;
+  document.getElementById('loading').style.display = 'flex';
+  
+  try {
+    const res = await fetch('https://www.google.com.tw/inputtools/request?ime=handwriting&app=mobilesearch&cs=1&oe=UTF-8', {
+      method: 'POST',
+      body: JSON.stringify({
+        options: "enable_pre_space",
+        requests: [{ 
+          writing_guide: { writing_area_width: canvas.width, writing_area_height: canvas.height },
+          ink: inkData, 
+          language: "ja" 
+        }]
+      })
+    });
+    const data = await res.json();
+    const result = data[1][0][1];
 
-        if (cand && cand.slice(0, 5).includes(currentMondai.kanji)) {
-            // 攻撃成功時のみSEを鳴らす（描画中ではないので安全）
-            seAttack.currentTime = 0;
-            seAttack.play().catch(()=>{});
-            
-            enemyHp -= 34;
-            document.getElementById('hp-bar').style.width = Math.max(0, enemyHp) + '%';
-            
-            if (enemyHp <= 0) {
-                setTimeout(() => {
-                    alert("討伐完了！");
-                    enemyHp = 100;
-                    document.getElementById('hp-bar').style.width = '100%';
-                    next();
-                }, 100);
-            } else {
-                next();
-            }
-        } else {
-            alert(`判定：${cand ? cand[0] : "不明"}\n正解：${currentMondai.kanji}\nもっと丁寧に！`);
-            clearCanvas();
-        }
-    } catch(e) {
-        alert("通信エラーが発生しました。");
+    if (result && result.slice(0, 5).includes(currentMondai.kanji)) {
+      enemyHp -= 34;
+      document.getElementById('hp-bar').style.width = Math.max(0, enemyHp) + '%';
+      if (enemyHp <= 0) {
+        alert("討伐完了！");
+        enemyHp = 100;
+        document.getElementById('hp-bar').style.width = '100%';
+      }
+      next();
+    } else {
+      alert(`判定：${result ? result[0] : "？"}\nもっと丁寧に！`);
+      clearCanvas();
     }
-    document.getElementById('loading').style.display = 'none';
+  } catch(e) {
+    alert("通信エラー");
+  }
+  document.getElementById('loading').style.display = 'none';
 }
 
-window.onload = init;
+window.onload = () => {
+  setup();
+  next();
+};
+window.onresize = setup;
 </script>
 </body>
 </html>
