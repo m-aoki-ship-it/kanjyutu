@@ -3,107 +3,65 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>漢術師 - 覚醒 -</title>
+<title>漢術師 - 絶・奥義 -</title>
 <style>
 :root {
-  --sumi: #0d0b08; --sumi2: #1a1610; --washi: #f2ead8; --kin: #c9a84c;
-  --kin-dim: rgba(201,168,76,0.15); --shu: #c0392b; --shu-bright: #e74c3c;
-  --ai: #004d99; /* 漢術師の色：藍色 */
+  --sumi: #0d0b08; --kin: #c9a84c; --shu: #c0392b; --shu-bright: #ff4d4d;
+  --ai: #004d99; --ai-bright: #3399ff; --washi: #f2ead8;
 }
 
-html, body { 
-  overflow: hidden; height: 100%; position: fixed; width: 100%; 
-  background: var(--sumi); color: var(--washi); font-family: 'Georgia', serif; 
-}
+html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; background: var(--sumi); color: var(--washi); font-family: serif; }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
 
-/* メインレイアウト：上・中・下 */
-#app { 
-  display: flex; flex-direction: column; height: 100dvh; 
-  padding: 10px; gap: 10px; 
-}
+#app { display: flex; flex-direction: column; height: 100dvh; padding: 10px; gap: 8px; transition: filter 0.1s; }
 
-/* 上部：敵（誤字の魔物）エリア */
+/* 敵エリア（HPバーを赤に） */
 #enemy-area { 
-  height: 120px; display: flex; align-items: center; 
-  padding: 10px; background: rgba(192,57,43,0.1); 
-  border: 1px solid var(--shu); border-radius: 8px; flex-shrink: 0;
-  position: relative; overflow: hidden;
+  height: 110px; display: flex; align-items: center; padding: 10px; 
+  background: rgba(192,57,43,0.15); border: 2px solid var(--shu); border-radius: 8px; flex-shrink: 0;
 }
-#enemy-graphic {
-  width: 80px; height: 100px;
-  /* 怨念の魔物グラフィック（SVG） */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Cpath d='M50 10 C20 40, 10 70, 20 90 C30 110, 70 110, 80 90 C90 70, 80 40, 50 10' fill='%23600' opacity='0.7'/%3E%3Ccircle cx='35' cy='60' r='5' fill='%23ff0'/%3E%3Ccircle cx='65' cy='60' r='5' fill='%23ff0'/%3E%3Cpath d='M30 80 Q50 90, 70 80' stroke='%23ff0' stroke-width='2' fill='none'/%3E%3Cpath d='M50 10 L50 120 M10 60 L90 60' stroke='%23a00' stroke-width='1' opacity='0.3'/%3E%3C/svg%3E");
-  background-size: contain; background-repeat: no-repeat;
-  filter: drop-shadow(0 0 10px var(--shu));
-}
-#enemy-info { flex: 1; margin-left: 10px; }
-#enemy-name { font-size: 14px; font-weight: bold; color: var(--shu-bright); }
-#mondai- bun-display { font-size: 20px; font-weight: bold; color: var(--washi); margin-top: 5px; }
+#enemy-graphic { width: 70px; height: 90px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Cpath d='M50 10 C20 40, 10 70, 20 90 C30 110, 70 110, 80 90 C90 70, 80 40, 50 10' fill='%23600'/%3E%3Ccircle cx='35' cy='60' r='5' fill='%23ff0'/%3E%3Ccircle cx='65' cy='60' r='5' fill='%23ff0'/%3E%3Cpath d='M30 85 Q50 95, 70 85' stroke='%23ff0' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-size: contain; background-repeat: no-repeat; filter: drop-shadow(0 0 10px var(--shu)); }
+#enemy-info { flex: 1; margin-left: 12px; }
+#enemy-hp-bar-bg { width: 100%; height: 12px; background: #222; border-radius: 6px; overflow: hidden; margin-top: 5px; border: 1px solid var(--shu); }
+#enemy-hp-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #800, var(--shu-bright)); transition: width 0.4s ease-out; }
 
-/* 中央：キャンバスエリア（和紙質感） */
-#canvas-container { 
-  position: relative; flex: 1; min-height: 0; 
-  background-color: var(--sumi2);
-  /* 和紙のような質感の背景画像 */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.1'/%3E%3C/svg%3E");
-  border: 2px solid var(--kin-dim); border-radius: 8px;
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-}
-#draw-canvas { width: 100%; height: 100%; display: block; z-index: 2; position: relative;}
-#hint-display { 
-  position: absolute; inset: 0; display: flex; align-items: center; 
-  justify-content: center; font-size: 180px; color: rgba(255, 255, 255, 0.03); 
-  font-family: serif; pointer-events: none; z-index: 1; 
-}
+/* キャンバス */
+#canvas-container { position: relative; flex: 1; background: #151515; border: 2px solid var(--kin); border-radius: 8px; box-shadow: inset 0 0 30px #000; }
+#draw-canvas { width: 100%; height: 100%; }
+#hint-display { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 180px; color: rgba(255, 255, 255, 0.03); pointer-events: none; }
 
-/* 下部：自分（漢術師）エリア */
+/* 自分エリア（青いゲージは「霊力/MP」っぽく） */
 #player-area { 
-  height: 140px; display: flex; align-items: center; 
-  padding: 10px; background: rgba(0, 77, 153, 0.1); 
-  border: 1px solid var(--ai); border-radius: 8px; flex-shrink: 0;
+  height: 90px; display: flex; align-items: center; padding: 10px; 
+  background: rgba(0, 77, 153, 0.15); border: 1px solid var(--ai); border-radius: 8px; flex-shrink: 0;
 }
-#player-graphic {
-  width: 80px; height: 100px;
-  /* 漢術師グラフィック（SVG） */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Cpath d='M50 10 L80 40 L80 100 L20 100 L20 40 Z' fill='%23003' stroke='%23006' stroke-width='2'/%3E%3Cpath d='M50 15 L75 40 L75 95 L25 95 L25 40 Z' fill='%23004'/%3E%3Ccircle cx='50' cy='30' r='10' fill='%23f2ead8'/%3E%3Cpath d='M40 50 Q50 60, 60 50' stroke='%23006' stroke-width='2' fill='none'/%3E%3Cpath d='M30 100 L50 110 L70 100' fill='%23002'/%3E%3C/svg%3E");
-  background-size: contain; background-repeat: no-repeat;
-  filter: drop-shadow(0 0 10px var(--ai));
-}
-#player-info { flex: 1; margin-left: 10px; }
-#player-name { font-size: 14px; font-weight: bold; color: #3399ff; }
-#hp-bar-bg { width: 100%; height: 10px; background: #333; margin-top: 5px; border-radius: 5px; overflow: hidden;}
-#hp-bar { height: 100%; width: 100%; background: linear-gradient(90deg, var(--shu), var(--shu-bright)); transition: width 0.3s; }
-#yomi-display { color: var(--kin); font-size: 16px; margin-top: 5px; }
+#player-graphic { width: 50px; height: 60px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Cpath d='M50 10 L80 100 L20 100 Z' fill='%23004' stroke='%2339f' stroke-width='3'/%3E%3C/svg%3E"); background-size: contain; background-repeat: no-repeat; }
+#player-info { flex: 1; margin-left: 12px; }
 
-/* ボタンエリア */
-#button-area { 
-  display: flex; gap: 8px; margin-top: 10px;
-}
-.action-btn { 
-  flex: 1; padding: 12px; font-size: 16px; background: #1a1610; color: var(--kin); 
-  border: 1px solid var(--kin); font-weight: bold; border-radius: 4px;
-  text-transform: uppercase; letter-spacing: 1px;
-}
-#attack-btn { background: var(--ai); color: white; border-color: #3399ff; flex: 2; }
+/* 攻撃エフェクト用 */
+.shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+@keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } 40%, 60% { transform: translate3d(6px, 0, 0); } }
+.flash { position: fixed; inset: 0; background: white; z-index: 1000; pointer-events: none; opacity: 0; animation: flash-anim 0.4s; }
+@keyframes flash-anim { 0% { opacity: 0.8; } 100% { opacity: 0; } }
 
-#loading { 
-  position: fixed; inset: 0; background: rgba(0,0,0,0.9); 
-  display: none; align-items: center; justify-content: center; z-index: 100; 
-  font-weight: bold; color: var(--kin); font-size: 20px;
-}
+#button-area { display: flex; gap: 8px; height: 55px; flex-shrink: 0; }
+.action-btn { flex: 1; background: #1a1610; color: var(--kin); border: 1px solid var(--kin); font-weight: bold; border-radius: 4px; font-size: 15px; }
+#attack-btn { flex: 2; background: var(--ai); color: white; border-color: var(--ai-bright); font-size: 18px; text-shadow: 0 0 10px var(--ai-bright); }
+#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 100; color: var(--kin); }
 </style>
 </head>
 <body>
 
 <div id="loading">鑑定中...</div>
+<div id="flash-overlay"></div>
 
 <div id="app">
   <div id="enemy-area">
     <div id="enemy-graphic"></div>
     <div id="enemy-info">
-      <div id="enemy-name">強敵：誤字の魔物</div>
-      <div id="mondai-bun-display"></div>
+      <div style="font-size: 12px; color: var(--shu-bright);">強敵：誤字の魔物 (HP)</div>
+      <div id="enemy-hp-bar-bg"><div id="enemy-hp-bar"></div></div>
+      <div id="mondai-bun" style="font-size: 18px; font-weight: bold; margin-top: 8px;"></div>
     </div>
   </div>
 
@@ -115,9 +73,8 @@ html, body {
   <div id="player-area">
     <div id="player-graphic"></div>
     <div id="player-info">
-      <div id="player-name">新米漢術師</div>
-      <div id="hp-bar-bg"><div id="hp-bar"></div></div>
-      <div id="yomi-display"></div>
+      <div id="yomi-display" style="font-size: 14px; color: var(--ai-bright);">霊力集中：読み</div>
+      <div style="color: var(--kin); font-size: 16px; font-weight: bold;" id="mondai-yomi"></div>
     </div>
   </div>
 
@@ -129,7 +86,6 @@ html, body {
 </div>
 
 <script>
-// 問題リスト（前回と同じ）
 const MONDAI_LIST = [
   { kanji:'悪', yomi:'わるい', bun:'___いことをして謝る' },
   { kanji:'医', yomi:'い', bun:'___者に診てもらう' },
@@ -148,34 +104,28 @@ let enemyHp = 100;
 
 const canvas = document.getElementById('draw-canvas');
 const ctx = canvas.getContext('2d');
-const hintDisplay = document.getElementById('hint-display');
+const enemyHpBar = document.getElementById('enemy-hp-bar');
+const enemyGraphic = document.getElementById('enemy-graphic');
+const flashOverlay = document.getElementById('flash-overlay');
 
-// キャンバス初期化
 function setup() {
   const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = rect.height;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.lineWidth = 7; // 少し太くして筆感を出す
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)'; // 純白ではなく少し和紙に馴染ませる
-  // 墨の滲みを少し表現
-  ctx.shadowColor = 'rgba(255, 255, 255, 0.5)';
-  ctx.shadowBlur = 3;
+  canvas.width = rect.width; canvas.height = rect.height;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 8; ctx.strokeStyle = '#fff';
 }
 
 function next() {
   currentMondai = MONDAI_LIST[Math.floor(Math.random() * MONDAI_LIST.length)];
-  document.getElementById('mondai-bun-display').innerText = currentMondai.bun;
-  document.getElementById('yomi-display').innerText = `読み：${currentMondai.yomi}`;
-  hintDisplay.innerText = currentMondai.kanji;
-  hintDisplay.style.opacity = 0;
+  document.getElementById('mondai-bun').innerText = currentMondai.bun;
+  document.getElementById('mondai-yomi').innerText = currentMondai.yomi;
+  document.getElementById('hint-display').innerText = currentMondai.kanji;
+  document.getElementById('hint-display').style.opacity = 0;
   clearCanvas();
 }
 
 function showHint() {
-  hintDisplay.style.opacity = 1;
-  setTimeout(() => hintDisplay.style.opacity = 0, 1000);
+  document.getElementById('hint-display').style.opacity = 1;
+  setTimeout(() => document.getElementById('hint-display').style.opacity = 0, 800);
 }
 
 function clearCanvas() {
@@ -183,106 +133,55 @@ function clearCanvas() {
   inkData = [];
 }
 
-// 描画イベント
-function startDrawing(x, y) {
-  isDrawing = true;
-  currentStroke = [[x], [y], [0]];
-  ctx.beginPath();
-  ctx.moveTo(x, y);
-}
+function start(x, y) { isDrawing = true; currentStroke = [[x], [y], [0]]; ctx.beginPath(); ctx.moveTo(x, y); }
+function move(x, y) { if (!isDrawing) return; ctx.lineTo(x, y); ctx.stroke(); currentStroke[0].push(x); currentStroke[1].push(y); currentStroke[2].push(0); }
+function end() { if (isDrawing) inkData.push(currentStroke); isDrawing = false; }
 
-function moveDrawing(x, y) {
-  if (!isDrawing) return;
-  ctx.lineTo(x, y);
-  ctx.stroke();
-  currentStroke[0].push(x);
-  currentStroke[1].push(y);
-  currentStroke[2].push(0);
-}
+canvas.addEventListener('touchstart', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); start(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top); }, {passive: false});
+canvas.addEventListener('touchmove', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); move(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top); }, {passive: false});
+window.addEventListener('touchend', end);
+canvas.addEventListener('mousedown', e => { const r = canvas.getBoundingClientRect(); start(e.clientX-r.left, e.clientY-r.top); });
+window.addEventListener('mousemove', e => { if(isDrawing) { const r = canvas.getBoundingClientRect(); move(e.clientX-r.left, e.clientY-r.top); } });
+window.addEventListener('mouseup', end);
 
-function stopDrawing() {
-  if (isDrawing) inkData.push(currentStroke);
-  isDrawing = false;
-}
-
-canvas.addEventListener('touchstart', e => {
-  e.preventDefault();
-  const r = canvas.getBoundingClientRect();
-  startDrawing(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top);
-}, {passive: false});
-canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  const r = canvas.getBoundingClientRect();
-  moveDrawing(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top);
-}, {passive: false});
-window.addEventListener('touchend', stopDrawing);
-
-canvas.addEventListener('mousedown', e => {
-  const r = canvas.getBoundingClientRect();
-  startDrawing(e.clientX - r.left, e.clientY - r.top);
-});
-window.addEventListener('mousemove', e => {
-  const r = canvas.getBoundingClientRect();
-  moveDrawing(e.clientX - r.left, e.clientY - r.top);
-});
-window.addEventListener('mouseup', stopDrawing);
-
-// 判定エンジン
 async function recognizeAndAttack() {
   if (inkData.length === 0) return;
   document.getElementById('loading').style.display = 'flex';
   
-  // URLを変更して通信エラー対策（前回と同じ）
-  const url = `https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test`;
-  
   try {
-    const res = await fetch(url, {
+    const res = await fetch(`https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        app_version: 0.4,
-        requests: [{
-          ink: inkData,
-          language: "ja",
-          writing_guide: { writing_area_width: canvas.width, writing_area_height: canvas.height }
-        }]
-      })
+      body: JSON.stringify({ app_version: 0.4, requests: [{ ink: inkData, language: "ja" }] })
     });
-    
-    if (!res.ok) throw new Error(`HTTPエラー`);
-    
     const data = await res.json();
     const result = data[1][0][1];
 
     if (result && result.slice(0, 5).includes(currentMondai.kanji)) {
-      // 攻撃演出（簡易）
-      document.getElementById('enemy-graphic').style.animation = 'ougiShake 0.3s';
+      // 成功エフェクト
+      flashOverlay.classList.add('flash');
+      enemyGraphic.classList.add('shake');
       
       enemyHp -= 34;
-      document.getElementById('hp-bar').style.width = Math.max(0, enemyHp) + '%';
-      
+      enemyHpBar.style.width = Math.max(0, enemyHp) + '%';
+
       setTimeout(() => {
-        document.getElementById('enemy-graphic').style.animation = '';
+        flashOverlay.classList.remove('flash');
+        enemyGraphic.classList.remove('shake');
         if (enemyHp <= 0) {
-          alert("魔物を討伐した！");
+          alert("魔物を封印した！");
           enemyHp = 100;
-          document.getElementById('hp-bar').style.width = '100%';
+          enemyHpBar.style.width = '100%';
         }
         next();
-      }, 300);
+      }, 400);
     } else {
-      alert(`鑑定失敗：正解は「${currentMondai.kanji}」です。\nもっと集中して書け！`);
+      alert(`鑑定失敗：正解は「${currentMondai.kanji}」`);
       clearCanvas();
     }
-  } catch(e) {
-    alert("通信エラー：GitHub Pagesの制限により鑑定できません。");
-  }
+  } catch(e) { alert("通信エラー"); }
   document.getElementById('loading').style.display = 'none';
 }
-
-// アニメーション定義
-const styleSheet = document.styleSheets[0];
-styleSheet.insertRule(`@keyframes ougiShake { 0% { transform: translate(0,0); } 25% { transform: translate(-5px, 5px); } 75% { transform: translate(5px, -5px); } }`, styleSheet.cssRules.length);
 
 window.onload = () => { setup(); next(); };
 window.onresize = setup;
