@@ -3,250 +3,163 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>漢術師 - 覚醒・軽量版 -</title>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;700;800&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<title>漢術師 - 極限軽量 -</title>
 <style>
-:root {
-  --sumi: #0d0b08; --sumi2: #1a1610; --washi: #f2ead8; --kin: #c9a84c;
-  --kin-dim: rgba(201,168,76,0.15); --shu: #c0392b; --shu-bright: #e74c3c;
-  --shu-dim: rgba(192,57,43,0.15);
-}
-/* スクロール禁止を徹底 */
-html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; }
+/* スタイルは軽量化のため必要最低限に維持 */
+:root { --sumi: #0d0b08; --kin: #c9a84c; --shu: #c0392b; --washi: #f2ead8; }
+html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; background: var(--sumi); color: var(--washi); font-family: sans-serif; }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
-body { background: var(--sumi); font-family: 'Noto Sans JP', sans-serif; display: flex; flex-direction: column; color: var(--washi); }
-
-.ougi-shake { animation: ougiShake 0.5s infinite; }
-@keyframes ougiShake { 0% { transform: translate(0,0); } 25% { transform: translate(-8px, 4px); } 75% { transform: translate(8px, -4px); } }
-.sumi-splash { position: fixed; width: 30px; height: 30px; background: var(--sumi); border-radius: 50%; pointer-events: none; z-index: 1000; filter: blur(2px); animation: splashAnim 0.8s ease-out forwards; }
-@keyframes splashAnim { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(5) translate(var(--tx), var(--ty)); opacity: 0; } }
-.flash-white { position: fixed; inset: 0; background: white; z-index: 999; pointer-events: none; animation: flashAnim 0.4s ease-out forwards; }
-@keyframes flashAnim { 0% { opacity: 0.8; } 100% { opacity: 0; } }
-
-#app { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100dvh; padding: 12px; gap: 8px; }
-#enemy-area { display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--shu-dim); border: 1px solid var(--shu); border-radius: 4px; }
-#hp-bar-bg { flex: 1; height: 10px; background: #333; position: relative; }
-#hp-bar { height: 100%; width: 100%; background: var(--shu-bright); transition: width 0.3s; }
-
-#canvas-container { position: relative; width: 100%; height: 320px; background: rgba(255,255,255,0.05); border: 2px solid var(--kin-dim); border-radius: 8px; overflow: hidden; }
-#draw-canvas { width: 100%; height: 100%; touch-action: none; position: relative; z-index: 2; cursor: crosshair; }
-#hint-display { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 220px; color: rgba(255, 255, 255, 0.08); font-family: 'Shippori Mincho B1', serif; pointer-events: none; z-index: 1; }
-
-.action-btn { padding: 15px; font-size: 18px; cursor: pointer; border: 1px solid var(--kin); background: var(--sumi2); color: var(--kin); font-weight: bold; border-radius: 4px; }
-#attack-btn { background: var(--shu); color: white; border-color: var(--shu-bright); flex: 1; }
-#loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000; color: var(--kin); font-size: 20px; }
+#app { display: flex; flex-direction: column; height: 100dvh; padding: 12px; gap: 8px; }
+#enemy-area { padding: 10px; background: rgba(192,57,43,0.2); border: 1px solid var(--shu); border-radius: 4px; }
+#hp-bar-bg { width: 100%; height: 8px; background: #333; margin-top: 5px; }
+#hp-bar { height: 100%; width: 100%; background: var(--shu); transition: width 0.3s; }
+#canvas-container { position: relative; flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--kin); }
+#draw-canvas { width: 100%; height: 100%; }
+.action-btn { padding: 12px; font-size: 16px; background: #1a1610; color: var(--kin); border: 1px solid var(--kin); font-weight: bold; }
+#attack-btn { background: var(--shu); color: white; flex: 1; }
+#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 100; }
 </style>
 </head>
 <body>
 
-<div id="loading-overlay"><div>鑑定中...</div></div>
-<audio id="se-draw" src="文字入れ.mp3" preload="auto"></audio>
-<audio id="se-attack" src="攻撃.mp3" preload="auto"></audio>
+<div id="loading">鑑定中...</div>
 
 <div id="app">
   <div id="enemy-area">
-    <div style="flex:1">
-      <div id="enemy-name">強敵：誤字の魔物</div>
-      <div id="hp-bar-bg"><div id="hp-bar"></div></div>
-    </div>
-    <div id="enemy-char" style="font-size: 50px;">怨</div>
+    <div id="enemy-name">誤字の魔物</div>
+    <div id="hp-bar-bg"><div id="hp-bar"></div></div>
   </div>
-
-  <div id="mondai-area" style="text-align:center; padding: 10px;">
-    <div id="mondai-bun" style="font-size: 22px; margin-bottom: 5px; font-weight: bold;"></div>
-    <div id="mondai-yomi" style="color: var(--kin); font-size: 18px;"></div>
+  <div id="mondai-area" style="text-align:center;">
+    <div id="mondai-bun" style="font-size: 20px;"></div>
+    <div id="mondai-yomi" style="color: var(--kin);"></div>
   </div>
-
   <div id="canvas-container">
-    <div id="hint-display"></div>
     <canvas id="draw-canvas"></canvas>
   </div>
-
-  <div style="display:flex; gap:8px;">
-    <button class="action-btn" onclick="clearCanvas()">墨を拭く</button>
-    <button class="action-btn" onclick="showHint()">助言</button>
+  <div style="display:flex; gap:5px;">
+    <button class="action-btn" onclick="clearCanvas()">拭く</button>
     <button class="action-btn" id="attack-btn" onclick="recognizeAndAttack()">奥義発動！</button>
   </div>
 </div>
 
 <script>
-// 問題リスト（前回と同じ）
+// --- 音声エンジンの最適化 ---
+const sndDraw = new Audio("文字入れ.mp3");
+const sndAttack = new Audio("攻撃.mp3");
+sndDraw.preload = "auto";
+sndAttack.preload = "auto";
+
+function playSnd(audio) {
+    // 再生中なら強制停止して最初から（低負荷な方法）
+    audio.pause();
+    audio.currentTime = 0;
+    // play()のPromiseエラー（ユーザー操作前の再生制限など）を無視する
+    audio.play().catch(() => {});
+}
+
+// --- ゲームデータとロジック ---
 const MONDAI_LIST = [
-  { kanji:'悪', yomi:'あく/わるい', bun:'___いことをして謝る' },
+  { kanji:'悪', yomi:'あく', bun:'___いことをして謝る' },
   { kanji:'医', yomi:'い', bun:'___者に診てもらう' },
-  { kanji:'運', yomi:'うん/はこぶ', bun:'重い荷物を___ぶ' },
-  { kanji:'漢', yomi:'かん', bun:'___字の練習をする' },
-  { kanji:'進', yomi:'しん/すすむ', bun:'前へ___む' },
-  { kanji:'鉄', yomi:'てつ', bun:'___棒で遊ぶ' },
-  { kanji:'薬', yomi:'やく/くすり', bun:'目___をさす' },
+  { kanji:'運', yomi:'うん', bun:'荷物を___ぶ' },
+  { kanji:'漢', yomi:'かん', bun:'___字の練習' },
   { kanji:'曜', yomi:'よう', bun:'何曜日の___？' }
 ];
 
 let currentMondai = {};
 let inkData = [];
-let currentStroke = [[], [], []];
+let currentStroke = [];
 let isDrawing = false;
 let enemyHp = 100;
-let lastX, lastY;
 
 const canvas = document.getElementById('draw-canvas');
 const ctx = canvas.getContext('2d');
-const seDraw = document.getElementById('se-draw');
-const seAttack = document.getElementById('se-attack');
-const hintDisplay = document.getElementById('hint-display');
-const loader = document.getElementById('loading-overlay');
 
-function setupCanvas() {
-  const rect = canvas.parentNode.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = rect.height;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.lineWidth = 8;
-  ctx.strokeStyle = '#ffffff';
+function init() {
+    const rect = canvas.parentNode.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 7;
+    ctx.strokeStyle = '#fff';
+    next();
 }
 
-function nextQuestion() {
-  const nextIndex = Math.floor(Math.random() * MONDAI_LIST.length);
-  currentMondai = MONDAI_LIST[nextIndex];
-  document.getElementById('mondai-bun').innerText = currentMondai.bun;
-  document.getElementById('mondai-yomi').innerText = `読み：${currentMondai.yomi}`;
-  hintDisplay.innerText = currentMondai.kanji;
-  hintDisplay.style.opacity = 0;
-  clearCanvas();
-}
-
-function showHint() {
-  hintDisplay.style.opacity = 1;
-  setTimeout(() => hintDisplay.style.opacity = 0, 1000);
-}
-
-function playSE(audioElement) {
-  audioElement.pause();
-  audioElement.currentTime = 0;
-  audioElement.play().catch(e => {});
-}
-
-// 描画メイン
-function getPos(e) {
-  const rect = canvas.getBoundingClientRect();
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-  return {
-    x: Math.round(clientX - rect.left),
-    y: Math.round(clientY - rect.top)
-  };
-}
-
-function start(e) {
-  isDrawing = true;
-  const pos = getPos(e);
-  lastX = pos.x;
-  lastY = pos.y;
-  currentStroke = [[pos.x], [pos.y], [Date.now()]];
-  playSE(seDraw);
-}
-
-function draw(e) {
-  if (!isDrawing) return;
-  const pos = getPos(e);
-  
-  ctx.beginPath();
-  ctx.moveTo(lastX, lastY);
-  ctx.lineTo(pos.x, pos.y);
-  ctx.stroke();
-
-  // データが多すぎないように記録（間引き）
-  currentStroke[0].push(pos.x);
-  currentStroke[1].push(pos.y);
-  currentStroke[2].push(Date.now());
-
-  lastX = pos.x;
-  lastY = pos.y;
-}
-
-function end() {
-  if (isDrawing) {
-    inkData.push(currentStroke);
-  }
-  isDrawing = false;
+function next() {
+    currentMondai = MONDAI_LIST[Math.floor(Math.random()*MONDAI_LIST.length)];
+    document.getElementById('mondai-bun').innerText = currentMondai.bun;
+    document.getElementById('mondai-yomi').innerText = currentMondai.yomi;
+    clearCanvas();
 }
 
 function clearCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  inkData = [];
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    inkData = [];
 }
 
-canvas.addEventListener('mousedown', start);
-window.addEventListener('mousemove', draw);
+// --- 描画イベント ---
+function start(x, y) {
+    isDrawing = true;
+    currentStroke = [[x], [y], [Date.now()]];
+    playSnd(sndDraw); // 書き始めに1回だけ鳴らす
+}
+
+function move(x, y) {
+    if (!isDrawing) return;
+    ctx.beginPath();
+    ctx.moveTo(currentStroke[0][currentStroke[0].length-1], currentStroke[1][currentStroke[1].length-1]);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    currentStroke[0].push(x);
+    currentStroke[1].push(y);
+    currentStroke[2].push(Date.now());
+}
+
+function end() {
+    if (isDrawing) inkData.push(currentStroke);
+    isDrawing = false;
+}
+
+// マウス/タッチ共通化
+canvas.addEventListener('touchstart', e => { e.preventDefault(); const t = e.touches[0]; const r = canvas.getBoundingClientRect(); start(t.clientX-r.left, t.clientY-r.top); });
+canvas.addEventListener('touchmove', e => { e.preventDefault(); const t = e.touches[0]; const r = canvas.getBoundingClientRect(); move(t.clientX-r.left, t.clientY-r.top); });
+window.addEventListener('touchend', end);
+
+canvas.addEventListener('mousedown', e => { const r = canvas.getBoundingClientRect(); start(e.clientX-r.left, e.clientY-r.top); });
+window.addEventListener('mousemove', e => { if(!isDrawing) return; const r = canvas.getBoundingClientRect(); move(e.clientX-r.left, e.clientY-r.top); });
 window.addEventListener('mouseup', end);
 
-canvas.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); }, {passive: false});
-canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e); }, {passive: false});
-canvas.addEventListener('touchend', end);
-
+// --- 判定エンジン ---
 async function recognizeAndAttack() {
-  if (inkData.length === 0) return;
-  loader.style.display = 'flex';
-  
-  const body = {
-    options: "enable_pre_space",
-    requests: [{
-      writing_guide: { writing_area_width: canvas.width, writing_area_height: canvas.height },
-      ink: inkData,
-      language: "ja"
-    }]
-  };
+    if(inkData.length === 0) return;
+    document.getElementById('loading').style.display = 'flex';
+    
+    try {
+        const res = await fetch('https://www.google.com.tw/inputtools/request?ime=handwriting&app=mobilesearch&cs=1&oe=UTF-8', {
+            method: 'POST',
+            body: JSON.stringify({
+                options: "enable_pre_space",
+                requests: [{ ink: inkData, language: "ja" }]
+            })
+        });
+        const data = await res.json();
+        const cand = data[1][0][1];
 
-  try {
-    const res = await fetch('https://www.google.com.tw/inputtools/request?ime=handwriting&app=mobilesearch&cs=1&oe=UTF-8', {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: {"Content-Type": "application/json"}
-    });
-    const data = await res.json();
-    const result = data[1][0][1];
-
-    if (result.slice(0, 5).includes(currentMondai.kanji)) {
-      executeOugi();
-    } else {
-      alert(`判定：${result[0]}（正解：${currentMondai.kanji}）\nもっと丁寧に書いてみよう！`);
-      clearCanvas();
-    }
-  } catch (e) {
-    alert("通信エラー：ネットを確認してください");
-  } finally {
-    loader.style.display = 'none';
-  }
+        if (cand.slice(0, 5).includes(currentMondai.kanji)) {
+            playSnd(sndAttack);
+            enemyHp -= 34;
+            document.getElementById('hp-bar').style.width = Math.max(0, enemyHp) + '%';
+            if(enemyHp <= 0) { alert("討伐完了！"); enemyHp = 100; document.getElementById('hp-bar').style.width = '100%'; }
+            next();
+        } else {
+            alert("判定不可！もっと力強く書け！");
+            clearCanvas();
+        }
+    } catch(e) { alert("通信エラー"); }
+    document.getElementById('loading').style.display = 'none';
 }
 
-function executeOugi() {
-  playSE(seAttack);
-  document.getElementById('app').classList.add('ougi-shake');
-  const flash = document.createElement('div');
-  flash.className = 'flash-white';
-  document.body.appendChild(flash);
-  
-  enemyHp -= 34;
-  if(enemyHp < 0) enemyHp = 0;
-  document.getElementById('hp-bar').style.width = enemyHp + '%';
-  
-  setTimeout(() => {
-    document.getElementById('app').classList.remove('ougi-shake');
-    flash.remove();
-    if(enemyHp <= 0) {
-      alert("完全討伐！");
-      enemyHp = 100;
-      document.getElementById('hp-bar').style.width = '100%';
-    }
-    nextQuestion();
-  }, 600);
-}
-
-window.onload = () => {
-  setupCanvas();
-  nextQuestion();
-};
+window.onload = init;
 </script>
 </body>
 </html>
