@@ -10,20 +10,35 @@
 }
 html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; background: var(--sumi); color: var(--washi); font-family: serif; }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
-#app { display: flex; flex-direction: column; height: 100dvh; padding: 12px; gap: 10px; max-width: 500px; margin: 0 auto; }
+#app { display: flex; flex-direction: column; height: 100dvh; padding: 12px; gap: 10px; max-width: 500px; margin: 0 auto; position: relative; }
 
 /* 敵エリア */
-#enemy-area { height: 130px; display: flex; align-items: center; padding: 15px; background: rgba(178,34,34,0.1); border: 2px solid var(--shu); border-radius: 12px; }
+#enemy-area { height: 130px; display: flex; align-items: center; padding: 15px; background: rgba(178,34,34,0.1); border: 2px solid var(--shu); border-radius: 12px; z-index: 10; }
 #enemy-visual { width: 80px; height: 100px; flex-shrink: 0; }
 #enemy-info { flex: 1; margin-left: 10px; }
 #enemy-hp-bar-bg { width: 100%; height: 12px; background: #222; border-radius: 6px; border: 1px solid var(--shu); margin-top: 5px; }
 #enemy-hp-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #600, var(--shu)); transition: width 0.3s; }
 
-/* キャンバス：答えが透ける要素を完全に削除 */
-#canvas-container { position: relative; flex: 1; background: #111; border: 2px solid var(--kin); border-radius: 12px; }
+/* キャンバス */
+#canvas-container { position: relative; flex: 1; background: #111; border: 2px solid var(--kin); border-radius: 12px; overflow: visible; }
 #draw-canvas { width: 100%; height: 100%; display: block; z-index: 5; position: relative; }
 
-/* 漢術師エリア：アップロードした画像を表示 */
+/* 浮き上がる文字のエフェクト用 */
+.floating-kanji {
+    position: absolute;
+    pointer-events: none;
+    z-index: 100;
+    filter: drop-shadow(0 0 15px var(--ai-bright)) brightness(1.5);
+    animation: kanji-attack 0.8s ease-out forwards;
+}
+
+@keyframes kanji-attack {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5) translateY(-50px); opacity: 1; }
+    100% { transform: scale(0.5) translateY(-200px); opacity: 0; }
+}
+
+/* 漢術師エリア */
 #player-area { height: 120px; display: flex; align-items: center; padding: 10px; background: linear-gradient(135deg, #001a33, #000); border: 2px solid var(--ai); border-radius: 12px; }
 #player-avatar { width: 100px; height: 100px; border-radius: 8px; border: 1px solid var(--ai-bright); overflow: hidden; background: #000; flex-shrink: 0; }
 #player-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -31,17 +46,18 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
 .status-label { font-size: 12px; color: var(--ai-bright); font-weight: bold; }
 .kanji-display { font-size: 20px; font-weight: bold; margin-top: 5px; }
 
-/* 操作ボタン */
 #button-area { display: flex; gap: 10px; height: 60px; }
 .btn { flex: 1; border-radius: 8px; font-weight: bold; font-size: 16px; border: none; cursor: pointer; }
 .btn-sub { background: #222; color: var(--kin); border: 1px solid var(--kin); }
 .btn-main { flex: 2; background: linear-gradient(to bottom, var(--ai-bright), var(--ai)); color: white; box-shadow: 0 4px 10px rgba(0,136,255,0.3); }
 
 #loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; color: var(--kin); }
+.shake { animation: shake 0.4s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-10px)} 75%{transform:translateX(10px)} }
 </style>
 </head>
 <body>
-<div id="loading">鑑定中...</div>
+<div id="loading">霊力鑑定中...</div>
 <div id="app">
   <div id="enemy-area">
     <div id="enemy-visual">
@@ -54,7 +70,7 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
     </div>
   </div>
 
-  <div id="canvas-container">
+  <div id="canvas-container" id="canvas-container">
     <canvas id="draw-canvas"></canvas>
   </div>
 
@@ -98,7 +114,8 @@ const enemyHpBar = document.getElementById('enemy-hp-bar');
 function setup() {
   const rect = canvas.parentNode.getBoundingClientRect();
   canvas.width = rect.width; canvas.height = rect.height;
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 10; ctx.strokeStyle = '#fff';
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 12; ctx.strokeStyle = '#fff';
+  ctx.shadowBlur = 4; ctx.shadowColor = '#0088ff';
 }
 
 function next() {
@@ -109,6 +126,21 @@ function next() {
 }
 
 function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); inkData = []; }
+
+// 攻撃エフェクト：書いた文字を画像として浮かび上がらせる
+function createAttackEffect() {
+    const dataUrl = canvas.toDataURL();
+    const img = document.createElement('img');
+    img.src = dataUrl;
+    img.className = 'floating-kanji';
+    
+    const container = document.getElementById('canvas-container');
+    img.style.width = canvas.width + 'px';
+    img.style.height = canvas.height + 'px';
+    container.appendChild(img);
+    
+    setTimeout(() => img.remove(), 800);
+}
 
 function start(x, y) { isDrawing = true; currentStroke = [[x], [y], [0]]; ctx.beginPath(); ctx.moveTo(x, y); }
 function move(x, y) { if (!isDrawing) return; ctx.lineTo(x, y); ctx.stroke(); currentStroke[0].push(x); currentStroke[1].push(y); currentStroke[2].push(0); }
@@ -133,18 +165,28 @@ async function recognizeAndAttack() {
     const data = await res.json();
     const result = data[1][0][1];
     
-    // 34ダメージ設定
-    let damage = (result && result[0] === currentMondai.kanji) ? 34 : 0;
-
-    if (damage > 0) {
-      enemyHp -= damage;
-      enemyHpBar.style.width = Math.max(0, enemyHp) + '%';
+    if (result && result[0] === currentMondai.kanji) {
+      // 成功時：エフェクト発動
+      createAttackEffect();
+      
       setTimeout(() => {
-        if (enemyHp <= 0) { alert("魔物を浄化した！"); enemyHp = 100; enemyHpBar.style.width = '100%'; }
-        next();
-      }, 400);
+          document.getElementById('enemy-area').classList.add('shake');
+          enemyHp -= 34;
+          enemyHpBar.style.width = Math.max(0, enemyHp) + '%';
+          
+          setTimeout(() => {
+              document.getElementById('enemy-area').classList.remove('shake');
+              if (enemyHp <= 0) { 
+                alert("退散せよ！魔物を完全に浄化した！"); 
+                enemyHp = 100; 
+                enemyHpBar.style.width = '100%'; 
+              }
+              next();
+          }, 400);
+      }, 300); // 浮き上がるタイミングに合わせる
+
     } else {
-      alert(`力不足！ 正解は「${currentMondai.kanji}」です。`);
+      alert(`判定失敗。精神を集中せよ。正解は「${currentMondai.kanji}」なり。`);
       clearCanvas();
     }
   } catch(e) { alert("通信エラー"); }
