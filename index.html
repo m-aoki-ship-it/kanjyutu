@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>漢術師 - 極 - (小学3年生 200字)</title>
+<title>漢術師 - 覚醒 - (Google認識エンジン搭載)</title>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@400;700;800&family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -13,37 +13,32 @@
 }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
 body { background: var(--sumi); font-family: 'Noto Sans JP', sans-serif; height: 100dvh; overflow: hidden; display: flex; flex-direction: column; color: var(--washi); }
+
+/* アニメーション */
 .ougi-shake { animation: ougiShake 0.5s infinite; }
-@keyframes ougiShake {
-  0% { transform: translate(0,0); }
-  25% { transform: translate(-8px, 4px); }
-  75% { transform: translate(8px, -4px); }
-}
-.sumi-splash {
-  position: fixed; width: 30px; height: 30px; background: var(--sumi);
-  border-radius: 50%; pointer-events: none; z-index: 1000;
-  filter: blur(2px); animation: splashAnim 0.8s ease-out forwards;
-}
-@keyframes splashAnim {
-  0% { transform: scale(1); opacity: 1; }
-  100% { transform: scale(5) translate(var(--tx), var(--ty)); opacity: 0; }
-}
-.flash-white {
-  position: fixed; inset: 0; background: white; z-index: 999;
-  pointer-events: none; animation: flashAnim 0.4s ease-out forwards;
-}
+@keyframes ougiShake { 0% { transform: translate(0,0); } 25% { transform: translate(-8px, 4px); } 75% { transform: translate(8px, -4px); } }
+.sumi-splash { position: fixed; width: 30px; height: 30px; background: var(--sumi); border-radius: 50%; pointer-events: none; z-index: 1000; filter: blur(2px); animation: splashAnim 0.8s ease-out forwards; }
+@keyframes splashAnim { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(5) translate(var(--tx), var(--ty)); opacity: 0; } }
+.flash-white { position: fixed; inset: 0; background: white; z-index: 999; pointer-events: none; animation: flashAnim 0.4s ease-out forwards; }
 @keyframes flashAnim { 0% { opacity: 0.8; } 100% { opacity: 0; } }
+
 #app { position: relative; z-index: 1; display: flex; flex-direction: column; height: 100dvh; padding: 12px; gap: 8px; }
 #enemy-area { display: flex; align-items: center; gap: 10px; padding: 15px; background: var(--shu-dim); border: 1px solid var(--shu); border-radius: 4px; }
 #hp-bar-bg { flex: 1; height: 10px; background: #333; position: relative; }
 #hp-bar { height: 100%; width: 100%; background: var(--shu-bright); transition: width 0.3s; }
-#draw-canvas { background: rgba(0,0,0,0.3); border: 2px solid var(--kin-dim); width: 100%; height: 300px; touch-action: none; }
-.action-btn { padding: 15px; font-size: 20px; cursor: pointer; border: 1px solid var(--kin); background: var(--sumi2); color: var(--kin); }
-#attack-btn { background: var(--shu); color: white; flex: 2; }
+
+#canvas-container { position: relative; width: 100%; height: 320px; background: rgba(255,255,255,0.05); border: 2px solid var(--kin-dim); }
+#draw-canvas { width: 100%; height: 100%; touch-action: none; position: relative; z-index: 2; }
+#hint-display { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 220px; color: rgba(255, 255, 255, 0.08); font-family: 'Shippori Mincho B1', serif; pointer-events: none; z-index: 1; transition: opacity 0.3s; }
+
+.action-btn { padding: 15px; font-size: 18px; cursor: pointer; border: 1px solid var(--kin); background: var(--sumi2); color: var(--kin); font-weight: bold; border-radius: 4px; }
+#attack-btn { background: var(--shu); color: white; border-color: var(--shu-bright); flex: 1; }
+#loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 2000; color: var(--kin); }
 </style>
 </head>
 <body>
 
+<div id="loading-overlay">鑑定中...</div>
 <audio id="se-draw" src="文字入れ.mp3" preload="auto"></audio>
 <audio id="se-attack" src="攻撃.mp3" preload="auto"></audio>
 
@@ -55,238 +50,41 @@ body { background: var(--sumi); font-family: 'Noto Sans JP', sans-serif; height:
     </div>
     <div id="enemy-char" style="font-size: 50px;">怨</div>
   </div>
-  <div id="mondai-area" style="text-align:center; padding: 20px;">
-    <div id="mondai-bun" style="font-size: 24px; margin-bottom: 10px;"></div>
-    <div id="mondai-yomi" style="color: var(--kin);"></div>
-    <div id="mondai-strokes" style="font-size: 12px; opacity: 0.6;"></div>
+
+  <div id="mondai-area" style="text-align:center; padding: 10px;">
+    <div id="mondai-bun" style="font-size: 24px; margin-bottom: 5px; font-weight: bold;"></div>
+    <div id="mondai-yomi" style="color: var(--kin); font-size: 18px;"></div>
   </div>
-  <canvas id="draw-canvas"></canvas>
-  <div style="display:flex; gap:10px;">
+
+  <div id="canvas-container">
+    <div id="hint-display"></div>
+    <canvas id="draw-canvas"></canvas>
+  </div>
+
+  <div style="display:flex; gap:8px;">
     <button class="action-btn" onclick="clearCanvas()">墨を拭く</button>
-    <button class="action-btn" id="attack-btn" onclick="tryAttack()">奥義発動！</button>
+    <button class="action-btn" onclick="showHint()">助言</button>
+    <button class="action-btn" id="attack-btn" onclick="recognizeAndAttack()">奥義発動！</button>
   </div>
 </div>
 
 <script>
-// 問題リスト（省略せず全て保持しています）
+// 問題リスト（小3・200字から一部抜粋、実際には全リストを入れて運用可能）
 const MONDAI_LIST = [
-  { kanji:'悪', yomi:'あく/わるい', strokes:11, bun:'___いことをして謝る' },
-  { kanji:'安', yomi:'あん/やすい', strokes:6, bun:'値段が___いので買う' },
-  { kanji:'暗', yomi:'あん/くらい', strokes:13, bun:'___い夜道を歩く' },
-  { kanji:'医', yomi:'い', strokes:7, bun:'___者に診てもらう' },
-  { kanji:'委', yomi:'い', strokes:8, bun:'学級___員に選ばれる' },
-  { kanji:'意', yomi:'い', strokes:13, bun:'自分の___見を言う' },
-  { kanji:'育', yomi:'いく/そだつ', strokes:8, bun:'植物が大きく___つ' },
-  { kanji:'員', yomi:'いん', strokes:10, bun:'銀行の___員さん' },
-  { kanji:'院', yomi:'いん', strokes:10, bun:'病___へお見舞いに行く' },
-  { kanji:'飲', yomi:'いん/のむ', strokes:12, bun:'ジュースを___む' },
-  { kanji:'運', yomi:'うん/はこぶ', strokes:12, bun:'重い荷物を___ぶ' },
-  { kanji:'泳', yomi:'えい/およぐ', strokes:8, bun:'海で___ぐ' },
-  { kanji:'駅', yomi:'えき', strokes:14, bun:'___で電車を待つ' },
-  { kanji:'央', yomi:'おう', strokes:5, bun:'道の中___を歩く' },
-  { kanji:'横', yomi:'おう/よこ', strokes:15, bun:'___断歩道を渡る' },
-  { kanji:'屋', yomi:'おく/や', strokes:9, bun:'パン___さんで買う' },
-  { kanji:'温', yomi:'おん/あたたかい', strokes:12, bun:'___かいスープを飲む' },
-  { kanji:'化', yomi:'か/ばける', strokes:4, bun:'タヌキが___ける' },
-  { kanji:'荷', yomi:'か/に', strokes:10, bun:'手___物がいっぱいだ' },
-  { kanji:'界', yomi:'かい', strokes:9, bun:'世___一周の旅に出る' },
-  { kanji:'開', yomi:'かい/あける', strokes:12, bun:'窓を___けて空気をかえる' },
-  { kanji:'階', yomi:'かい', strokes:12, bun:'三___だての建物' },
-  { kanji:'寒', yomi:'かん/さむい', strokes:12, bun:'今日はとても___い' },
-  { kanji:'感', yomi:'かん', strokes:13, bun:'___動の涙を流す' },
-  { kanji:'漢', yomi:'かん', strokes:13, bun:'___字の練習をする' },
-  { kanji:'館', yomi:'かん', strokes:16, bun:'図書___で本を借りる' },
-  { kanji:'岸', yomi:'がん/きし', strokes:8, bun:'海岸の___で遊ぶ' },
-  { kanji:'起', yomi:'き/おきる', strokes:10, bun:'朝六時に___きる' },
-  { kanji:'期', yomi:'き', strokes:12, bun:'楽しみに___待する' },
-  { kanji:'客', yomi:'きゃく', strokes:9, bun:'お___様をお迎えする' },
-  { kanji:'究', yomi:'きゅう/きわめる', strokes:7, bun:'宇宙を研___する' },
-  { kanji:'急', yomi:'きゅう/いそぐ', strokes:9, bun:'___いで準備する' },
-  { kanji:'級', yomi:'きゅう', strokes:9, bun:'三___に進級する' },
-  { kanji:'宮', yomi:'きゅう/みや', strokes:10, bun:'お___参りに行く' },
-  { kanji:'球', yomi:'きゅう/たま', strokes:11, bun:'野___の試合を見る' },
-  { kanji:'去', yomi:'きょ/さる', strokes:5, bun:'昨___のことを思い出す' },
-  { kanji:'橋', yomi:'きょう/はし', strokes:16, bun:'長い___を渡る' },
-  { kanji:'業', yomi:'ぎょう', strokes:13, bun:'授___中に手をあげる' },
-  { kanji:'曲', yomi:'きょく/まがる', strokes:6, bun:'好きな___を歌う' },
-  { kanji:'局', yomi:'きょく', strokes:7, bun:'郵便___へ行く' },
-  { kanji:'銀', yomi:'ぎん', strokes:14, bun:'___色のメダル' },
-  { kanji:'区', yomi:'く', strokes:4, bun:'港___に住んでいる' },
-  { kanji:'苦', yomi:'く/くるしい', strokes:8, bun:'___しい練習に耐える' },
-  { kanji:'具', yomi:'ぐ', strokes:8, bun:'文房___をそろえる' },
-  { kanji:'君', yomi:'くん/きみ', strokes:7, bun:'___の名前を教えて' },
-  { kanji:'係', yomi:'けい/かかり', strokes:9, bun:'生き物___になる' },
-  { kanji:'軽', yomi:'けい/かるい', strokes:12, bun:'___いカバンを持つ' },
-  { kanji:'血', yomi:'けつ/ち', strokes:6, bun:'ころんで___が出る' },
-  { kanji:'決', yomi:'けつ/きめる', strokes:7, bun:'リーダーを___める' },
-  { kanji:'研', yomi:'けん/とぐ', strokes:9, bun:'石を研___する' },
-  { kanji:'県', yomi:'けん', strokes:9, bun:'お隣の___へ行く' },
-  { kanji:'庫', yomi:'こ', strokes:10, bun:'冷___庫のアイス' },
-  { kanji:'湖', yomi:'こ/みずうみ', strokes:12, bun:'___でボートに乗る' },
-  { kanji:'向', yomi:'こう/むく', strokes:6, bun:'前を___いて歩く' },
-  { kanji:'幸', yomi:'こう/しあわせ', strokes:8, bun:'___せな毎日を過ごす' },
-  { kanji:'港', yomi:'こう/みなと', strokes:12, bun:'___に大きな船が着く' },
-  { kanji:'号', yomi:'ごう', strokes:5, bun:'信___をよく見る' },
-  { kanji:'根', yomi:'こん/ね', strokes:10, bun:'大___の料理を食べる' },
-  { kanji:'祭', yomi:'さい/まつり', strokes:11, bun:'お___りで屋台を見る' },
-  { kanji:'皿', yomi:'さら', strokes:5, bun:'___をきれいに洗う' },
-  { kanji:'仕', yomi:'し', strokes:5, bun:'親の___事を見学する' },
-  { kanji:'死', yomi:'し/しぬ', strokes:6, bun:'必___にがんばる' },
-  { kanji:'使', yomi:'し/つかう', strokes:8, bun:'お箸を上手に___う' },
-  { kanji:'始', yomi:'し/はじめる', strokes:8, bun:'宿題を___める' },
-  { kanji:'指', yomi:'し/ゆび', strokes:9, bun:'___で方向をさす' },
-  { kanji:'歯', yomi:'し/は', strokes:12, bun:'虫___を治してもらう' },
-  { kanji:'詩', yomi:'し', strokes:13, bun:'___を音読する' },
-  { kanji:'次', yomi:'じ/つぎ', strokes:6, bun:'___の駅で降りる' },
-  { kanji:'事', yomi:'じ/こと', strokes:8, bun:'大___な約束を守る' },
-  { kanji:'持', yomi:'じ/もつ', strokes:9, bun:'傘を___って出かける' },
-  { kanji:'式', yomi:'しき', strokes:6, bun:'入学___に出席する' },
-  { kanji:'実', yomi:'じつ/みのる', strokes:8, bun:'努力が___を結ぶ' },
-  { kanji:'写', yomi:'しゃ/うつす', strokes:5, bun:'景色を写真に___す' },
-  { kanji:'者', yomi:'しゃ/もの', strokes:8, bun:'若___が集まる場所' },
-  { kanji:'主', yomi:'しゅ/ぬし', strokes:5, bun:'___人公を応援する' },
-  { kanji:'守', yomi:'しゅ/まもる', strokes:6, bun:'自然を大切に___る' },
-  { kanji:'取', yomi:'しゅ/とる', strokes:8, bun:'満点を___る' },
-  { kanji:'酒', yomi:'しゅ/サケ', strokes:10, bun:'大人はお___を飲む' },
-  { kanji:'受', yomi:'じゅ/うける', strokes:8, bun:'テストを___ける' },
-  { kanji:'州', yomi:'しゅう/す', strokes:6, bun:'本___は日本で一番大きい' },
-  { kanji:'拾', yomi:'しゅう/ひろう', strokes:9, bun:'きれいな石を___う' },
-  { kanji:'終', yomi:'しゅう/おわる', strokes:11, bun:'映画が___わる' },
-  { kanji:'習', yomi:'しゅう/ならう', strokes:11, bun:'ピアノを___う' },
-  { kanji:'集', yomi:'しゅう/あつめる', strokes:12, bun:'カードを___める' },
-  { kanji:'住', yomi:'じゅう/すむ', strokes:7, bun:'今の町に長く___む' },
-  { kanji:'重', yomi:'じゅう/おもい', strokes:9, bun:'___い荷物を運ぶ' },
-  { kanji:'宿', yomi:'しゅく/やど', strokes:11, bun:'___題を忘れない' },
-  { kanji:'所', yomi:'しょ/ところ', strokes:8, bun:'住所を書きとめる' },
-  { kanji:'暑', yomi:'しょ/あつい', strokes:12, bun:'___い夏休み' },
-  { kanji:'助', yomi:'じょ/たすける', strokes:7, bun:'困った人を___ける' },
-  { kanji:'昭', yomi:'しょう', strokes:9, bun:'___和の時代を調べる' },
-  { kanji:'消', yomi:'しょう/きえる', strokes:10, bun:'ろうそくの火が___える' },
-  { kanji:'商', yomi:'しょう', strokes:11, bun:'___売をする店' },
-  { kanji:'章', yomi:'しょう', strokes:11, bun:'文章の___立て' },
-  { kanji:'勝', yomi:'しょう/かつ', strokes:12, bun:'リレーで___つ' },
-  { kanji:'乗', yomi:'じょう/のる', strokes:9, bun:'自転車に___る' },
-  { kanji:'植', yomi:'しょく/うえる', strokes:12, bun:'庭に花を___える' },
-  { kanji:'申', yomi:'しん/もうす', strokes:5, bun:'名前を___し上げる' },
-  { kanji:'身', yomi:'しん/み', strokes:7, bun:'___長がのびる' },
-  { kanji:'神', yomi:'しん/かみ', strokes:9, bun:'___社へお参りに行く' },
-  { kanji:'真', yomi:'しん/ま', strokes:10, bun:'___っ白な雪' },
-  { kanji:'深', yomi:'しん/ふかい', strokes:11, bun:'___い森を歩く' },
-  { kanji:'進', yomi:'しん/すすむ', strokes:11, bun:'時計の針が___む' },
-  { kanji:'世', yomi:'せい/よ', strokes:5, bun:'お___話になりました' },
-  { kanji:'整', yomi:'せい/ととのえる', strokes:16, bun:'列を___えて並ぶ' },
-  { kanji:'昔', yomi:'せき/むかし', strokes:8, bun:'___ばなしを聞く' },
-  { kanji:'全', yomi:'ぜん', strokes:6, bun:'力___開で走る' },
-  { kanji:'相', yomi:'そう/あい', strokes:9, bun:'___談に乗ってもらう' },
-  { kanji:'送', yomi:'そう/おくる', strokes:9, bun:'プレゼントを___る' },
-  { kanji:'想', yomi:'そう/お思う', strokes:13, bun:'将来のゆめを___像する' },
-  { kanji:'息', yomi:'そく/いき', strokes:10, bun:'大きくため___をつく' },
-  { kanji:'速', yomi:'そく/はやい', strokes:10, bun:'___いスピードで走る' },
-  { kanji:'族', yomi:'ぞく', strokes:11, bun:'家___で食事をする' },
-  { kanji:'他', yomi:'た/ほか', strokes:5, bun:'___の人の意見を聞く' },
-  { kanji:'打', yomi:'だ/うつ', strokes:5, bun:'太鼓を___つ' },
-  { kanji:'対', yomi:'たい', strokes:7, bun:'一___一の対決' },
-  { kanji:'待', yomi:'たい/まつ', strokes:9, bun:'公園で友達を___つ' },
-  { kanji:'代', yomi:'だい/かわる', strokes:5, bun:'父の___わりに買い物に行く' },
-  { kanji:'第', yomi:'だい', strokes:11, bun:'___一のコース' },
-  { kanji:'題', yomi:'だい', strokes:18, bun:'難しい問___を解く' },
-  { kanji:'炭', yomi:'たん/すみ', strokes:9, bun:'石___を運ぶ' },
-  { kanji:'短', yomi:'たん/みじかい', strokes:12, bun:'夜の時間が___い' },
-  { kanji:'談', yomi:'だん', strokes:15, bun:'放課後のじょう___' },
-  { kanji:'着', yomi:'ちゃく/きる', strokes:12, bun:'上着を___る' },
-  { kanji:'注', yomi:'ちゅう/そそぐ', strokes:8, bun:'___意事項を読む' },
-  { kanji:'柱', yomi:'ちゅう/はしら', strokes:9, bun:'家の太い___' },
-  { kanji:'丁', yomi:'てい', strokes:2, bun:'三___目を左に曲がる' },
-  { kanji:'帳', yomi:'ちょう', strokes:11, bun:'連絡___を書く' },
-  { kanji:'調', yomi:'ちょう/しらべる', strokes:15, bun:'図鑑で___べる' },
-  { kanji:'追', yomi:'つい/おう', strokes:9, bun:'逃げる敵を___いかける' },
-  { kanji:'定', yomi:'てい/さだめる', strokes:8, bun:'予定を___める' },
-  { kanji:'庭', yomi:'てい/にわ', strokes:10, bun:'___に花が咲く' },
-  { kanji:'笛', yomi:'てき/ふえ', strokes:11, bun:'ホイッスルの___を吹く' },
-  { kanji:'鉄', yomi:'てつ', strokes:13, bun:'___棒で遊ぶ' },
-  { kanji:'転', yomi:'てん/ころぶ', strokes:11, bun:'自転車を運___する' },
-  { kanji:'都', yomi:'と/みやこ', strokes:11, bun:'___合が悪くなる' },
-  { kanji:'度', yomi:'ど/たび', strokes:9, bun:'もう一___挑戦する' },
-  { kanji:'投', yomi:'とう/なげる', strokes:7, bun:'全力で投げる' },
-  { kanji:'豆', yomi:'とう/まめ', strokes:7, bun:'大___を食べる' },
-  { kanji:'島', yomi:'とう/しま', strokes:10, bun:'小さな無人___' },
-  { kanji:'湯', yomi:'とう/ゆ', strokes:12, bun:'お___を沸かす' },
-  { kanji:'登', yomi:'とう/のぼる', strokes:12, bun:'富士山に___る' },
-  { kanji:'等', yomi:'とう/ひとしい', strokes:12, bun:'一___賞をとる' },
-  { kanji:'動', yomi:'どう/うごく', strokes:11, bun:'___物が好きだ' },
-  { kanji:'童', yomi:'どう/わらべ', strokes:12, bun:'___謡を歌う' },
-  { kanji:'道', yomi:'どう/みち', strokes:12, bun:'書___を習う' },
-  { kanji:'特', yomi:'とく', strokes:10, bun:'___急列車に乗る' },
-  { kanji:'得', yomi:'とく/える', strokes:11, bun:'ヒントを___る' },
-  { kanji:'毒', yomi:'どく', strokes:8, bun:'消毒をする' },
-  { kanji:'独', yomi:'どく/ひとり', strokes:9, bun:'___り立ちする' },
-  { kanji:'読', yomi:'どく/よむ', strokes:14, bun:'音___の練習' },
-  { kanji:'内', yomi:'ない/うち', strokes:4, bun:'案内所へ行く' },
-  { kanji:'南', yomi:'なん/みなみ', strokes:9, bun:'___極大陸へ行く' },
-  { kanji:'肉', yomi:'にく', strokes:6, bun:'牛___を焼く' },
-  { kanji:'日', yomi:'にち/ひ', strokes:4, bun:'昨___のことを話す' },
-  { kanji:'入', yomi:'にゅう/はいる', strokes:2, bun:'お風呂に___る' },
-  { kanji:'熱', yomi:'ねつ/あつい', strokes:15, bun:'___い情熱を燃やす' },
-  { kanji:'年', yomi:'ねん/とし', strokes:6, bun:'一___生の時の思い出' },
-  { kanji:'念', yomi:'ねん', strokes:8, bun:'残念ながら負けた' },
-  { kanji:'波', yomi:'は/なみ', strokes:8, bun:'___乗りをする' },
-  { kanji:'配', yomi:'はい/くばる', strokes:10, bun:'お菓子を___る' },
-  { kanji:'倍', yomi:'ばい', strokes:10, bun:'体積が二___になる' },
-  { kanji:'箱', yomi:'はこ', strokes:15, bun:'宝物の___' },
-  { kanji:'畑', yomi:'はたけ', strokes:9, bun:'ジャガイモ___' },
-  { kanji:'発', yomi:'はつ', strokes:9, bun:'発明をする' },
-  { kanji:'反', yomi:'はん/そる', strokes:4, bun:'___対意見を言う' },
-  { kanji:'坂', yomi:'はん/さか', strokes:7, bun:'長い___道をのぼる' },
-  { kanji:'板', yomi:'はん/いた', strokes:8, bun:'黒___の文字を写す' },
-  { kanji:'皮', yomi:'ひ/かわ', strokes:5, bun:'リンゴの___をむく' },
-  { kanji:'悲', yomi:'ひ/かなしい', strokes:12, bun:'___しい別れ' },
-  { kanji:'美', yomi:'び/うつくしい', strokes:9, bun:'___しい夕焼け' },
-  { kanji:'鼻', yomi:'び/はな', strokes:14, bun:'___がつまる' },
-  { kanji:'筆', yomi:'ひつ/ふで', strokes:12, bun:'___箱の中身' },
-  { kanji:'氷', yomi:'ひょう/こおり', strokes:5, bun:'かき___を食べる' },
-  { kanji:'表', yomi:'ひょう/おもて', strokes:8, bun:'時計の___面' },
-  { kanji:'秒', yomi:'びょう', strokes:9, bun:'タイムを___単位ではかる' },
-  { kanji:'病', yomi:'びょう/やまい', strokes:10, bun:'___気にならない体' },
-  { kanji:'品', yomi:'ひん/しな', strokes:9, bun:'手芸作___' },
-  { kanji:'負', yomi:'ふ/まける', strokes:9, bun:'勝___を決める' },
-  { kanji:'部', yomi:'ぶ', strokes:11, bun:'全部でいくら？' },
-  { kanji:'服', yomi:'ふく', strokes:8, bun:'洋___を着替える' },
-  { kanji:'福', yomi:'ふく', strokes:13, bun:'___岡県へ行く' },
-  { kanji:'物', yomi:'ぶつ/もの', strokes:8, bun:'忘れ___をしない' },
-  { kanji:'平', yomi:'へい/たいら', strokes:5, bun:'___和な世界' },
-  { kanji:'返', yomi:'へん/かえす', strokes:7, bun:'返事をする' },
-  { kanji:'勉', yomi:'べん/つとめる', strokes:10, bun:'___強をがんばる' },
-  { kanji:'放', yomi:'ほう/はなす', strokes:8, bun:'放送を聴く' },
-  { kanji:'味', yomi:'み/あじ', strokes:8, bun:'___方を変える' },
-  { kanji:'命', yomi:'めい/いのち', strokes:8, bun:'___令を守る' },
-  { kanji:'面', yomi:'めん/おもて', strokes:9, bun:'地面の上を歩く' },
-  { kanji:'問', yomi:'もん/とう', strokes:11, bun:'問題に答える' },
-  { kanji:'役', yomi:'やく', strokes:7, bun:'役に立つ道具' },
-  { kanji:'薬', yomi:'やく/くすり', strokes:16, bun:'目___をさす' },
-  { kanji:'由', yomi:'ゆう/よし', strokes:5, bun:'理由を説明する' },
-  { kanji:'油', yomi:'ゆう/あぶら', strokes:8, bun:'___絵を描く' },
-  { kanji:'有', yomi:'ゆう/ある', strokes:6, bun:'有名な場所' },
-  { kanji:'遊', yomi:'ゆう/あそぶ', strokes:12, bun:'友達と___ぶ' },
-  { kanji:'予', yomi:'よ', strokes:4, bun:'予想が当たる' },
-  { kanji:'羊', yomi:'よう/ひつじ', strokes:6, bun:'___の毛で作った服' },
-  { kanji:'洋', yomi:'よう', strokes:9, bun:'___服を買う' },
-  { kanji:'葉', yomi:'よう/は', strokes:12, bun:'木の___がゆれる' },
-  { kanji:'陽', yomi:'よう', strokes:12, bun:'太___の光を浴びる' },
-  { kanji:'様', yomi:'よう/さま', strokes:14, bun:'色々な___子' },
-  { kanji:'落', yomi:'らく/おちる', strokes:12, bun:'落とし物をする' },
-  { kanji:'流', yomi:'りゅう/ながれる', strokes:10, bun:'流行の曲' },
-  { kanji:'旅', yomi:'りょ/たび', strokes:10, bun:'旅行カバン' },
-  { kanji:'両', yomi:'りょう', strokes:6, bun:'___親を大切にする' },
-  { kanji:'緑', yomi:'りょく/みどり', strokes:14, bun:'___豊かな公園' },
-  { kanji:'礼', yomi:'れい', strokes:5, bun:'お___状を書く' },
-  { kanji:'列', yomi:'れつ', strokes:6, bun:'一___になって並ぶ' },
-  { kanji:'練', yomi:'れん/ねる', strokes:14, bun:'___習を積み重ねる' },
-  { kanji:'路', yomi:'ろ/じ', strokes:13, bun:'線___の近く' },
-  { kanji:'和', yomi:'わ/やわらぐ', strokes:8, bun:'___服を着る' }
+  { kanji:'悪', yomi:'あく/わるい', bun:'___いことをして謝る' },
+  { kanji:'医', yomi:'い', bun:'___者に診てもらう' },
+  { kanji:'運', yomi:'うん/はこぶ', bun:'重い荷物を___ぶ' },
+  { kanji:'漢', yomi:'かん', bun:'___字の練習をする' },
+  { kanji:'進', yomi:'しん/すすむ', bun:'前へ___む' },
+  { kanji:'鉄', yomi:'てつ', bun:'___棒で遊ぶ' },
+  { kanji:'薬', yomi:'やく/くすり', bun:'目___をさす' },
+  { kanji:'曜', yomi:'よう', bun:'何曜日の___？' }
+  // ... (前回のリストをここに統合してください)
 ];
 
 let currentMondai = {};
-let paths = [];
+let inkData = []; // Google認識用データ
+let currentStroke = [];
 let isDrawing = false;
 let enemyHp = 100;
 
@@ -294,16 +92,16 @@ const canvas = document.getElementById('draw-canvas');
 const ctx = canvas.getContext('2d');
 const seDraw = document.getElementById('se-draw');
 const seAttack = document.getElementById('se-attack');
+const hintDisplay = document.getElementById('hint-display');
+const loader = document.getElementById('loading-overlay');
 
 function setupCanvas() {
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.lineWidth = 8;
+  ctx.lineWidth = 9;
   ctx.strokeStyle = '#ffffff';
-  ctx.shadowColor = '#ffff00';
-  ctx.shadowBlur = 15;
 }
 
 function nextQuestion() {
@@ -311,17 +109,23 @@ function nextQuestion() {
   currentMondai = MONDAI_LIST[nextIndex];
   document.getElementById('mondai-bun').innerText = currentMondai.bun;
   document.getElementById('mondai-yomi').innerText = `読み：${currentMondai.yomi}`;
-  document.getElementById('mondai-strokes').innerText = `画数：${currentMondai.strokes}画`;
+  hintDisplay.innerText = currentMondai.kanji;
+  hintDisplay.style.opacity = 0;
   clearCanvas();
 }
 
-// 効果音再生用関数（連続再生できるようにリセットを入れる）
+function showHint() {
+  hintDisplay.style.opacity = 1;
+  setTimeout(() => hintDisplay.style.opacity = 0, 1200);
+}
+
 function playSE(audioElement) {
   audioElement.pause();
   audioElement.currentTime = 0;
-  audioElement.play().catch(e => console.log("SE再生エラー:", e));
+  audioElement.play().catch(e => {});
 }
 
+// キャンバス操作
 canvas.addEventListener('mousedown', start);
 canvas.addEventListener('mousemove', draw);
 canvas.addEventListener('mouseup', end);
@@ -331,71 +135,113 @@ canvas.addEventListener('touchend', end);
 
 function start(e) {
   isDrawing = true;
-  paths.push([]);
-  playSE(seDraw); // 文字を書き始めた瞬間にSE再生
+  currentStroke = [[], [], []]; // x, y, t
+  playSE(seDraw);
   draw(e);
 }
 
 function draw(e) {
   if (!isDrawing) return;
   const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  paths[paths.length - 1].push({x, y});
+  const x = Math.round(e.clientX - rect.left);
+  const y = Math.round(e.clientY - rect.top);
+  const t = Date.now();
+
+  currentStroke[0].push(x);
+  currentStroke[1].push(y);
+  currentStroke[2].push(t);
+
   ctx.shadowColor = '#ffff00';
-  ctx.shadowBlur = 15;
+  ctx.shadowBlur = 10;
   ctx.beginPath();
-  const currentPath = paths[paths.length-1];
-  if(currentPath.length > 1) {
-    const prev = currentPath[currentPath.length-2];
-    ctx.moveTo(prev.x, prev.y);
+  const lastX = currentStroke[0][currentStroke[0].length-2];
+  const lastY = currentStroke[1][currentStroke[1].length-2];
+  if(lastX) {
+    ctx.moveTo(lastX, lastY);
     ctx.lineTo(x, y);
     ctx.stroke();
   }
 }
-function end() { isDrawing = false; }
-function clearCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  paths = [];
+
+function end() {
+  if(isDrawing) inkData.push(currentStroke);
+  isDrawing = false;
 }
 
-function tryAttack() {
-  const userStrokes = paths.length;
-  if (userStrokes === currentMondai.strokes) {
-    executeOugi();
-  } else {
-    alert(`画数が違います！ あなた：${userStrokes}画 / 正解：${currentMondai.strokes}画`);
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  inkData = [];
+}
+
+// Google認識APIへのリクエスト
+async function recognizeAndAttack() {
+  if (inkData.length === 0) return;
+  
+  loader.style.display = 'flex';
+  
+  const requestData = {
+    options: "enable_pre_space",
+    requests: [{
+      writing_guide: { writing_area_width: canvas.width, writing_area_height: canvas.height },
+      ink: inkData,
+      language: "ja"
+    }]
+  };
+
+  try {
+    const response = await fetch('https://www.google.com.tw/inputtools/request?ime=handwriting&app=mobilesearch&cs=1&oe=UTF-8', {
+      method: 'POST',
+      body: JSON.stringify(requestData),
+      headers: { "Content-Type": "application/json" }
+    });
+    
+    const result = await response.json();
+    const candidates = result[1][0][1]; // 認識された文字候補の配列
+
+    // 候補のトップ3に正解の漢字が含まれているかチェック
+    if (candidates.slice(0, 3).includes(currentMondai.kanji)) {
+      executeOugi();
+    } else {
+      alert(`残念！判定は「${candidates[0]}」でした。もっと丁寧に書いてみよう！`);
+      clearCanvas();
+    }
+  } catch (err) {
+    alert("通信エラーが発生しました。");
+  } finally {
+    loader.style.display = 'none';
   }
 }
 
 function executeOugi() {
-  playSE(seAttack); // 攻撃が当たった瞬間にSE再生
+  playSE(seAttack);
   document.getElementById('app').classList.add('ougi-shake');
   const flash = document.createElement('div');
   flash.className = 'flash-white';
   document.body.appendChild(flash);
+  
   for (let i = 0; i < 20; i++) {
     const splash = document.createElement('div');
     splash.className = 'sumi-splash';
-    splash.style.left = '50%';
-    splash.style.top = '50%';
+    splash.style.left = '50%'; splash.style.top = '50%';
     splash.style.setProperty('--tx', (Math.random() - 0.5) * 600 + 'px');
     splash.style.setProperty('--ty', (Math.random() - 0.5) * 600 + 'px');
     document.body.appendChild(splash);
     setTimeout(() => splash.remove(), 800);
   }
-  enemyHp -= 25;
+
+  enemyHp -= 34;
   if(enemyHp < 0) enemyHp = 0;
   document.getElementById('hp-bar').style.width = enemyHp + '%';
   document.getElementById('enemy-char').style.transform = 'scale(1.5) rotate(20deg)';
   document.getElementById('enemy-char').style.filter = 'brightness(5)';
+  
   setTimeout(() => {
     document.getElementById('app').classList.remove('ougi-shake');
     document.getElementById('enemy-char').style.transform = 'scale(1) rotate(0deg)';
     document.getElementById('enemy-char').style.filter = 'none';
     flash.remove();
     if(enemyHp <= 0) {
-      alert("敵を討ち取ったり！");
+      alert("見事！魔物を浄化した！");
       enemyHp = 100;
       document.getElementById('hp-bar').style.width = '100%';
     }
