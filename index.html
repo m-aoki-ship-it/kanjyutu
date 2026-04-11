@@ -1,3 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>漢術師 - 真・打 -</title>
+<style>
+:root {
+  --sumi: #0d0b08; --kin: #c9a84c; --shu: #c0392b; --shu-bright: #ff4d4d;
+  --ai: #004d99; --ai-bright: #3399ff; --washi: #f2ead8;
+}
+html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; background: var(--sumi); color: var(--washi); font-family: serif; }
+* { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
+
+#app { display: flex; flex-direction: column; height: 100dvh; padding: 10px; gap: 8px; }
+
+/* 敵エリア */
+#enemy-area { height: 110px; display: flex; align-items: center; padding: 10px; background: rgba(192,57,43,0.15); border: 2px solid var(--shu); border-radius: 8px; flex-shrink: 0; }
+#enemy-graphic { width: 70px; height: 90px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Cpath d='M50 10 C20 40, 10 70, 20 90 C30 110, 70 110, 80 90 C90 70, 80 40, 50 10' fill='%23600'/%3E%3Ccircle cx='35' cy='60' r='5' fill='%23ff0'/%3E%3Ccircle cx='65' cy='60' r='5' fill='%23ff0'/%3E%3Cpath d='M30 85 Q50 95, 70 85' stroke='%23ff0' stroke-width='2' fill='none'/%3E%3C/svg%3E"); background-size: contain; background-repeat: no-repeat; filter: drop-shadow(0 0 10px var(--shu)); }
+#enemy-info { flex: 1; margin-left: 12px; }
+#enemy-hp-bar-bg { width: 100%; height: 12px; background: #222; border-radius: 6px; overflow: hidden; margin-top: 5px; border: 1px solid var(--shu); }
+#enemy-hp-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #800, var(--shu-bright)); transition: width 0.4s ease-out; }
+
+/* キャンバス */
+#canvas-container { position: relative; flex: 1; background: #151515; border: 2px solid var(--kin); border-radius: 8px; box-shadow: inset 0 0 30px #000; }
+#draw-canvas { width: 100%; height: 100%; }
+#hint-display { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 180px; color: rgba(255, 255, 255, 0.03); pointer-events: none; }
+
+/* 自分エリア */
+#player-area { height: 90px; display: flex; align-items: center; padding: 10px; background: rgba(0, 77, 153, 0.15); border: 1px solid var(--ai); border-radius: 8px; flex-shrink: 0; }
+#player-graphic { width: 50px; height: 60px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 120'%3E%3Cpath d='M50 10 L80 100 L20 100 Z' fill='%23004' stroke='%2339f' stroke-width='3'/%3E%3C/svg%3E"); background-size: contain; background-repeat: no-repeat; }
+#player-info { flex: 1; margin-left: 12px; }
+
+/* エフェクト */
+.shake { animation: shake 0.4s both; }
+@keyframes shake { 10%, 90% { transform: translate3d(-2px, 0, 0); } 20%, 80% { transform: translate3d(4px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-6px, 0, 0); } }
+.flash { position: fixed; inset: 0; background: white; z-index: 1000; pointer-events: none; opacity: 0; animation: flash-anim 0.4s; }
+@keyframes flash-anim { 0% { opacity: 0.8; } 100% { opacity: 0; } }
+
+#button-area { display: flex; gap: 8px; height: 55px; flex-shrink: 0; }
+.action-btn { flex: 1; background: #1a1610; color: var(--kin); border: 1px solid var(--kin); font-weight: bold; border-radius: 4px; font-size: 15px; }
+#attack-btn { flex: 2; background: var(--ai); color: white; border-color: var(--ai-bright); font-size: 18px; }
+#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 100; color: var(--kin); }
+</style>
+</head>
+<body>
+
+<div id="loading">鑑定中...</div>
+<div id="flash-overlay"></div>
+
+<div id="app">
+  <div id="enemy-area">
+    <div id="enemy-graphic"></div>
+    <div id="enemy-info">
+      <div style="font-size: 12px; color: var(--shu-bright);">強敵：誤字の魔物 (HP)</div>
+      <div id="enemy-hp-bar-bg"><div id="enemy-hp-bar"></div></div>
+      <div id="mondai-bun" style="font-size: 18px; font-weight: bold; margin-top: 8px;"></div>
+    </div>
+  </div>
+
+  <div id="canvas-container">
+    <div id="hint-display"></div>
+    <canvas id="draw-canvas"></canvas>
+  </div>
+
+  <div id="player-area">
+    <div id="player-graphic"></div>
+    <div id="player-info">
+      <div style="font-size: 14px; color: var(--ai-bright);">霊力集中：読み</div>
+      <div style="color: var(--kin); font-size: 16px; font-weight: bold;" id="mondai-yomi"></div>
+    </div>
+  </div>
+
+  <div id="button-area">
+    <button class="action-btn" onclick="clearCanvas()">墨を拭く</button>
+    <button class="action-btn" id="attack-btn" onclick="recognizeAndAttack()">漢術発動！</button>
+  </div>
+</div>
+
+<script>
+const MONDAI_LIST = [
+  { kanji:'悪', yomi:'わるい', bun:'___いことをして謝る' },
+  { kanji:'医', yomi:'い', bun:'___者に診てもらう' },
+  { kanji:'運', yomi:'はこぶ', bun:'荷物を___ぶ' },
+  { kanji:'漢', yomi:'かん', bun:'___字の練習' },
+  { kanji:'進', yomi:'すすむ', bun:'前へ___む' },
+  { kanji:'鉄', yomi:'てつ', bun:'___棒で遊ぶ' },
+  { kanji:'曜', yomi:'よう', bun:'日曜日の___' }
+];
+
+let currentMondai = {};
+let inkData = [];
+let currentStroke = [];
+let isDrawing = false;
+let enemyHp = 100;
+
+const canvas = document.getElementById('draw-canvas');
+const ctx = canvas.getContext('2d');
+const enemyHpBar = document.getElementById('enemy-hp-bar');
+const enemyGraphic = document.getElementById('enemy-graphic');
+const flashOverlay = document.getElementById('flash-overlay');
+
+function setup() {
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width; canvas.height = rect.height;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 8; ctx.strokeStyle = '#fff';
+}
+
+function next() {
+  currentMondai = MONDAI_LIST[Math.floor(Math.random() * MONDAI_LIST.length)];
+  document.getElementById('mondai-bun').innerText = currentMondai.bun;
+  document.getElementById('mondai-yomi').innerText = currentMondai.yomi;
+  document.getElementById('hint-display').innerText = currentMondai.kanji;
+  document.getElementById('hint-display').style.opacity = 0;
+  clearCanvas();
+}
+
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  inkData = [];
+}
+
+function start(x, y) { isDrawing = true; currentStroke = [[x], [y], [0]]; ctx.beginPath(); ctx.moveTo(x, y); }
+function move(x, y) { if (!isDrawing) return; ctx.lineTo(x, y); ctx.stroke(); currentStroke[0].push(x); currentStroke[1].push(y); currentStroke[2].push(0); }
+function end() { if (isDrawing) inkData.push(currentStroke); isDrawing = false; }
+
+canvas.addEventListener('touchstart', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); start(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top); }, {passive: false});
+canvas.addEventListener('touchmove', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); move(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top); }, {passive: false});
+window.addEventListener('touchend', end);
+canvas.addEventListener('mousedown', e => { const r = canvas.getBoundingClientRect(); start(e.clientX-r.left, e.clientY-r.top); });
+window.addEventListener('mousemove', e => { if(isDrawing) { const r = canvas.getBoundingClientRect(); move(e.clientX-r.left, e.clientY-r.top); } });
+window.addEventListener('mouseup', end);
+
 async function recognizeAndAttack() {
   if (inkData.length === 0) return;
   document.getElementById('loading').style.display = 'flex';
@@ -9,27 +142,18 @@ async function recognizeAndAttack() {
       body: JSON.stringify({ app_version: 0.4, requests: [{ ink: inkData, language: "ja" }] })
     });
     const data = await res.json();
-    const result = data[1][0][1]; // Googleからの予測候補リスト
+    const result = data[1][0][1];
 
     let damage = 0;
-    let message = "";
-
     if (result && result[0] === currentMondai.kanji) {
-      // 【超成功】1番目の候補が正解と一致
-      damage = 50; 
-      message = "会心の漢術！";
+      damage = 50; // 完全一致は大ダメージ
     } else if (result && result.slice(1, 3).includes(currentMondai.kanji)) {
-      // 【惜しい】2〜3番目に入っている
-      damage = 15;
-      message = "形が乱れているぞ！";
+      damage = 15; // 惜しい（2-3位）なら小ダメージ
     }
 
     if (damage > 0) {
-      // 成功エフェクト（ダメージが大きいほど激しく）
-      flashOverlay.style.backgroundColor = (damage > 30) ? "white" : "rgba(255,255,255,0.5)";
       flashOverlay.classList.add('flash');
       enemyGraphic.classList.add('shake');
-      
       enemyHp -= damage;
       enemyHpBar.style.width = Math.max(0, enemyHp) + '%';
 
@@ -37,21 +161,22 @@ async function recognizeAndAttack() {
         flashOverlay.classList.remove('flash');
         enemyGraphic.classList.remove('shake');
         if (enemyHp <= 0) {
-          alert("魔物を完全に封印した！");
+          alert("魔物を封印した！");
           enemyHp = 100;
           enemyHpBar.style.width = '100%';
-        } else {
-          // ダメージが低い時は同じ問題を続行させるのもアリですが、
-          // ストレス軽減のため次へ行く仕様にしています
-          console.log(message); 
         }
         next();
       }, 400);
     } else {
-      // 【失敗】候補のトップ3にすらいない
-      alert(`鑑定不可：これは「${result[0]}」ではないか？\n正解は「${currentMondai.kanji}」だ！`);
+      alert(`判定失敗：あなたが書いたのは「${result[0]}」ではありませんか？`);
       clearCanvas();
     }
   } catch(e) { alert("通信エラー"); }
   document.getElementById('loading').style.display = 'none';
 }
+
+window.onload = () => { setup(); next(); };
+window.onresize = setup;
+</script>
+</body>
+</html>
