@@ -13,29 +13,32 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
 #app { display: flex; flex-direction: column; height: 100dvh; padding: 12px; gap: 10px; max-width: 500px; margin: 0 auto; position: relative; }
 
 /* 敵エリア */
-#enemy-area { height: 130px; display: flex; align-items: center; padding: 15px; background: rgba(178,34,34,0.1); border: 2px solid var(--shu); border-radius: 12px; z-index: 10; }
+#enemy-area { height: 130px; display: flex; align-items: center; padding: 15px; background: rgba(178,34,34,0.1); border: 2px solid var(--shu); border-radius: 12px; z-index: 10; transition: background 0.2s; }
 #enemy-visual { width: 80px; height: 100px; flex-shrink: 0; }
 #enemy-info { flex: 1; margin-left: 10px; }
 #enemy-hp-bar-bg { width: 100%; height: 12px; background: #222; border-radius: 6px; border: 1px solid var(--shu); margin-top: 5px; }
 #enemy-hp-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #600, var(--shu)); transition: width 0.3s; }
 
-/* キャンバス */
+/* キャンバス：ここを基準に文字を浮かばせる */
 #canvas-container { position: relative; flex: 1; background: #111; border: 2px solid var(--kin); border-radius: 12px; overflow: visible; }
 #draw-canvas { width: 100%; height: 100%; display: block; z-index: 5; position: relative; }
 
-/* 浮き上がる文字のエフェクト用 */
+/* その場で浮き上がる文字のエフェクト */
 .floating-kanji {
     position: absolute;
+    inset: 0; /* キャンバスと同じ位置 */
     pointer-events: none;
     z-index: 100;
-    filter: drop-shadow(0 0 15px var(--ai-bright)) brightness(1.5);
-    animation: kanji-attack 0.8s ease-out forwards;
+    /* 蒼いオーラを強く */
+    filter: drop-shadow(0 0 20px var(--ai-bright)) brightness(1.8);
+    /* アニメーション：その場で拡大・浮上 */
+    animation: kanji-float-up 1.0s ease-out forwards;
 }
 
-@keyframes kanji-attack {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.5) translateY(-50px); opacity: 1; }
-    100% { transform: scale(0.5) translateY(-200px); opacity: 0; }
+@keyframes kanji-float-up {
+    0% { transform: scale(1) translateY(0); opacity: 1; }
+    50% { transform: scale(1.3) translateY(-30px); opacity: 1; } /* その場で拡大し、少し浮く */
+    100% { transform: scale(1.5) translateY(-60px); opacity: 0; } /* さらに拡大し、消えていく */
 }
 
 /* 漢術師エリア */
@@ -70,7 +73,7 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
     </div>
   </div>
 
-  <div id="canvas-container" id="canvas-container">
+  <div id="canvas-container">
     <canvas id="draw-canvas"></canvas>
   </div>
 
@@ -115,6 +118,7 @@ function setup() {
   const rect = canvas.parentNode.getBoundingClientRect();
   canvas.width = rect.width; canvas.height = rect.height;
   ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 12; ctx.strokeStyle = '#fff';
+  // 描画中も少し発光
   ctx.shadowBlur = 4; ctx.shadowColor = '#0088ff';
 }
 
@@ -127,19 +131,21 @@ function next() {
 
 function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); inkData = []; }
 
-// 攻撃エフェクト：書いた文字を画像として浮かび上がらせる
-function createAttackEffect() {
+// 新・攻撃エフェクト：書いた文字をその場でフワリと浮かび上がらせる
+function createFloatUpEffect() {
     const dataUrl = canvas.toDataURL();
     const img = document.createElement('img');
     img.src = dataUrl;
     img.className = 'floating-kanji';
     
     const container = document.getElementById('canvas-container');
+    // キャンバスと全く同じサイズ・位置にする
     img.style.width = canvas.width + 'px';
     img.style.height = canvas.height + 'px';
     container.appendChild(img);
     
-    setTimeout(() => img.remove(), 800);
+    // アニメーション完了後に削除
+    setTimeout(() => img.remove(), 1000);
 }
 
 function start(x, y) { isDrawing = true; currentStroke = [[x], [y], [0]]; ctx.beginPath(); ctx.moveTo(x, y); }
@@ -166,9 +172,10 @@ async function recognizeAndAttack() {
     const result = data[1][0][1];
     
     if (result && result[0] === currentMondai.kanji) {
-      // 成功時：エフェクト発動
-      createAttackEffect();
+      // 成功時：その場で浮き上がるエフェクト発動
+      createFloatUpEffect();
       
+      // 文字が浮き上がっている最中にダメージ
       setTimeout(() => {
           document.getElementById('enemy-area').classList.add('shake');
           enemyHp -= 34;
@@ -177,13 +184,13 @@ async function recognizeAndAttack() {
           setTimeout(() => {
               document.getElementById('enemy-area').classList.remove('shake');
               if (enemyHp <= 0) { 
-                alert("退散せよ！魔物を完全に浄化した！"); 
+                alert("精神統一！魔物を完全に浄化した！"); 
                 enemyHp = 100; 
                 enemyHpBar.style.width = '100%'; 
               }
               next();
           }, 400);
-      }, 300); // 浮き上がるタイミングに合わせる
+      }, 400); // 浮き上がるタイミングに合わせる
 
     } else {
       alert(`判定失敗。精神を集中せよ。正解は「${currentMondai.kanji}」なり。`);
