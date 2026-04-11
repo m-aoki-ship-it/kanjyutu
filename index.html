@@ -84,13 +84,18 @@ let enemyHp = 100;
 const canvas = document.getElementById('draw-canvas');
 const ctx = canvas.getContext('2d');
 
-// キャンバス設定
+// キャンバス設定（光のエフェクトをここに追加）
 function setupCanvas() {
   canvas.width = canvas.offsetWidth;
   canvas.height = canvas.offsetHeight;
   ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
   ctx.lineWidth = 8;
-  ctx.strokeStyle = '#0d0b08'; // 墨の色
+  
+  // 黄色の光の設定
+  ctx.strokeStyle = '#ffffff'; // 芯の色は白
+  ctx.shadowColor = '#ffff00'; // 光の色は黄色
+  ctx.shadowBlur = 15;         // 光の広がり具合
 }
 
 // 描画ロジック
@@ -113,9 +118,11 @@ function draw(e) {
   const y = e.clientY - rect.top;
   paths[paths.length - 1].push({x, y});
   
+  // 描画のたびに光の設定を再適用（クリア対策）
+  ctx.shadowColor = '#ffff00';
+  ctx.shadowBlur = 15;
+
   ctx.beginPath();
-  ctx.moveTo(x, y);
-  // 簡易的な筆跡描画
   const currentPath = paths[paths.length-1];
   if(currentPath.length > 1) {
     const prev = currentPath[currentPath.length-2];
@@ -139,21 +146,17 @@ function tryAttack() {
     executeOugi(); // 正解なら奥義へ
   } else {
     alert(`画数が違います！ あなた：${userStrokes}画 / 正解：${MONDAI.strokes}画`);
-    document.getElementById('app').style.animation = 'wrongAnim 0.3s';
   }
 }
 
 // --- 【3】奥義演出ロジック ---
 function executeOugi() {
-  // 1. 画面を揺らす
   document.getElementById('app').classList.add('ougi-shake');
   
-  // 2. フラッシュ
   const flash = document.createElement('div');
   flash.className = 'flash-white';
   document.body.appendChild(flash);
 
-  // 3. 墨しぶきを飛ばす
   for (let i = 0; i < 20; i++) {
     const splash = document.createElement('div');
     splash.className = 'sumi-splash';
@@ -165,7 +168,6 @@ function executeOugi() {
     setTimeout(() => splash.remove(), 800);
   }
 
-  // 4. 敵にダメージ
   enemyHp -= 50;
   document.getElementById('hp-bar').style.width = enemyHp + '%';
   document.getElementById('enemy-char').style.transform = 'scale(1.5) rotate(20deg)';
