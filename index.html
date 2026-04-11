@@ -6,9 +6,7 @@
 <title>真・漢術師 - 墨の試練 -</title>
 <style>
 :root {
-  --sumi: #0a0a0a; --sumi-light: #1c1c1c; --washi: #e8dcc4;
-  --kin: #d4af37; --kin-bright: #ffdf00; --shu: #b22222;
-  --ai: #003366; --ai-bright: #0088ff;
+  --sumi: #0a0a0a; --washi: #e8dcc4; --kin: #d4af37; --shu: #b22222; --ai: #003366; --ai-bright: #0088ff;
 }
 html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; background: var(--sumi); color: var(--washi); font-family: serif; }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
@@ -16,31 +14,30 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
 
 /* 敵エリア */
 #enemy-area { height: 130px; display: flex; align-items: center; padding: 15px; background: rgba(178,34,34,0.1); border: 2px solid var(--shu); border-radius: 12px; }
-#enemy-visual { width: 90px; height: 110px; display: flex; align-items: center; justify-content: center; }
-#enemy-hp-bar-bg { width: 100%; height: 14px; background: #222; border-radius: 7px; border: 1px solid var(--shu); margin-top: 5px; box-shadow: 0 0 10px var(--shu); }
+#enemy-visual { width: 80px; height: 100px; flex-shrink: 0; }
+#enemy-info { flex: 1; margin-left: 10px; }
+#enemy-hp-bar-bg { width: 100%; height: 12px; background: #222; border-radius: 6px; border: 1px solid var(--shu); margin-top: 5px; }
 #enemy-hp-bar { height: 100%; width: 100%; background: linear-gradient(90deg, #600, var(--shu)); transition: width 0.3s; }
 
-/* キャンバス：ヒントを完全削除 */
-#canvas-container { position: relative; flex: 1; background: #111; border: 3px solid var(--kin); border-radius: 15px; }
-#draw-canvas { width: 100%; height: 100%; display: block; z-index: 3; position: relative; }
+/* キャンバス：答えが透ける要素を完全に削除 */
+#canvas-container { position: relative; flex: 1; background: #111; border: 2px solid var(--kin); border-radius: 12px; }
+#draw-canvas { width: 100%; height: 100%; display: block; z-index: 5; position: relative; }
 
-/* 漢術師エリア：画像をインライン化 */
-#player-area { height: 120px; display: flex; align-items: center; padding: 10px; background: linear-gradient(135deg, rgba(0,51,102,0.6), #000); border: 2px solid var(--ai); border-radius: 12px; }
-#player-avatar { width: 100px; height: 100px; border-radius: 8px; border: 1px solid var(--ai-bright); overflow: hidden; background: #000; flex-shrink: 0; position: relative; }
-
-/* キャラクターをSVGで再構築（URL不要で100%表示） */
-.hero-svg { width: 100%; height: 100%; background: #001a33; }
-
+/* 漢術師エリア：アップロードした画像を表示 */
+#player-area { height: 120px; display: flex; align-items: center; padding: 10px; background: linear-gradient(135deg, #001a33, #000); border: 2px solid var(--ai); border-radius: 12px; }
+#player-avatar { width: 100px; height: 100px; border-radius: 8px; border: 1px solid var(--ai-bright); overflow: hidden; background: #000; flex-shrink: 0; }
+#player-avatar img { width: 100%; height: 100%; object-fit: cover; }
 #player-info { flex: 1; padding-left: 15px; }
 .status-label { font-size: 12px; color: var(--ai-bright); font-weight: bold; }
-.kanji-display { font-size: 20px; font-weight: bold; color: var(--washi); margin-top: 5px; }
+.kanji-display { font-size: 20px; font-weight: bold; margin-top: 5px; }
 
+/* 操作ボタン */
 #button-area { display: flex; gap: 10px; height: 60px; }
 .btn { flex: 1; border-radius: 8px; font-weight: bold; font-size: 16px; border: none; cursor: pointer; }
-.btn-sub { background: var(--sumi-light); color: var(--kin); border: 1px solid var(--kin); }
-.btn-main { flex: 2; background: linear-gradient(to bottom, var(--ai-bright), var(--ai)); color: white; border: 1px solid #fff; }
+.btn-sub { background: #222; color: var(--kin); border: 1px solid var(--kin); }
+.btn-main { flex: 2; background: linear-gradient(to bottom, var(--ai-bright), var(--ai)); color: white; box-shadow: 0 4px 10px rgba(0,136,255,0.3); }
 
-#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 1000; color: var(--kin); font-size: 20px; }
+#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; color: var(--kin); }
 </style>
 </head>
 <body>
@@ -48,16 +45,12 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
 <div id="app">
   <div id="enemy-area">
     <div id="enemy-visual">
-      <svg viewBox="0 0 100 120" width="80" height="100">
-        <path d="M50 10 C20 30 5 60 15 90 C25 110 75 110 85 90 C95 60 80 30 50 10 Z" fill="#000" stroke="#b22222" stroke-width="2" />
-        <circle cx="35" cy="55" r="5" fill="#f00" />
-        <circle cx="65" cy="55" r="5" fill="#f00" />
-      </svg>
+      <svg viewBox="0 0 100 120"><path d="M50 10 C20 30 5 60 15 90 C25 110 75 110 85 90 C95 60 80 30 50 10 Z" fill="#000" stroke="#b22222" stroke-width="2"/></svg>
     </div>
     <div id="enemy-info">
       <div style="font-size: 11px; color: #ff4d4d;">怨霊：誤字の魔物</div>
       <div id="enemy-hp-bar-bg"><div id="enemy-hp-bar"></div></div>
-      <div id="mondai-bun" style="font-size: 18px; font-weight: bold; margin-top: 10px;"></div>
+      <div id="mondai-bun" style="font-size: 18px; font-weight: bold; margin-top: 8px;"></div>
     </div>
   </div>
 
@@ -67,9 +60,7 @@ html, body { overflow: hidden; height: 100%; position: fixed; width: 100%; backg
 
   <div id="player-area">
     <div id="player-avatar">
-      <svg class="hero-svg" viewBox="0 0 100 100">
-        <rect width="100" height="100" fill="#001529"/>
-        <path d="M20 100 L50 40 L80 100 Z" fill="#003366"/> <circle cx="50" cy="35" r="18" fill="#f5e0c0"/> <path d="M32 35 Q50 15 68 35 L68 25 Q50 5 32 25 Z" fill="#222"/> <rect x="70" y="20" width="8" height="70" fill="#4a2e19" transform="rotate(15, 70, 20)"/> <path d="M72 15 Q75 0 82 15 Z" fill="#fff" transform="rotate(15, 70, 20)"/> <path d="M42 38 L46 38 M54 38 L58 38" stroke="#222" stroke-width="2"/> <path d="M30 80 Q50 70 70 80" fill="none" stroke="#d4af37" stroke-width="2"/> </svg>
+      <img src="IMG_7089.png" alt="漢術師">
     </div>
     <div id="player-info">
       <div class="status-label">正統派漢術師</div>
@@ -108,7 +99,6 @@ function setup() {
   const rect = canvas.parentNode.getBoundingClientRect();
   canvas.width = rect.width; canvas.height = rect.height;
   ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 10; ctx.strokeStyle = '#fff';
-  ctx.shadowBlur = 5; ctx.shadowColor = '#0088ff';
 }
 
 function next() {
@@ -142,10 +132,9 @@ async function recognizeAndAttack() {
     });
     const data = await res.json();
     const result = data[1][0][1];
-    let damage = 0;
-
-    if (result && result[0] === currentMondai.kanji) { damage = 34; }
-    else if (result && result.slice(1, 3).includes(currentMondai.kanji)) { damage = 15; }
+    
+    // 34ダメージ設定
+    let damage = (result && result[0] === currentMondai.kanji) ? 34 : 0;
 
     if (damage > 0) {
       enemyHp -= damage;
@@ -155,7 +144,7 @@ async function recognizeAndAttack() {
         next();
       }, 400);
     } else {
-      alert(`判定失敗。正解は「${currentMondai.kanji}」です。`);
+      alert(`力不足！ 正解は「${currentMondai.kanji}」です。`);
       clearCanvas();
     }
   } catch(e) { alert("通信エラー"); }
