@@ -5,94 +5,90 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>真・漢術師 - 怨霊決戦 -</title>
 <style>
-:root { --sumi: #0a0a0a; --kin: #c9a063; --shu: #8e2a2a; --ai: #3a82f6; --glass: rgba(0,0,0,0.8); }
+:root { --sumi: #0a0a0a; --kin: #c9a063; --shu: #8e2a2a; --ai: #3a82f6; --glass: rgba(0,0,0,0.85); }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
 html, body { overflow: hidden; height: 100%; width: 100%; background: #000; color: #fff; font-family: serif; }
 
 /* 背景 */
-#bg-layer { position: fixed; inset: 0; background: url('IMG_7089.png') no-repeat center center; background-size: cover; filter: brightness(0.2); z-index: 1; }
+#bg-layer { position: fixed; inset: 0; background: url('IMG_7089.png') no-repeat center center; background-size: cover; filter: brightness(0.15); z-index: 1; }
 
-/* メインステージ：横並びを絶対に維持 */
+/* メイン：絶対に横並びを維持 */
 #game-stage {
     position: relative; z-index: 10; width: 100vw; height: 100dvh;
-    display: flex; /* gridからflexに変更して横並びを強制 */
-    flex-direction: row; 
-    align-items: stretch;
-    padding-top: 60px; /* HUDのスペース */
-    padding-bottom: 100px; /* 操作UIのスペース */
+    display: flex; flex-direction: row; align-items: center; justify-content: space-between;
+    padding: 60px 20px 100px 20px;
 }
 
-/* 上部HUD */
-#top-hud { position: absolute; top: 0; width: 100%; height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; z-index: 50; }
-.hp-bar-outer { width: 120px; height: 10px; background: #222; border: 1px solid var(--kin); border-radius: 5px; overflow: hidden; }
+/* 上部：体力ゲージ */
+#top-hud { position: absolute; top: 0; width: 100%; height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 30px; z-index: 50; }
+.hp-bar-outer { width: 140px; height: 12px; background: #111; border: 1px solid var(--kin); border-radius: 6px; overflow: hidden; }
 
-/* 左：怨霊（余白をカットして中央へ） */
+/* 左：怨霊（サイズを絞って全身を映す） */
 #enemy-side { 
     flex: 1; display: flex; align-items: center; justify-content: center; 
-    position: relative; overflow: hidden; 
+    position: relative; height: 100%; 
 }
 #enemy-sprite { 
-    width: 250%; /* 余白が大きいので突き抜けさせる */
-    max-width: none;
+    width: 160%; /* 前の250%から縮小して全身を入れる */
     height: auto;
-    transform: scaleX(-1) translateY(-20%); /* プレイヤー向き ＆ 上の余白を飛ばす */
-    filter: drop-shadow(0 0 20px rgba(255, 0, 0, 0.5));
+    transform: scaleX(-1) translateY(0); /* 上下に動かさず中央に */
+    filter: drop-shadow(0 0 20px rgba(255, 0, 0, 0.4));
 }
 
-/* 中央：書道エリア */
+/* 中央：書道（UIを透過させて背景を活かす） */
 #canvas-side { 
-    width: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; 
+    width: 280px; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; 
 }
-#canvas-wrap { width: 240px; height: 240px; background: rgba(255, 255, 255, 0.05); border: 3px solid var(--kin); border-radius: 12px; position: relative; }
+#canvas-wrap { width: 250px; height: 250px; background: rgba(0,0,0,0.5); border: 2px solid var(--kin); border-radius: 15px; position: relative; box-shadow: 0 0 30px #000; }
 canvas { width: 100%; height: 100%; }
 
-/* 右：漢術師（自分） */
+/* 右：術師（大きく、かつ見切れない絶妙な位置） */
 #player-side { 
-    flex: 1; display: flex; align-items: flex-end; justify-content: flex-end; position: relative;
+    flex: 1; display: flex; align-items: center; justify-content: center; height: 100%;
 }
-#player-chara { width: 160%; transform: translate(20%, 10%); }
-#player-chara img { width: 100%; height: auto; }
+#player-chara { 
+    width: 140%; 
+    transform: translateX(10%); /* 少し右に寄せる */
+}
+#player-chara img { width: 100%; height: auto; filter: drop-shadow(0 0 15px #000); }
 
-/* 下部UI */
+/* 下部：操作パネル */
 #bottom-hud { 
     position: absolute; bottom: 0; width: 100%; height: 100px;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     background: var(--glass); border-top: 2px solid var(--kin); z-index: 50;
 }
-.btn-group { display: flex; gap: 30px; margin-top: 5px; }
-.btn { padding: 12px 35px; border-radius: 10px; font-weight: bold; border: 1px solid #fff; color: #fff; cursor: pointer; }
-.btn-clear { background: #333; border-color: var(--kin); color: var(--kin); }
-.btn-attack { background: linear-gradient(to bottom, var(--ai), #003366); box-shadow: 0 0 10px var(--ai); }
+.btn-group { display: flex; gap: 40px; margin-top: 5px; }
+.btn { padding: 12px 40px; border-radius: 12px; font-weight: bold; border: 1px solid #fff; color: #fff; cursor: pointer; transition: 0.2s; }
+.btn-clear { background: #222; border-color: var(--kin); color: var(--kin); }
+.btn-attack { background: linear-gradient(to bottom, var(--ai), #002244); box-shadow: 0 0 15px var(--ai); font-size: 18px; }
 
-/* 縦持ちの場合でも横向きにするための警告（オプション） */
-@media screen and (orientation: portrait) {
-    body::before {
-        content: "画面を横にしてください";
-        position: fixed; inset: 0; background: #000; color: var(--kin);
-        display: flex; align-items: center; justify-content: center; z-index: 9999; font-size: 20px;
-    }
-}
+/* 演出 */
+.shake { animation: shake 0.4s; }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-15px); } 75% { transform: translateX(15px); } }
 </style>
 </head>
 <body>
 <div id="bg-layer"></div>
 <div id="top-hud">
-    <div><span style="font-size: 10px; color: var(--shu);">怨霊の気</span><div class="hp-bar-outer"><div id="hp-fill" style="height:100%; background:var(--shu); width:100%;"></div></div></div>
-    <div style="font-size: 24px; font-weight: bold; color: var(--kin);">決戦</div>
-    <div style="text-align: right;"><span style="font-size: 10px; color: var(--ai);">術師の魂</span><div class="hp-bar-outer"><div style="height:100%; background:var(--ai); width:90%;"></div></div></div>
+    <div><span style="font-size: 11px; color: var(--shu); font-weight: bold;">怨霊の気</span><div class="hp-bar-outer"><div id="hp-fill" style="height:100%; background:var(--shu); width:100%;"></div></div></div>
+    <div style="font-size: 28px; font-weight: bold; color: var(--kin); letter-spacing: 4px; text-shadow: 0 0 10px var(--kin);">決戦</div>
+    <div style="text-align: right;"><span style="font-size: 11px; color: var(--ai); font-weight: bold;">術師の魂</span><div class="hp-bar-outer"><div style="height:100%; background:var(--ai); width:90%;"></div></div></div>
 </div>
 
 <div id="game-stage">
     <div id="enemy-side"><img id="enemy-sprite" src="f7620a0e-4384-4f27-949d-52e7ea62721b.png"></div>
+    
     <div id="canvas-side">
         <div id="canvas-wrap"><canvas id="draw-canvas"></canvas></div>
-        <div id="mondai-bun" style="margin-top: 10px; font-weight: bold; text-shadow: 1px 1px 2px #000;">---</div>
+        <div id="mondai-bun" style="margin-top: 15px; font-size: 20px; font-weight: bold; color: #fff; text-shadow: 2px 2px 4px #000;">---</div>
     </div>
+    
     <div id="player-side"><div id="player-chara"><img src="a63674d4-2785-4110-a696-c6937a0a74ef.png"></div></div>
 </div>
 
 <div id="bottom-hud">
-    <div id="mondai-yomi" style="font-weight: bold; color: var(--kin);">読み：---</div>
+    <div id="mondai-yomi" style="font-size: 20px; font-weight: bold; color: var(--kin);">読み：---</div>
     <div class="btn-group">
         <button class="btn btn-clear" onclick="clearCanvas()">墨を拭く</button>
         <button class="btn btn-attack" onclick="recognizeAndAttack()">漢術発動！</button>
@@ -138,11 +134,13 @@ async function recognizeAndAttack() {
         });
         const data = await res.json();
         if (data[1][0][1][0] === currentMondai.kanji) {
-            alert("浄化！"); next();
+            document.getElementById('enemy-side').classList.add('shake');
+            setTimeout(() => { document.getElementById('enemy-side').classList.remove('shake'); next(); }, 400);
         } else { alert("失敗..."); clearCanvas(); }
     } catch(e) { console.error(e); }
 }
 window.onload = () => { setup(); next(); };
+window.onresize = setup;
 </script>
 </body>
 </html>
