@@ -3,90 +3,91 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>真・漢術師 - 絶景の陣 -</title>
+<title>真・漢術師 - 絶景の陣・改 -</title>
 <style>
 :root { 
-    --kin: rgba(212, 175, 55, 0.8); /* 少し透かした金 */
-    --shu: #8e2a2a; --ai: #2a5caa;
-    --glass: rgba(0, 0, 0, 0.6);
+    --kin: #d4af37; --shu: #8e2a2a; --ai: #2a5caa;
+    --bg-dark: rgba(20, 15, 10, 0.9);
 }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
 html, body { overflow: hidden; height: 100%; width: 100%; background: #000; color: #fff; font-family: serif; }
 
-/* 背景とキャラクターの固定レイアウト */
-#bg-layer { position: fixed; inset: 0; background: url('5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png') no-repeat center center; background-size: cover; z-index: 1; }
-#game-stage { 
-    position: relative; z-index: 10; width: 100vw; height: 100dvh; 
-    display: flex; justify-content: space-between; align-items: flex-end;
-    padding: 0 20px 180px 20px;
+/* 背景と上部の戦闘画面（全体の60%） */
+#battle-screen {
+    position: relative;
+    width: 100%;
+    height: 60vh; /* 上半分を戦闘シーンに固定 */
+    background: url('5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png') no-repeat center center;
+    background-size: cover;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 20px;
+    border-bottom: 2px solid var(--kin);
 }
 
-#enemy-side { width: 45%; }
-#player-side { width: 45%; text-align: right; }
-#enemy-sprite, #player-sprite { width: 100%; max-height: 70vh; object-fit: contain; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
+#enemy-side, #player-side { width: 45%; }
+#enemy-sprite, #player-sprite { width: 100%; height: auto; object-fit: contain; }
 
-/* 術式展開エリア：透明度を上げ、位置を下げる */
-#canvas-side { 
-    position: absolute; left: 50%; bottom: 170px; transform: translateX(-50%);
-    width: 55%; max-width: 450px; z-index: 150; 
-}
-#canvas-wrap { 
-    width: 100%; aspect-ratio: 1.4 / 1; 
-    background: rgba(255, 255, 255, 0.05); /* ほぼ透明 */
-    border: 2px solid var(--kin); border-radius: 12px;
-    box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
-    backdrop-filter: blur(1px); /* ほんの少しだけ文字を見やすく */
-}
-canvas { width: 100%; height: 100%; cursor: crosshair; }
-
-#mondai-bun { 
-    width: 100%; text-align: center; margin-bottom: 8px;
-    font-size: 20px; font-weight: bold; text-shadow: 2px 2px 4px #000;
-    color: #fff;
+/* 下部の術式入力エリア（全体の40%） */
+#input-area {
+    width: 100%;
+    height: 40vh;
+    background: var(--bg-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
 }
 
-/* 下部操作パネル */
-#bottom-hud { 
-    position: absolute; bottom: 0; width: 100%; height: 150px; 
-    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-    z-index: 200; display: flex; flex-direction: column; align-items: center; justify-content: center;
-}
-.button-row { display: flex; gap: 10px; margin-bottom: 12px; }
-.el-btn { width: 42px; height: 42px; border-radius: 50%; border: 1px solid #777; font-weight: bold; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-.btn-clear { width: 70px; height: 38px; background: rgba(50,50,50,0.8); border: 1px solid var(--kin); color: var(--kin); border-radius: 4px; font-size: 12px; }
-.btn-attack { 
-    width: 80%; max-width: 350px; padding: 12px; 
-    background: linear-gradient(to bottom, #d4af37, #8a6d3b); 
-    border: none; color: #000; font-weight: bold; font-size: 18px; 
-    border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+#mondai-bun {
+    font-size: 22px;
+    font-weight: bold;
+    color: var(--kin);
+    margin-bottom: 5px;
+    text-shadow: 0 0 5px #000;
 }
 
-/* 演出用 */
-#top-hud { position: absolute; top: 0; width: 100%; padding: 20px; display: flex; justify-content: space-between; z-index: 100; }
-.hp-bar { width: 120px; height: 8px; border: 1px solid var(--kin); border-radius: 4px; overflow: hidden; }
-.vanish { opacity: 0; transform: translateY(20px); transition: 1s; }
+#canvas-wrap {
+    width: 95%;
+    max-width: 600px;
+    flex-grow: 1; /* 残りのスペースをキャンバスに */
+    border: 1px solid var(--kin);
+    border-radius: 8px;
+    background: rgba(0,0,0,0.5);
+    margin-bottom: 10px;
+}
+canvas { width: 100%; height: 100%; }
+
+/* HUD・ボタン類 */
+#top-hud { position: absolute; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-between; z-index: 100; }
+.hp-bar { width: 120px; height: 10px; background: #222; border: 1px solid var(--kin); }
+
+.button-row { display: flex; gap: 10px; margin-bottom: 10px; }
+.el-btn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #777; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.btn-clear { height: 40px; padding: 0 15px; background: #333; color: var(--kin); border: 1px solid var(--kin); border-radius: 5px; }
+.btn-attack { width: 90%; max-width: 500px; padding: 15px; background: linear-gradient(to bottom, var(--kin), #8a6d3b); color: #000; font-weight: bold; font-size: 20px; border-radius: 40px; border: none; }
+
+#enemy-cast-wrap { position: absolute; top: 40px; left: 15px; width: 120px; height: 5px; background: #111; border: 1px solid #f00; }
 </style>
 </head>
 <body>
-<div id="bg-layer"></div>
 
-<div id="top-hud">
-    <div class="hp-bar"><div id="hp-enemy" style="width:100%; height:100%; background:var(--shu);"></div></div>
-    <div id="status-msg" style="font-size:12px; color:var(--kin);">怨霊を探知中...</div>
-    <div class="hp-bar"><div id="hp-player" style="width:100%; height:100%; background:var(--ai);"></div></div>
-</div>
+<div id="battle-screen">
+    <div id="top-hud">
+        <div class="hp-bar"><div id="hp-fill-enemy" style="width:100%; height:100%; background:var(--shu);"></div></div>
+        <div id="battle-msg" style="font-size:12px;">対峙中...</div>
+        <div class="hp-bar"><div id="hp-fill-player" style="width:100%; height:100%; background:var(--ai);"></div></div>
+    </div>
+    <div id="enemy-cast-wrap"><div id="enemy-cast-fill" style="width:0%; height:100%; background:#f00;"></div></div>
 
-<div id="game-stage">
     <div id="enemy-side"><img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" id="enemy-sprite"></div>
     <div id="player-side"><img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" id="player-sprite"></div>
-
-    <div id="canvas-side">
-        <div id="mondai-bun">---</div>
-        <div id="canvas-wrap"><canvas id="draw-canvas"></canvas></div>
-    </div>
 </div>
 
-<div id="bottom-hud">
+<div id="input-area">
+    <div id="mondai-bun">---</div>
+    <div id="canvas-wrap"><canvas id="draw-canvas"></canvas></div>
     <div class="button-row">
         <div class="el-btn" style="background:#ff4500">火</div>
         <div class="el-btn" style="background:#00bfff">水</div>
@@ -97,8 +98,8 @@ canvas { width: 100%; height: 100%; cursor: crosshair; }
 </div>
 
 <script>
-/* 440字ロジック、認識処理、敵撃破・自動消去等のJSをここに統合 */
-// 前回のコードのscript部分をここにそのまま貼り付けて使用可能です。
+// ロジック、認識処理、撃破処理などはそのまま。
+// レイアウトが分かれたことで、canvasのリサイズ処理(setup)がより重要になります。
 </script>
 </body>
 </html>
