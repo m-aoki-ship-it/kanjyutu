@@ -6,7 +6,7 @@
 <title>真・漢術師 - 属性決戦 -</title>
 <style>
 :root { 
-    --kin: #d4af37; --shu: #8e2a2a; --ai: #2a5caa; --glass: rgba(10, 5, 0, 0.9);
+    --kin: #d4af37; --shu: #8e2a2a; --ai: #2a5caa; --glass: rgba(10, 5, 0, 0.95);
     --hi: #ff4500; --mizu: #00bfff; --kaminari: #ffd700;
 }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
@@ -15,34 +15,35 @@ html, body { overflow: hidden; height: 100%; width: 100%; background: #000; colo
 #bg-layer { position: fixed; inset: 0; background: url('5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png') no-repeat center center; background-size: cover; z-index: 1; }
 #effect-layer { position: fixed; inset: 0; pointer-events: none; z-index: 2; transition: 0.3s; opacity: 0; }
 
-#game-stage { position: relative; z-index: 10; width: 100vw; height: 100dvh; display: flex; align-items: center; justify-content: space-between; padding: 70px 30px 140px 30px; }
+#game-stage { position: relative; z-index: 10; width: 100vw; height: 100dvh; display: flex; align-items: center; justify-content: space-between; padding: 70px 30px 160px 30px; }
 
 #top-hud { position: absolute; top: 0; width: 100%; height: 70px; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; z-index: 100; }
 .hp-bar-outer { width: 160px; height: 14px; background: rgba(0,0,0,0.6); border: 1px solid var(--kin); border-radius: 2px; overflow: hidden; }
 #hp-fill { height: 100%; background: var(--shu); width: 100%; transition: 0.3s; }
 
 #enemy-side { flex: 1.2; display: flex; justify-content: center; position: relative; }
-#enemy-sprite { width: 155%; transform: translateY(10%); filter: drop-shadow(0 0 15px #000); }
+#enemy-sprite { width: 155%; height: auto; transform: translateY(10%); filter: drop-shadow(0 0 15px #000); }
 #player-side { flex: 1; display: flex; justify-content: center; }
-#player-chara { width: 145%; transform: translateX(-5%); }
+#player-chara { width: 145%; height: auto; transform: translateX(-5%); }
 #player-chara img { width: 100%; filter: drop-shadow(0 0 20px #000); }
 
 #canvas-side { width: 280px; display: flex; flex-direction: column; align-items: center; z-index: 150; }
-#canvas-wrap { width: 260px; height: 260px; background: rgba(0,0,0,0.5); border: 2px solid var(--kin); position: relative; }
+#canvas-wrap { width: 260px; height: 260px; background: rgba(0,0,0,0.5); border: 2px solid var(--kin); position: relative; box-shadow: 0 0 40px #000; }
 canvas { width: 100%; height: 100%; cursor: crosshair; }
 
 #combo-ui { position: absolute; top: -50px; left: 0; font-size: 32px; font-weight: bold; color: var(--kin); font-style: italic; opacity: 0; transition: 0.2s; text-shadow: 2px 2px 4px #000; pointer-events: none; }
 
-#bottom-hud { position: absolute; bottom: 0; width: 100%; height: 140px; background: var(--glass); border-top: 2px solid var(--kin); z-index: 200; display: flex; flex-direction: column; align-items: center; padding: 10px; }
-.element-group { display: flex; gap: 10px; margin-bottom: 10px; align-items: center; }
-.el-btn { width: 55px; height: 55px; border-radius: 8px; border: 2px solid #555; font-weight: bold; font-size: 18px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
+/* UIエリア：高さを少し広げて誤タップ防止 */
+#bottom-hud { position: absolute; bottom: 0; width: 100%; height: 160px; background: var(--glass); border-top: 2px solid var(--kin); z-index: 200; display: flex; flex-direction: column; align-items: center; padding: 15px; }
+.button-row { display: flex; gap: 10px; align-items: center; margin-bottom: 15px; }
+.el-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid #555; font-weight: bold; font-size: 16px; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
 .el-hi { background: linear-gradient(45deg, #800, var(--hi)); }
 .el-mizu { background: linear-gradient(45deg, #004, var(--mizu)); }
 .el-kaminari { background: linear-gradient(45deg, #880, var(--kaminari)); }
 .el-btn.active { transform: scale(1.1); border-color: #fff; box-shadow: 0 0 15px #fff; }
 
-.btn-clear { width: 55px; height: 55px; border-radius: 8px; background: #333; border: 1px solid var(--kin); color: var(--kin); font-size: 12px; font-weight: bold; cursor: pointer; margin-left: 10px; }
-.btn-attack { padding: 12px 60px; background: #1a1a1a; border: 1px solid var(--kin); color: var(--kin); font-weight: bold; border-radius: 4px; cursor: pointer; }
+.btn-clear { width: 70px; height: 50px; border-radius: 8px; background: #222; border: 1px solid var(--kin); color: var(--kin); font-size: 14px; font-weight: bold; cursor: pointer; margin-left: 10px; }
+.btn-attack { width: 240px; padding: 14px 0; background: linear-gradient(to bottom, #444, #000); border: 1px solid var(--kin); color: var(--kin); font-weight: bold; font-size: 18px; border-radius: 4px; cursor: pointer; }
 
 .shake { animation: shake 0.4s; }
 @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-15px); } 75% { transform: translateX(15px); } }
@@ -69,11 +70,11 @@ canvas { width: 100%; height: 100%; cursor: crosshair; }
 </div>
 
 <div id="bottom-hud">
-    <div class="element-group">
+    <div class="button-row">
         <div class="el-btn el-hi" id="btn-hi" onclick="setElement('hi', this)">火</div>
-        <div class="el-btn el-mizu" id="btn-mizu" onclick="setElement('mizu', this)">水</div>
-        <div class="el-btn el-kaminari" id="btn-kaminari" onclick="setElement('kaminari', this)">雷</div>
-        <button class="btn-clear" onclick="clearCanvas()">墨を<br>拭く</button>
+        <div class="el-btn el-mizu" onclick="setElement('mizu', this)">水</div>
+        <div class="el-btn el-kaminari" onclick="setElement('kaminari', this)">雷</div>
+        <button class="btn-clear" onclick="clearCanvas()">墨を拭く</button>
     </div>
     <button class="btn-attack" id="attack-btn" onclick="recognizeAndAttack()">漢術発動！</button>
 </div>
@@ -96,9 +97,6 @@ function setElement(el, btn) {
     selectedElement = el;
     document.querySelectorAll('.el-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
-    const effect = document.getElementById('effect-layer');
-    effect.style.opacity = "0.4";
-    effect.style.background = `radial-gradient(circle, var(--${el}) 0%, transparent 70%)`;
 }
 
 function setup() {
@@ -113,7 +111,10 @@ function next() {
     clearCanvas();
 }
 
-function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); inkData = []; }
+function clearCanvas() { 
+    ctx.clearRect(0, 0, canvas.width, canvas.height); 
+    inkData = []; 
+}
 
 function getPos(e) {
     const r = canvas.getBoundingClientRect();
@@ -129,7 +130,9 @@ window.addEventListener('touchend', () => { if(isDrawing) inkData.push(currentSt
 async function recognizeAndAttack() {
     if (inkData.length === 0) return;
     const btn = document.getElementById('attack-btn');
+    if (btn.disabled) return;
     btn.disabled = true;
+    btn.innerText = "詠唱中...";
 
     try {
         const res = await fetch('https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test', {
@@ -141,24 +144,21 @@ async function recognizeAndAttack() {
 
         if (candidates.slice(0, 5).includes(currentMondai.kanji)) {
             combo++;
-            // ダメージ計算（コンボが乗るほど強い）
-            const damage = 10 + (combo * 5);
-            enemyHP -= damage;
+            enemyHP -= (10 + combo * 5);
             if (enemyHP < 0) enemyHP = 0;
-            
-            // HP反映
             document.getElementById('hp-fill').style.width = enemyHP + "%";
             showCombo();
-            
             document.getElementById('enemy-side').classList.add('shake');
-            document.getElementById('effect-layer').style.backgroundColor = `var(--${selectedElement})`;
-            document.getElementById('effect-layer').style.opacity = "0.7";
-
+            
+            const effect = document.getElementById('effect-layer');
+            effect.style.background = `var(--${selectedElement})`;
+            effect.style.opacity = "0.5";
+            
             setTimeout(() => {
                 document.getElementById('enemy-side').classList.remove('shake');
-                document.getElementById('effect-layer').style.opacity = "0";
+                effect.style.opacity = "0";
                 if (enemyHP <= 0) {
-                    alert("怨霊浄化成功！");
+                    alert("怨霊浄化！");
                     enemyHP = 100;
                     document.getElementById('hp-fill').style.width = "100%";
                     combo = 0;
@@ -173,16 +173,13 @@ async function recognizeAndAttack() {
         }
     } catch(e) { console.error(e); }
     btn.disabled = false;
+    btn.innerText = "漢術発動！";
 }
 
 function showCombo() {
     const ui = document.getElementById('combo-ui');
-    if (combo > 0) {
-        ui.innerText = `${combo} Combo!`;
-        ui.style.opacity = "1";
-    } else {
-        ui.style.opacity = "0";
-    }
+    ui.innerText = combo > 0 ? `${combo} Combo!` : "";
+    ui.style.opacity = combo > 0 ? "1" : "0";
 }
 
 window.onload = () => { setup(); next(); setElement('hi', document.getElementById('btn-hi')); };
