@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>真・漢術師 - 瞬刻の理 -</title>
+<title>真・漢術師 - 浄化の理 -</title>
 <style>
 :root { 
     --kin: #d4af37; --shu: #8e2a2a; --ai: #2a5caa; --glass: rgba(10, 5, 0, 0.95);
@@ -39,6 +39,9 @@ canvas { width: 100%; height: 100%; }
 .btn-clear { width: 80px; height: 50px; background: #222; border: 1px solid var(--kin); color: var(--kin); border-radius: 8px; font-weight: bold; cursor: pointer; }
 .btn-attack { width: 260px; padding: 14px; background: linear-gradient(to bottom, #333, #000); border: 1px solid var(--kin); color: var(--kin); font-weight: bold; font-size: 20px; border-radius: 4px; cursor: pointer; }
 
+/* 敵の消失アニメーション */
+.vanish { opacity: 0; transform: scale(1.5); transition: 1s; }
+
 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-15px); } 75% { transform: translateX(15px); } }
 .shake { animation: shake 0.4s; }
@@ -56,7 +59,7 @@ canvas { width: 100%; height: 100%; }
         <div class="hp-bar-outer"><div id="hp-fill-enemy"></div></div>
     </div>
     <div style="text-align: center;">
-        <div id="battle-msg" style="font-size: 14px; color: #fff; font-weight:bold;"></div>
+        <div id="battle-msg" style="font-size: 14px; color: #fff; font-weight:bold;">待機中...</div>
         <div id="progress-info" style="font-size: 10px; color: var(--kin);"></div>
     </div>
     <div style="text-align: right;">
@@ -98,7 +101,7 @@ canvas { width: 100%; height: 100%; }
 <script>
 const CAST_SPEED = 0.5;
 
-// 小学1-3年の主要漢字リスト（440字から抜粋）
+// 小学1-3年の漢字（主要180字抜粋）
 const KANJI_DATA = [
     {k:'一',y:'いち',b:'___の太刀'},{k:'右',y:'みぎ',b:'___腕の力'},{k:'雨',y:'あめ',b:'慈悲の___'},{k:'円',y:'えん',b:'結界の___'},{k:'王',y:'おう',b:'古の___'},{k:'音',y:'おと',b:'魂の___'},{k:'下',y:'した',b:'眼___の敵'},{k:'火',y:'ひ',b:'___を噴く'},
     {k:'花',y:'はな',b:'散る___'},{k:'貝',y:'かい',b:'宝の___'},{k:'学',y:'がく',b:'___問の道'},{k:'気',y:'き',b:'殺___を感じる'},{k:'休',y:'やすむ',b:'しばし___'},{k:'玉',y:'たま',b:'霊___の輝き'},{k:'金',y:'きん',b:'___色の光'},{k:'空',y:'そら',b:'___を翔ける'},
@@ -108,8 +111,6 @@ const KANJI_DATA = [
     {k:'水',y:'みず',b:'清らかな___'},{k:'正',y:'せい',b:'___義の鉄槌'},{k:'生',y:'せい',b:'___死の境目'},{k:'青',y:'あお',b:'___い炎'},{k:'夕',y:'ゆう',b:'___闇の刻'},{k:'石',y:'いし',b:'聖___の力'},{k:'赤',y:'あか',b:'___い月'},{k:'千',y:'せん',b:'___の夜'},
     {k:'川',y:'かわ',b:'三途の___'},{k:'先',y:'さき',b:'___を読み切る'},{k:'早',y:'はやい',b:'疾風の___さ'},{k:'草',y:'くさ',b:'___萌える道'},{k:'足',y:'あし',b:'韋駄天の___'},{k:'村',y:'むら',b:'守るべき___'},{k:'大',y:'だい',b:'___地を揺らす'},{k:'男',y:'おとこ',b:'不退転の___'},
     {k:'竹',y:'たけ',b:'___を割る'},{k:'中',y:'なか',b:'闇の___'},{k:'虫',y:'むし',b:'毒___の罠'},{k:'町',y:'まち',b:'静かな___'},{k:'天',y:'てん',b:'___の裁き'},{k:'田',y:'た',b:'豊穣の___'},{k:'土',y:'つち',b:'___に還る'},{k:'二',y:'に',b:'___の句'},
-    {k:'日',y:'ひ',b:'___出ずる国'},{k:'入',y:'はいる',b:'魔界へ___'},{k:'年',y:'とし',b:'数___の修行'},{k:'白',y:'しろ',b:'___銀の世界'},{k:'八',y:'はち',b:'___陣の構え'},{k:'百',y:'ひゃく',b:'___鬼夜行'},{k:'文',y:'ぶん',b:'呪___を唱える'},{k:'木',y:'き',b:'神___の枝'},
-    {k:'本',y:'ほん',b:'禁断の___'},{k:'名',y:'な',b:'真の___'},{k:'目',y:'め',b:'心の___'},{k:'立',y:'たつ',b:'地に___'},{k:'力',y:'ちから',b:'未知の___'},{k:'林',y:'はやし',b:'竹___の奥'},{k:'六',y:'ろく',b:'___道輪廻'},{k:'和',y:'わ',b:'大___の心'},
     {k:'風',y:'かぜ',b:'___がふく'},{k:'海',y:'うみ',b:'広い___'},{k:'岩',y:'いわ',b:'___山を登る'},{k:'強',y:'つよい',b:'___敵来たる'},{k:'雲',y:'くも',b:'___の切れ間'},{k:'鉄',y:'てつ',b:'___の意志'},{k:'守',y:'まもる',b:'命を___'},{k:'壁',y:'かべ',b:'鉄___防御'}
 ];
 
@@ -119,6 +120,7 @@ let currentMondai = {}, inkData = [], currentStroke = [], isDrawing = false;
 let enemyHP = 100, playerHP = 100, skillGauge = 0, combo = 0;
 let enemyCast = 0, isDefensePhase = false, isSkillMode = false, skillStep = 0;
 let solvedCount = 0;
+let isEnemyDead = false;
 
 const canvas = document.getElementById('draw-canvas'), ctx = canvas.getContext('2d');
 
@@ -129,6 +131,8 @@ function setup() {
 }
 
 function next() {
+    if (isEnemyDead) return; // 敵が死んでる時は次の問題を出さない
+    
     if (isDefensePhase) {
         currentMondai = MONDAI_DEFENSE[Math.floor(Math.random() * MONDAI_DEFENSE.length)];
         document.getElementById('mondai-bun').innerHTML = `<span style="color:#ff4444">【防御】「${currentMondai.k}」を記せ！</span>`;
@@ -138,34 +142,31 @@ function next() {
         document.getElementById('mondai-bun').innerText = currentMondai.b + ` (読み:${currentMondai.y})${stepInfo}`;
     }
     document.getElementById('progress-info').innerText = `踏破数: ${solvedCount} / 440字`;
-    // 通常の「次の問題」へ移る際も墨を消す
     clearCanvas();
 }
 
-// 敵の反撃タイマー
 setInterval(() => {
-    if (isDefensePhase || isSkillMode || enemyHP <= 0 || playerHP <= 0) return;
+    // 敵が死んでいる、または特殊モード中はゲージを止める
+    if (isDefensePhase || isSkillMode || isEnemyDead || playerHP <= 0) return;
+    
     enemyCast += CAST_SPEED;
     if (enemyCast >= 100) triggerDefense();
     document.getElementById('enemy-cast-fill').style.width = enemyCast + "%";
 }, 100);
 
-// ★強襲トリガー：ここで墨を自動的に消すように改良
 function triggerDefense() {
+    if (isEnemyDead) return;
     isDefensePhase = true;
     document.getElementById('canvas-wrap').classList.add('danger');
     document.getElementById('battle-msg').innerText = "怨霊の強襲！";
-    
-    // 【改良点】強襲が来たら今書いている墨を即座に消去！
     clearCanvas(); 
-    
     next();
 }
 
 async function recognizeAndAttack() {
-    if (inkData.length === 0) return;
+    if (inkData.length === 0 || isEnemyDead) return;
     const btn = document.getElementById('attack-btn');
-    btn.disabled = true; btn.innerText = "詠唱中...";
+    btn.disabled = true;
 
     try {
         const res = await fetch("https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test", {
@@ -185,13 +186,10 @@ async function recognizeAndAttack() {
                 next();
             } else if (isSkillMode) {
                 skillStep++;
-                if (skillStep >= 3) {
-                    solvedCount += 3;
-                    finishSkill(true);
-                } else next();
+                if (skillStep >= 3) { solvedCount += 3; finishSkill(true); } else next();
             } else {
                 combo++; solvedCount++;
-                damageEnemy(10 + combo);
+                damageEnemy(15 + combo * 2);
                 updateSkillGauge(20);
                 next();
             }
@@ -205,26 +203,47 @@ async function recognizeAndAttack() {
                 finishSkill(false);
             } else {
                 combo = 0; 
-                document.getElementById('battle-msg').innerText = `不発！正解は「${currentMondai.k}」`;
+                document.getElementById('battle-msg').innerText = `不発！(正解は「${currentMondai.k}」)`;
                 clearCanvas();
             }
         }
     } catch(e) { console.error(e); }
-    btn.disabled = false; btn.innerText = "漢術発動！";
+    btn.disabled = false;
     document.getElementById('combo-ui').innerText = (combo > 0 && !isSkillMode) ? combo + " Combo!" : "";
 }
 
 function damageEnemy(val) {
+    if (isEnemyDead) return;
     enemyHP = Math.max(0, enemyHP - val);
     document.getElementById('hp-fill-enemy').style.width = enemyHP + "%";
     document.getElementById('enemy-side').classList.add('shake');
+    
     setTimeout(() => {
         document.getElementById('enemy-side').classList.remove('shake');
-        if (enemyHP <= 0) { 
-            document.getElementById('battle-msg').innerText = "怨霊浄化！";
-            enemyHP = 100; next(); 
-        }
+        if (enemyHP <= 0) purgeEnemy();
     }, 400);
+}
+
+// 敵を浄化（消滅）させる処理
+function purgeEnemy() {
+    isEnemyDead = true;
+    isDefensePhase = false;
+    enemyCast = 0;
+    document.getElementById('enemy-cast-fill').style.width = "0%";
+    document.getElementById('canvas-wrap').classList.remove('danger');
+    document.getElementById('battle-msg').innerText = "怨霊を浄化した！";
+    document.getElementById('enemy-sprite').classList.add('vanish');
+    document.getElementById('mondai-bun').innerText = "怨霊が消え去った...";
+
+    // 2秒後に新しい敵が出現
+    setTimeout(() => {
+        enemyHP = 100;
+        isEnemyDead = false;
+        document.getElementById('hp-fill-enemy').style.width = "100%";
+        document.getElementById('enemy-sprite').classList.remove('vanish');
+        document.getElementById('battle-msg').innerText = "新たな怨霊が現れた！";
+        next();
+    }, 2000);
 }
 
 function playerTakeDamage(val) {
@@ -234,7 +253,7 @@ function playerTakeDamage(val) {
     combo = 0;
     setTimeout(() => {
         document.getElementById('player-side').classList.remove('shake');
-        if (playerHP <= 0) { alert("敗北... 精神を鍛え直せ"); location.reload(); }
+        if (playerHP <= 0) { alert("敗北..."); location.reload(); }
     }, 400);
 }
 
@@ -243,12 +262,12 @@ function updateSkillGauge(v) {
     document.getElementById('skill-gauge-fill').style.width = skillGauge + "%";
     if (skillGauge >= 100) {
         document.querySelectorAll('.el-btn').forEach(b => b.classList.add('ready'));
-        document.getElementById('battle-msg').innerText = "奥義使用可能！";
+        document.getElementById('battle-msg').innerText = "奥義、発動可能！";
     }
 }
 
 function startSkill(type) {
-    if (skillGauge < 100 || isSkillMode || isDefensePhase) return;
+    if (skillGauge < 100 || isSkillMode || isDefensePhase || isEnemyDead) return;
     isSkillMode = true; skillStep = 0;
     document.querySelectorAll('.el-btn').forEach(b => b.classList.remove('ready'));
     document.getElementById('effect-layer').style.background = `var(--${type})`;
@@ -262,15 +281,15 @@ function finishSkill(success) {
     document.getElementById('effect-layer').style.opacity = "0";
     if (success) {
         showFlashEffect("#ff0");
-        damageEnemy(50);
-        alert("奥義発動！凄まじい一撃！");
+        damageEnemy(60);
+        document.getElementById('battle-msg').innerText = "奥義、決まった！";
         skillGauge = 0;
     } else {
-        alert("奥義失敗！霊力が霧散した...");
+        document.getElementById('battle-msg').innerText = "奥義失敗...";
         skillGauge = 30;
     }
     updateSkillGauge(0);
-    next();
+    if (!isEnemyDead) next();
 }
 
 function showFlashEffect(color) {
