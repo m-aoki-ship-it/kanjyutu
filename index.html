@@ -1,50 +1,31 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>真・漢術師 - 視界完全確保 -</title>
 <style>
-:root { --kin: #d4af37; --shu: #8e2a2a; --ai: #2a5caa; }
-* { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
-html, body { overflow: hidden; height: 100%; width: 100%; background: #000; color: #fff; font-family: serif; }
+/* ★敵と自分の配置を「巨大かつ適切」に修正 */
 
-/* 背景 */
-#stage-layer {
-    position: fixed; inset: 0;
-    background: url('5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png') no-repeat center center;
-    background-size: cover; z-index: 1;
-}
-
-/* キャラクター配置エリア */
-#char-visuals {
-    position: absolute; inset: 0; z-index: 5; pointer-events: none;
-}
-
-/* ★左の敵：下端に固定し、頭が上にぶつからないよう高さを制限 */
+/* 左の敵：巨大化して画面端へ */
 #enemy-box {
     position: absolute;
-    left: 2%; 
-    bottom: 2%; /* 下端から少し浮かす程度 */
-    width: 45%;
-    height: 65vh; /* 画面全体の65%までに高さを抑える */
+    left: -5%; /* 少し画面からはみ出させて巨大感を出す */
+    bottom: 0%;
+    width: 50%; /* 画面の半分を専有 */
+    height: 80vh; /* 画面の8割を占める巨大さ */
     display: flex;
     align-items: flex-end;
 }
 #enemy-sprite { 
     width: 100%; 
     height: 100%; 
-    object-fit: contain; /* アスペクト比を維持して枠内に収める */
+    object-fit: contain; 
+    object-position: left bottom; /* 左下に寄せて安定させる */
     filter: drop-shadow(0 0 20px #000);
 }
 
-/* ★右の自分：少し高い位置に配置 */
+/* 右の自分：巨大化して少し浮かす */
 #player-box {
     position: absolute;
-    right: 2%; 
-    bottom: 12%; /* 敵より少し上に配置 */
-    width: 45%;
-    height: 75vh;
+    right: -5%; 
+    bottom: 8%; /* 敵より少し高い位置 */
+    width: 50%;
+    height: 85vh;
     display: flex;
     align-items: flex-end;
     justify-content: flex-end;
@@ -52,115 +33,18 @@ html, body { overflow: hidden; height: 100%; width: 100%; background: #000; colo
 #player-sprite { 
     width: 100%; 
     height: 100%; 
-    object-fit: contain; 
+    object-fit: contain;
+    object-position: right bottom;
     filter: drop-shadow(0 0 20px #000);
 }
 
-/* キャンバス */
-#canvas-layer { position: absolute; inset: 0; z-index: 50; }
-canvas { width: 100%; height: 100%; }
-
-/* UI */
-#ui-overlay {
-    position: absolute; inset: 0; z-index: 100; pointer-events: none;
-    display: flex; flex-direction: column; justify-content: space-between;
-}
+/* UIと問題文がキャラの頭に重ならないよう、少し上に逃がす */
 #top-ui { 
-    padding: 20px 40px; 
-    background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+    padding: 15px 30px; 
+    background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
 }
-.hp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.hp-bar { width: 30%; height: 12px; border: 1px solid var(--kin); border-radius: 6px; overflow: hidden; background: rgba(0,0,0,0.5); }
 #mondai-bun { 
-    text-align: center; font-size: 45px; font-weight: bold; 
-    text-shadow: 0 0 15px #000, 0 0 5px var(--kin);
-}
-
-#bottom-ui {
-    padding-bottom: 50px; pointer-events: auto;
-    display: flex; flex-direction: column; align-items: center; gap: 20px;
-}
-.btn-row { display: flex; gap: 20px; align-items: center; }
-.el-btn { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
-.btn-clear { height: 50px; padding: 0 30px; background: rgba(0,0,0,0.7); color: var(--kin); border: 1px solid var(--kin); border-radius: 12px; font-weight: bold; }
-.btn-attack { 
-    width: 85%; max-width: 600px; padding: 25px; 
-    background: linear-gradient(to bottom, #fceabb, #d4af37); 
-    color: #000; font-weight: bold; font-size: 32px; border-radius: 60px; border: none;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    font-size: 50px; /* 文字をさらに大きく */
+    margin-top: 10px;
 }
 </style>
-</head>
-<body>
-
-<div id="stage-layer">
-    <div id="char-visuals">
-        <div id="enemy-box"><img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" id="enemy-sprite"></div>
-        <div id="player-box"><img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" id="player-sprite"></div>
-    </div>
-</div>
-
-<div id="canvas-layer"><canvas id="draw-canvas"></canvas></div>
-
-<div id="ui-overlay">
-    <div id="top-ui">
-        <div class="hp-row">
-            <div class="hp-bar"><div id="hp-enemy" style="width:100%; height:100%; background:var(--shu); transition:0.3s;"></div></div>
-            <div style="color:var(--kin); font-weight:bold; letter-spacing: 2px;">怨霊対峙</div>
-            <div class="hp-bar"><div id="hp-player" style="width:100%; height:100%; background:var(--ai); transition:0.3s;"></div></div>
-        </div>
-        <div id="mondai-bun">---</div>
-    </div>
-    <div id="bottom-ui">
-        <div class="btn-row">
-            <div class="el-btn" style="background:#ff4500">火</div>
-            <div class="el-btn" style="background:#00bfff">水</div>
-            <div class="el-btn" style="background:#ffd700">雷</div>
-            <button class="btn-clear" onclick="clearCanvas()">墨を拭く</button>
-        </div>
-        <button class="btn-attack" id="attack-btn">漢術発動！</button>
-    </div>
-</div>
-
-<script>
-// 基本ロジック（漢字データ、描画、攻撃）
-const KANJI_DATA = [{k:'一',b:'___の太刀'},{k:'火',b:'___を噴く'},{k:'天',b:'___の裁き'},{k:'三',b:'___千世界'},{k:'龍',b:'昇___拳'}];
-let enemyHP = 100, currentMondai = {}, inkData = [], currentStroke = [], isDrawing = false;
-const canvas = document.getElementById('draw-canvas'), ctx = canvas.getContext('2d');
-
-function setup() {
-    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 15; ctx.strokeStyle = '#fff';
-}
-function next() {
-    currentMondai = KANJI_DATA[Math.floor(Math.random() * KANJI_DATA.length)];
-    document.getElementById('mondai-bun').innerText = currentMondai.b;
-    clearCanvas();
-}
-async function attack() {
-    if (inkData.length === 0) return;
-    const res = await fetch("https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test", {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ "app_version": 0.4, "requests": [{ "ink": inkData, "language": "ja" }] })
-    });
-    const data = await res.json();
-    if (data[1][0][1].includes(currentMondai.k)) {
-        enemyHP -= 34;
-        document.getElementById('hp-enemy').style.width = Math.max(0, enemyHP) + "%";
-        if (enemyHP <= 0) {
-            document.getElementById('enemy-sprite').style.opacity = "0.3";
-            setTimeout(()=>{ enemyHP=100; document.getElementById('hp-enemy').style.width="100%"; document.getElementById('enemy-sprite').style.opacity="1"; next(); }, 1500);
-        } else { next(); }
-    } else { clearCanvas(); }
-}
-function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); inkData = []; }
-const getPos = (e) => { const p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; };
-canvas.addEventListener('touchstart', e => { e.preventDefault(); const p = getPos(e); isDrawing = true; currentStroke = [[p.x],[p.y],[0]]; ctx.beginPath(); ctx.moveTo(p.x, p.y); });
-canvas.addEventListener('touchmove', e => { if(!isDrawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); currentStroke[0].push(p.x); currentStroke[1].push(p.y); currentStroke[2].push(0); });
-window.addEventListener('touchend', () => { if(isDrawing) inkData.push(currentStroke); isDrawing = false; });
-document.getElementById('attack-btn').addEventListener('click', attack);
-window.onload = () => { setup(); next(); };
-window.onresize = setup;
-</script>
-</body>
-</html>
