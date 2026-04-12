@@ -3,74 +3,101 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>真・漢術師 - 決戦レイアウト -</title>
+<title>真・漢術師 - 怨霊決戦 -</title>
 <style>
 :root { --gold: #d4af37; --dark: #1a1a1a; --border: rgba(212, 175, 55, 0.4); }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
-html, body { overflow: hidden; height: 100%; width: 100%; background: #000; color: #fff; font-family: "Sawarabi Mincho", serif; }
+html, body { overflow: hidden; height: 100%; width: 100%; background: #000; color: #fff; font-family: serif; }
 
 /* 1. 背景層 */
-#stage-bg { position: fixed; inset: 0; background: url('5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png') no-repeat center center; background-size: cover; z-index: 1; filter: brightness(0.7); }
+#stage-bg { position: fixed; inset: 0; background: url('5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png') no-repeat center center; background-size: cover; z-index: 1; filter: brightness(0.6); }
 
-/* 2. キャラクター層 */
-#enemy-box { position: absolute; left: 0; bottom: 10%; width: 55%; height: 80vh; z-index: 5; }
-#enemy-sprite { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 20px #000); }
+/* 2. キャラクター層：敵を画面からはみ出すほどデカく */
+#enemy-box { 
+    position: absolute; 
+    left: -20%; /* 左側を大きくはみ出させる */
+    bottom: 0; 
+    width: 110%;  /* 幅を100%以上に。これで画像自体がデカくなる */
+    height: 100vh; 
+    z-index: 5; 
+    pointer-events: none;
+}
+#enemy-sprite { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain; 
+    object-position: left bottom; /* 左下に固定 */
+    filter: drop-shadow(0 0 30px #000); 
+}
 
-#player-box { position: absolute; right: 0; bottom: 5%; width: 45%; height: 75vh; z-index: 15; }
-#player-sprite { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 0 20px #000); }
+#player-box { 
+    position: absolute; 
+    right: -5%; 
+    bottom: 0; 
+    width: 65%; /* プレイヤーも大きめに配置 */
+    height: 90vh; 
+    z-index: 15; 
+    pointer-events: none;
+}
+#player-sprite { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain; 
+    object-position: right bottom; 
+}
 
 /* 3. 中央・書道枠（キャンバスプレート） */
 #canvas-plate {
     position: absolute;
-    left: 50%; top: 45%; transform: translate(-50%, -50%);
-    width: 320px; height: 320px; /* 正方形 */
-    background: rgba(255, 255, 255, 0.1);
-    border: 4px solid var(--border);
-    box-shadow: 0 0 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.1);
+    left: 50%; top: 48%; transform: translate(-50%, -50%);
+    width: 380px; height: 380px; 
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid var(--border);
     z-index: 20;
     pointer-events: none;
 }
 #canvas-layer { position: fixed; inset: 0; z-index: 100; pointer-events: auto; }
 canvas { width: 100%; height: 100%; }
 
-/* 4. UI：ヘッダー（コンボ・タイマー・HP） */
-#header-ui { position: fixed; top: 0; width: 100%; padding: 20px 30px; z-index: 200; display: flex; justify-content: space-between; pointer-events: none; }
-.combo-box { font-style: italic; color: #ff9900; }
-.combo-num { font-size: 48px; font-weight: bold; text-shadow: 2px 2px #000; }
-.timer { font-size: 24px; background: rgba(0,0,0,0.6); padding: 5px 20px; border-radius: 10px; border: 1px solid var(--border); }
+/* 4. UI：コンボ・ステータス */
+#header-ui { position: fixed; inset: 0; padding: 40px; z-index: 200; pointer-events: none; }
+.combo-group { position: absolute; left: 40px; top: 60px; }
+.combo-num { font-size: 70px; font-weight: bold; font-style: italic; color: #f90; text-shadow: 3px 3px #000; }
 
-.status-bars { width: 250px; }
-.bar-container { background: #333; height: 12px; border: 1px solid #555; margin-bottom: 5px; border-radius: 3px; position: relative; }
-.bar-fill { height: 100%; transition: width 0.3s; }
-.hp-fill { background: linear-gradient(90deg, #4caf50, #8bc34a); }
-.sp-fill { background: linear-gradient(90deg, #2196f3, #00bcd4); }
-.bar-label { position: absolute; left: -30px; top: -2px; font-size: 12px; font-weight: bold; }
+.status-group { position: absolute; right: 40px; top: 60px; width: 300px; }
+.bar-wrap { background: rgba(0,0,0,0.5); height: 14px; border: 1px solid #444; margin-bottom: 8px; border-radius: 2px; position: relative; }
+.hp-bar { height: 100%; background: linear-gradient(90deg, #5c5, #8f8); width: 85%; }
+.sp-bar { height: 100%; background: linear-gradient(90deg, #38f, #8cf); width: 65%; }
+.label { position: absolute; left: -35px; top: -2px; font-size: 14px; color: #ccc; }
 
-/* 5. UI：フッター（問題・属性ボタン） */
-#footer-ui { position: fixed; bottom: 0; width: 100%; height: 180px; z-index: 200; pointer-events: none; display: flex; justify-content: center; align-items: flex-end; padding-bottom: 20px; }
-#mondai-bun { position: absolute; top: -40px; font-size: 32px; font-weight: bold; text-shadow: 0 0 10px #000; width: 100%; text-align: center; }
-
-/* 属性ボタン（右下配置） */
-.skill-grid { position: absolute; right: 20px; bottom: 20px; display: grid; grid-template-columns: repeat(4, 60px); gap: 10px; pointer-events: auto; }
-.skill-btn { 
-    width: 60px; height: 80px; background: rgba(20,20,20,0.8); 
-    border: 2px solid #444; display: flex; align-items: center; justify-content: center;
-    font-size: 24px; font-weight: bold; color: var(--gold); border-radius: 4px;
+/* タイマー（中央の小枠） */
+#timer-box { 
+    position: absolute; left: 50%; top: 150px; transform: translateX(-50%);
+    width: 120px; height: 100px; background: rgba(30,30,30,0.7);
+    border-radius: 15px; border: 2px solid #444;
+    display: flex; align-items: center; justify-content: center; font-size: 28px;
 }
-.skill-btn.fire { border-color: #8e2a2a; color: #ff4400; }
-.skill-btn.ice { border-color: #2a5caa; color: #00ccff; }
 
-/* 攻撃ボタン（中央下） */
+/* 5. UI：フッター（問題・属性） */
+#footer-ui { position: fixed; bottom: 0; width: 100%; height: 250px; z-index: 200; pointer-events: none; }
+#mondai-bun { text-align: center; font-size: 48px; margin-bottom: 20px; text-shadow: 0 0 10px #000; font-weight: bold; }
+
+.skill-row { position: absolute; right: 40px; bottom: 40px; display: flex; gap: 15px; pointer-events: auto; }
+.skill-card { 
+    width: 75px; height: 100px; background: rgba(0,0,0,0.6); 
+    border: 2px solid #444; border-radius: 5px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; font-weight: bold; 
+}
+
+#attack-btn-wrap { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); pointer-events: auto; }
 .btn-attack {
-    pointer-events: auto; width: 200px; height: 50px;
-    background: linear-gradient(to bottom, #d4af37, #aa8822);
-    border: none; border-radius: 25px; color: #000; font-weight: bold; font-size: 20px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer;
+    width: 280px; height: 70px; background: #c93; color: #000;
+    border: none; border-radius: 35px; font-size: 28px; font-weight: bold; cursor: pointer;
 }
 
-/* 6. 特殊演出 */
-.hit { animation: shake 0.3s ease-in-out; }
-@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+.hit { animation: hit-effect 0.4s; }
+@keyframes hit-effect { 0% { transform: scale(1); } 50% { transform: scale(1.05) translate(20px, -10px); filter: brightness(2); } 100% { transform: scale(1); } }
 </style>
 </head>
 <body>
@@ -86,79 +113,94 @@ canvas { width: 100%; height: 100%; }
 <div id="canvas-layer"><canvas id="draw-canvas"></canvas></div>
 
 <div id="header-ui">
-    <div class="combo-box">
-        <span class="combo-num">5</span> <span style="font-size:24px;">Combo!</span><br>
-        <span style="color:#fff; font-size:18px;">Perfect!</span>
+    <div class="combo-group">
+        <span class="combo-num">5</span> <span style="font-size:30px; font-weight:bold; color:#f90;">Combo!</span><br>
+        <span style="font-size:24px; font-style:italic;">Perfect!</span>
     </div>
-    <div class="timer">02:18</div>
-    <div class="status-bars">
-        <div class="bar-container"><span class="bar-label">HP</span><div id="hp-enemy" class="bar-fill hp-fill" style="width: 80%;"></div></div>
-        <div class="bar-container"><span class="bar-label">SP</span><div class="bar-fill sp-fill" style="width: 60%;"></div></div>
-        <div style="text-align:right; font-size:12px;">1540 / 1800</div>
+    
+    <div id="timer-box">02:18</div>
+
+    <div class="status-group">
+        <div class="bar-wrap"><span class="label">HP</span><div class="hp-bar" id="hp-enemy"></div></div>
+        <div class="bar-wrap"><span class="label">SP</span><div class="sp-bar"></div></div>
+        <div style="text-align:right; font-size:16px;">1540 / 1800</div>
     </div>
 </div>
 
 <div id="footer-ui">
     <div id="mondai-bun">あく</div>
-    <button class="btn-attack" id="attack-btn">漢術発動</button>
     
-    <div class="skill-grid">
-        <div class="skill-btn fire">火</div>
-        <div class="skill-btn ice">氷</div>
-        <div class="skill-btn" style="color:#ffcc00; border-color:#886600;">速</div>
-        <div class="skill-btn" style="color:#ffffff; border-color:#666666;">璧</div>
+    <div id="attack-btn-wrap">
+        <button class="btn-attack" id="attack-btn">漢術発動</button>
+    </div>
+    
+    <div class="skill-row">
+        <div class="skill-card" style="border-color:#a22; color:#f44;">火</div>
+        <div class="skill-card" style="border-color:#24a; color:#4af;">水</div>
+        <div class="skill-card" style="border-color:#882; color:#fd0;">速</div>
+        <div class="skill-card" style="border-color:#444; color:#fff;">璧</div>
     </div>
 </div>
 
 <script>
-const KANJI_DATA = [{k:'悪',b:'あく'},{k:'火',b:'ひ'},{k:'氷',b:'こおり'}];
-let inkData = [], currentStroke = [], isDrawing = false;
+// 基本の描画ロジック
 const canvas = document.getElementById('draw-canvas'), ctx = canvas.getContext('2d');
+let isDrawing = false, inkData = [], currentStroke = [];
 
 function setup() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.lineWidth = 14;
-    ctx.strokeStyle = 'rgba(0, 190, 255, 0.8)'; // 青白い炎のような墨
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = '#00beff';
-}
-
-async function attack() {
-    if (inkData.length === 0) return;
-    const btn = document.getElementById('attack-btn');
-    btn.innerText = "鑑定中...";
-    // (判定ロジックは以前と同様のため省略)
-    setTimeout(() => { 
-        document.getElementById('enemy-sprite').classList.add('hit');
-        setTimeout(() => document.getElementById('enemy-sprite').classList.remove('hit'), 300);
-        clearCanvas();
-        btn.innerText = "漢術発動";
-    }, 500);
+    ctx.lineWidth = 16;
+    ctx.strokeStyle = '#fff';
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#fff';
 }
 
 function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); inkData = []; }
-const getPos = (e) => { const p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; };
 
-canvas.addEventListener('touchstart', e => { 
-    const p = getPos(e); 
-    isDrawing = true; 
-    currentStroke = [[p.x],[p.y],[0]]; 
-    ctx.beginPath(); 
-    ctx.moveTo(p.x, p.y); 
-});
-canvas.addEventListener('touchmove', e => { 
-    if(!isDrawing) return; 
-    const p = getPos(e); 
-    ctx.lineTo(p.x, p.y); 
-    ctx.stroke(); 
-    currentStroke[0].push(p.x); currentStroke[1].push(p.y); currentStroke[2].push(0); 
-});
-window.addEventListener('touchend', () => { if(isDrawing) inkData.push(currentStroke); isDrawing = false; });
+const getPos = (e) => { 
+    const p = e.touches ? e.touches[0] : e;
+    return { x: p.clientX, y: p.clientY };
+};
 
-document.getElementById('attack-btn').addEventListener('click', attack);
+canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const p = getPos(e);
+    isDrawing = true;
+    currentStroke = [[p.x],[p.y],[0]];
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+}, {passive:false});
+
+canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    if(!isDrawing) return;
+    const p = getPos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    currentStroke[0].push(p.x);
+    currentStroke[1].push(p.y);
+    currentStroke[2].push(0);
+}, {passive:false});
+
+window.addEventListener('touchend', () => {
+    if(isDrawing) inkData.push(currentStroke);
+    isDrawing = false;
+});
+
+// 攻撃ボタンの演出
+document.getElementById('attack-btn').addEventListener('click', () => {
+    if(inkData.length === 0) return;
+    const enemy = document.getElementById('enemy-sprite');
+    enemy.classList.add('hit');
+    setTimeout(() => {
+        enemy.classList.remove('hit');
+        clearCanvas();
+    }, 400);
+});
+
 window.onload = setup;
 window.onresize = setup;
 </script>
