@@ -3,81 +3,85 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>真・漢術師 - 最終覚醒 -</title>
+<title>真・漢術師 - 怨霊対峙 -</title>
 <style>
 :root { --kin: #d4af37; --shu: #8e2a2a; --ai: #2a5caa; }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
 html, body { overflow: hidden; height: 100%; width: 100%; background: #000; color: #fff; font-family: serif; }
 
-/* 背景・演出レイヤー（ここを一番豪華に） */
+/* 背景 */
 #stage-layer {
     position: fixed; inset: 0;
     background: url('5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png') no-repeat center center;
     background-size: cover; z-index: 1;
 }
 
+/* ★敵と味方の配置：敵をしっかり見せる */
 #char-visuals {
     position: absolute; inset: 0;
-    display: flex; justify-content: space-between; align-items: flex-end;
     z-index: 5; pointer-events: none;
 }
-/* キャラクターをさらに巨大化 */
-.char-container { width: 55%; height: 100%; display: flex; align-items: flex-end; }
-#enemy-sprite { width: 130%; height: auto; transform: translateX(-15%); filter: drop-shadow(0 0 20px #000); }
-#player-sprite { width: 130%; height: auto; transform: translateX(15%); filter: drop-shadow(0 0 20px #000); }
-
-/* ★究極の全画面キャンバス */
-#canvas-layer {
-    position: absolute; inset: 0; z-index: 50; /* キャラの前面に配置 */
+#enemy-wrap {
+    position: absolute; left: 0; bottom: 0; width: 65%; height: 90vh;
+    display: flex; align-items: flex-end;
 }
-canvas { width: 100%; height: 100%; background: transparent; }
+#enemy-sprite { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 30px #000); }
 
-/* 最小限のUI構成 */
+#player-wrap {
+    position: absolute; right: 0; bottom: 0; width: 45%; height: 80vh;
+    display: flex; align-items: flex-end; justify-content: flex-end;
+}
+#player-sprite { width: 100%; height: auto; object-fit: contain; filter: drop-shadow(0 0 20px #000); }
+
+/* 全画面キャンバス：キャラの前面 */
+#canvas-layer { position: absolute; inset: 0; z-index: 50; }
+canvas { width: 100%; height: 100%; }
+
+/* UI：敵やキャラに被らないよう配置 */
 #ui-overlay {
     position: absolute; inset: 0; z-index: 100; pointer-events: none;
     display: flex; flex-direction: column; justify-content: space-between;
 }
 
-#top-section { 
-    padding: 30px 50px; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); 
-    display: flex; justify-content: space-between; align-items: center;
+#top-hud {
+    padding: 30px 40px; display: flex; justify-content: space-between; align-items: center;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
 }
-.hp-bar { width: 250px; height: 15px; border: 2px solid var(--kin); background: rgba(0,0,0,0.5); border-radius: 8px; overflow: hidden; }
+.hp-bar-outer { width: 220px; height: 12px; border: 1px solid var(--kin); background: rgba(0,0,0,0.5); border-radius: 6px; overflow: hidden; }
 
-#mondai-wrap {
-    text-align: center; margin-top: 20px;
-}
-#mondai-bun {
-    font-size: 42px; font-weight: bold; color: #fff;
-    text-shadow: 0 0 15px #000, 0 0 25px var(--kin);
+#mondai-area { text-align: center; }
+#mondai-bun { 
+    font-size: 38px; font-weight: bold; 
+    text-shadow: 0 0 10px #000, 0 0 20px var(--kin); 
 }
 
-#bottom-section {
+#bottom-controls {
     padding-bottom: 40px; pointer-events: auto;
     display: flex; flex-direction: column; align-items: center; gap: 20px;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
 }
-.button-row { display: flex; gap: 20px; align-items: center; }
-.el-btn { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #fff; font-size: 20px; font-weight: bold; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 10px #000; }
-.btn-clear { height: 50px; padding: 0 30px; background: rgba(0,0,0,0.8); color: var(--kin); border: 2px solid var(--kin); border-radius: 12px; font-weight: bold; }
+.button-row { display: flex; gap: 20px; }
+.el-btn { width: 55px; height: 55px; border-radius: 50%; border: 2px solid #fff; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+.btn-clear { height: 50px; padding: 0 25px; background: rgba(0,0,0,0.8); color: var(--kin); border: 1px solid var(--kin); border-radius: 10px; font-weight: bold; }
 .btn-attack { 
-    width: 90%; max-width: 600px; padding: 22px; 
+    width: 85%; max-width: 500px; padding: 20px; 
     background: linear-gradient(to bottom, #fceabb, #d4af37); 
-    color: #000; font-weight: bold; font-size: 32px; border-radius: 60px; border: none;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.8);
+    color: #000; font-weight: bold; font-size: 28px; border-radius: 50px; border: none;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.7);
 }
 
-/* 演出用 */
-.shake { animation: shake 0.4s; }
-@keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-15px);} 75%{transform:translateX(15px);} }
-.vanish { opacity: 0; transform: scale(1.5) translateY(-100px); transition: 1.5s; }
+/* アニメーション */
+.hit-shake { animation: hit 0.4s; }
+@keyframes hit { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-20px);} 60%{transform:translateX(20px);} }
+.vanish { opacity: 0; transform: scale(1.2) translateY(-100px); transition: 2s ease-out; }
 </style>
 </head>
 <body>
 
 <div id="stage-layer">
     <div id="char-visuals">
-        <div class="char-container"><img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" id="enemy-sprite"></div>
-        <div class="char-container" style="justify-content:flex-end;"><img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" id="player-sprite"></div>
+        <div id="enemy-wrap"><img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" id="enemy-sprite"></div>
+        <div id="player-wrap"><img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" id="player-sprite"></div>
     </div>
 </div>
 
@@ -86,14 +90,14 @@ canvas { width: 100%; height: 100%; background: transparent; }
 </div>
 
 <div id="ui-overlay">
-    <div id="top-section">
-        <div class="hp-bar"><div id="hp-enemy" style="width:100%; height:100%; background:var(--shu); transition:0.3s;"></div></div>
-        <div id="mondai-wrap"><div id="mondai-bun">---</div></div>
-        <div class="hp-bar"><div id="hp-player" style="width:100%; height:100%; background:var(--ai); transition:0.3s;"></div></div>
+    <div id="top-hud">
+        <div class="hp-bar-outer"><div id="hp-enemy" style="width:100%; height:100%; background:var(--shu); transition:0.3s;"></div></div>
+        <div id="mondai-area"><div id="mondai-bun">---</div></div>
+        <div class="hp-bar-outer"><div id="hp-player" style="width:100%; height:100%; background:var(--ai); transition:0.3s;"></div></div>
     </div>
 
-    <div id="bottom-section">
-        <div id="battle-msg" style="font-size:18px; font-weight:bold; color:var(--kin); text-shadow:2px 2px 4px #000;">墨を走らせ詠唱せよ</div>
+    <div id="bottom-controls">
+        <div id="battle-msg" style="color:var(--kin); font-weight:bold; margin-bottom:5px;">怨霊を凝視せよ</div>
         <div class="button-row">
             <div class="el-btn" style="background:#ff4500">火</div>
             <div class="el-btn" style="background:#00bfff">水</div>
@@ -105,10 +109,9 @@ canvas { width: 100%; height: 100%; background: transparent; }
 </div>
 
 <script>
-// --- ロジック統合 ---
 const KANJI_DATA = [
-    {k:'一',y:'いち',b:'___の太刀'},{k:'火',y:'ひ',b:'___を噴く'},{k:'天',y:'てん',b:'___の裁き'},
-    {k:'三',y:'さん',b:'___千世界'},{k:'心',y:'こころ',b:'___を研ぐ'},{k:'空',y:'そら',b:'___を翔ける'}
+    {k:'一',b:'___の太刀'},{k:'火',b:'___を噴く'},{k:'天',b:'___の裁き'},
+    {k:'三',b:'___千世界'},{k:'空',b:'___を翔ける'},{k:'龍',b:'昇___拳'}
 ];
 const MONDAI_DEFENSE = {k:'壁', b:'【強襲】鉄___防御！'};
 
@@ -141,8 +144,8 @@ setInterval(() => {
     enemyCast += 0.8;
     if (enemyCast >= 100) {
         isDefensePhase = true; enemyCast = 0;
-        document.getElementById('battle-msg').innerText = "怨霊の猛攻撃！";
-        clearCanvas(); next(); // 攻撃が来たら墨を自動クリア
+        document.getElementById('battle-msg').innerText = "怨霊の強襲！";
+        clearCanvas(); next();
     }
 }, 100);
 
@@ -166,7 +169,7 @@ async function recognizeAndAttack() {
                 document.getElementById('battle-msg').innerText = "防御成功！";
             } else {
                 damageEnemy(34);
-                document.getElementById('battle-msg').innerText = "漢術、命中！";
+                document.getElementById('battle-msg').innerText = "命中！";
             }
             next();
         } else {
@@ -185,9 +188,9 @@ async function recognizeAndAttack() {
 function damageEnemy(val) {
     enemyHP = Math.max(0, enemyHP - val);
     document.getElementById('hp-enemy').style.width = enemyHP + "%";
-    document.getElementById('enemy-sprite').classList.add('shake');
+    document.getElementById('enemy-sprite').classList.add('hit-shake');
     setTimeout(() => {
-        document.getElementById('enemy-sprite').classList.remove('shake');
+        document.getElementById('enemy-sprite').classList.remove('hit-shake');
         if (enemyHP <= 0) purge();
     }, 400);
 }
@@ -195,14 +198,14 @@ function damageEnemy(val) {
 function playerTakeDamage(val) {
     playerHP = Math.max(0, playerHP - val);
     document.getElementById('hp-player').style.width = playerHP + "%";
-    document.getElementById('player-sprite').classList.add('shake');
-    setTimeout(() => document.getElementById('player-sprite').classList.remove('shake'), 400);
+    document.getElementById('player-sprite').classList.add('hit-shake');
+    setTimeout(() => document.getElementById('player-sprite').classList.remove('hit-shake'), 400);
 }
 
 function purge() {
     isEnemyDead = true;
     document.getElementById('enemy-sprite').classList.add('vanish');
-    document.getElementById('battle-msg').innerText = "怨霊、浄化完了。";
+    document.getElementById('battle-msg').innerText = "浄化！";
     setTimeout(() => {
         enemyHP = 100; isEnemyDead = false;
         document.getElementById('hp-enemy').style.width = "100%";
@@ -213,7 +216,7 @@ function purge() {
 
 function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); inkData = []; }
 
-// 描画イベント（全画面対応）
+// 描画イベント
 const getPos = (e) => {
     const p = e.touches ? e.touches[0] : e;
     return { x: p.clientX, y: p.clientY };
