@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>真・漢術師 - 横画面決戦 -</title>
+<title>真・漢術師 - 横画面決戦・極 -</title>
 <style>
 :root {
   --sumi: #0a0a0a; --kin: #c9a063; --shu: #8e2a2a; --ai: #3a82f6; --glass: rgba(0,0,0,0.7);
@@ -14,7 +14,7 @@ html, body { overflow: hidden; height: 100%; width: 100%; background: #000; colo
 /* 背景 */
 #bg-layer { position: fixed; inset: 0; background: url('IMG_7089.png') no-repeat center center; background-size: cover; filter: brightness(0.3); z-index: 1; }
 
-/* 縦画面時の警告 */
+/* 縦画面時の警告（横画面に誘導） */
 #orientation-warning {
     position: fixed; inset: 0; background: #000; z-index: 9999;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -31,12 +31,12 @@ html, body { overflow: hidden; height: 100%; width: 100%; background: #000; colo
     padding: 10px;
 }
 
-/* 上部：共通HUD */
+/* 上部：共通HUD（画像19風） */
 #top-hud { grid-column: 1 / 4; display: flex; justify-content: space-between; align-items: center; }
 .hp-bar-outer { width: 150px; height: 10px; background: #222; border-radius: 5px; border: 1px solid #555; overflow: hidden; }
 .hp-bar-inner { height: 100%; background: var(--shu); width: 100%; transition: 0.3s; }
 
-/* 左：敵エリア */
+/* 左：敵エリア（怨霊） */
 #enemy-side { grid-column: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; }
 #enemy-visual { width: 80%; filter: drop-shadow(0 0 10px var(--shu)); opacity: 0.8; }
 
@@ -49,23 +49,27 @@ html, body { overflow: hidden; height: 100%; width: 100%; background: #000; colo
 }
 canvas { width: 100%; height: 100%; cursor: crosshair; }
 
-/* 右：自分エリア（キャラ画像） */
+/* 右：自分エリア（置き換えた右向きキャラ画像） */
 #player-side { grid-column: 3; position: relative; }
 #player-chara {
-    position: absolute; bottom: -20px; right: -20px; width: 120%;
+    position: absolute; bottom: -30px; right: -30px; width: 130%; /* 少し大きく、下に沈める */
     pointer-events: none; z-index: 5;
 }
+/* 置き換えた画像ファイル名 */
 #player-chara img { width: 100%; height: auto; filter: drop-shadow(0 0 15px #000); }
 
 /* 下部：操作パネル */
 #bottom-hud { grid-column: 1 / 4; display: flex; justify-content: space-around; align-items: center; background: var(--glass); border-top: 1px solid var(--kin); border-radius: 15px 15px 0 0; }
 #mondai-info { text-align: center; }
 .btn-group { display: flex; gap: 20px; }
-.btn { padding: 10px 25px; border-radius: 5px; font-weight: bold; border: 1px solid #fff; color: #fff; cursor: pointer; }
+.btn { padding: 10px 25px; border-radius: 5px; font-weight: bold; border: 1px solid #fff; color: #fff; cursor: pointer; font-size: 14px;}
 .btn-clear { background: #333; border-color: var(--kin); color: var(--kin); }
 .btn-attack { background: linear-gradient(to bottom, var(--ai), #003366); box-shadow: 0 0 10px var(--ai); }
 
-#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; color: var(--kin); }
+/* その他 */
+#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; color: var(--kin); font-size: 20px;}
+.shake { animation: shake 0.4s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-10px)} 75%{transform:translateX(10px)} }
 </style>
 </head>
 <body>
@@ -123,14 +127,18 @@ canvas { width: 100%; height: 100%; cursor: crosshair; }
 
 <script>
 // ロジック部分は以前のものを継承（canvasサイズ調整のみsetupで実行）
-const MONDAI_LIST = [{ kanji: '悪', yomi: 'わるい', bun: '___いことをする' },{ kanji: '曜', yomi: 'よう', bun: '日曜日の___' }];
+const MONDAI_LIST = [
+    { kanji: '悪', yomi: 'わるい', bun: '___いことをする' },
+    { kanji: '曜', yomi: 'よう', bun: '日曜日の___' }
+];
+
 let currentMondai = {}, inkData = [], currentStroke = [], isDrawing = false, enemyHp = 100;
 const canvas = document.getElementById('draw-canvas'), ctx = canvas.getContext('2d');
 
 function setup() {
     const rect = canvas.getBoundingClientRect();
     canvas.width = rect.width; canvas.height = rect.height;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 10; ctx.strokeStyle = '#fff';
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 10; ctx.strokeStyle = '#fff'; ctx.shadowBlur = 4; ctx.shadowColor = '#0088ff';
 }
 
 function next() {
@@ -159,15 +167,19 @@ async function recognizeAndAttack() {
             method: 'POST', headers: { 'Content-Type': 'application/json' }, 
             body: JSON.stringify({ app_version: 0.4, requests: [{ ink: inkData, language: "ja" }] }) 
         });
-        const data = await res.json();
+        const data = res.json();
         const result = data[1][0][1][0];
+        
         if (result === currentMondai.kanji) {
             enemyHp -= 34;
             document.getElementById('hp-fill').style.width = Math.max(0, enemyHp) + '%';
-            if (enemyHp <= 0) { alert("完全浄化！"); enemyHp = 100; }
+            if (enemyHp <= 0) { alert("完全浄化！なり。"); enemyHp = 100; }
             next();
-        } else { alert("力不足！"); clearCanvas(); }
-    } catch(e) { alert("エラー"); }
+        } else {
+            alert(`正解は「${currentMondai.kanji}」なり。`);
+            clearCanvas();
+        }
+    } catch(e) { alert("霊力（通信）が不安定です"); }
     document.getElementById('loading').style.display = 'none';
 }
 
