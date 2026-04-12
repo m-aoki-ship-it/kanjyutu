@@ -3,78 +3,92 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>漢術師 - 奥義覚醒 -</title>
+<title>真・漢術師 - 死闘決戦 -</title>
 <style>
 :root { --kin: #d4af37; --shu: #8e2a2a; --ai: #2a5caa; --glass: rgba(10, 5, 0, 0.95); --hi: #ff4500; --mizu: #00bfff; --kaminari: #ffd700; }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
 html, body { overflow: hidden; height: 100%; width: 100%; background: #000; color: #fff; font-family: serif; }
 #bg-layer { position: fixed; inset: 0; background: url('5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png') no-repeat center center; background-size: cover; z-index: 1; }
-#effect-layer { position: fixed; inset: 0; pointer-events: none; z-index: 2; transition: 0.3s; opacity: 0; }
+#effect-layer { position: fixed; inset: 0; pointer-events: none; z-index: 5; transition: 0.2s; opacity: 0; }
+
 #game-stage { position: relative; z-index: 10; width: 100vw; height: 100dvh; display: flex; align-items: center; justify-content: space-between; padding: 70px 30px 160px 30px; }
+
+/* 敵の詠唱ゲージ（頭上） */
+#enemy-cast-wrap { position: absolute; top: 15%; left: 15%; width: 120px; height: 6px; background: #222; border: 1px solid #ff0000; }
+#enemy-cast-fill { height: 100%; width: 0%; background: #ff0000; box-shadow: 0 0 10px #ff0000; }
+
 #top-hud { position: absolute; top: 0; width: 100%; height: 90px; display: flex; justify-content: space-between; align-items: center; padding: 0 40px; z-index: 100; }
-.hp-bar-outer { width: 150px; height: 12px; background: rgba(0,0,0,0.6); border: 1px solid var(--kin); position: relative; }
-#hp-fill { height: 100%; background: var(--shu); width: 100%; transition: 0.3s; }
-/* スキルゲージ */
-#skill-gauge-wrap { margin-top: 5px; width: 150px; height: 8px; background: #222; border: 1px solid #fff; border-radius: 4px; overflow: hidden; }
+.hp-bar-outer { width: 150px; height: 12px; background: rgba(0,0,0,0.6); border: 1px solid var(--kin); overflow: hidden; }
+#hp-fill-enemy { height: 100%; background: var(--shu); width: 100%; transition: 0.3s; }
+#hp-fill-player { height: 100%; background: var(--ai); width: 100%; transition: 0.3s; }
 #skill-gauge-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #fff, var(--kin)); transition: 0.5s; }
 
 #canvas-side { width: 280px; display: flex; flex-direction: column; align-items: center; z-index: 150; }
-#canvas-wrap { width: 260px; height: 260px; background: rgba(0,0,0,0.7); border: 2px solid var(--kin); position: relative; }
-canvas { width: 100%; height: 100%; touch-action: none; }
-#mondai-bun { margin-top:10px; font-size:20px; font-weight:bold; height: 30px; }
-#skill-timer { font-size: 24px; color: #ff0; font-weight: bold; height: 30px; }
+#canvas-wrap { width: 260px; height: 260px; background: rgba(0,0,0,0.8); border: 2px solid var(--kin); position: relative; }
+canvas { width: 100%; height: 100%; }
+#mondai-bun { margin-top:10px; font-size:22px; font-weight:bold; height: 40px; text-align: center; }
 
 #bottom-hud { position: absolute; bottom: 0; width: 100%; height: 160px; background: var(--glass); border-top: 2px solid var(--kin); z-index: 200; display: flex; flex-direction: column; align-items: center; padding: 15px; }
 .button-row { display: flex; gap: 10px; margin-bottom: 15px; }
-.el-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid #555; font-weight: bold; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; position: relative; }
-.el-btn.ready::after { content: '奥義'; position: absolute; top: -15px; font-size: 10px; color: #fff; background: red; padding: 2px 4px; border-radius: 4px; animation: flash 0.5s infinite; }
-.btn-clear { width: 70px; height: 50px; background: #222; border: 1px solid var(--kin); color: var(--kin); border-radius: 8px; font-weight: bold; cursor: pointer; }
-.btn-attack { width: 240px; padding: 14px; background: #1a1a1a; border: 1px solid var(--kin); color: var(--kin); font-weight: bold; border-radius: 4px; font-size: 18px; cursor: pointer; }
+.el-btn { width: 50px; height: 50px; border-radius: 8px; border: 2px solid #555; font-weight: bold; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.el-btn.ready { border-color: #fff; box-shadow: 0 0 15px #fff; animation: flash 0.5s infinite; }
+.btn-clear { width: 70px; height: 50px; background: #222; border: 1px solid var(--kin); color: var(--kin); border-radius: 8px; font-weight: bold; }
+.btn-attack { width: 240px; padding: 14px; background: #1a1a1a; border: 1px solid var(--kin); color: var(--kin); font-weight: bold; font-size: 18px; }
 
-@keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+/* 演出用 */
+.danger { background: rgba(255, 0, 0, 0.3) !important; animation: blink 0.3s infinite; }
+@keyframes blink { 0% { opacity: 0.3; } 50% { opacity: 0.7; } 100% { opacity: 0.3; } }
+@keyframes flash { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 .shake { animation: shake 0.4s; }
-@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-15px); } 75% { transform: translateX(15px); } }
 </style>
 </head>
 <body>
 <div id="bg-layer"></div>
 <div id="effect-layer"></div>
 <div id="top-hud">
-    <div><span style="font-size: 10px; color: var(--shu);">怨霊の気</span><div class="hp-bar-outer"><div id="hp-fill"></div></div></div>
-    <div style="font-size: 20px; color: var(--kin); text-align: center;">漢術奥義<div id="skill-count" style="font-size: 12px;"></div></div>
+    <div><span style="font-size: 10px; color: var(--shu);">怨霊の気</span><div class="hp-bar-outer"><div id="hp-fill-enemy"></div></div></div>
+    <div style="text-align: center;"><div id="battle-msg" style="font-size: 14px; color: #fff;"></div></div>
     <div style="text-align: right;">
-        <span style="font-size: 10px; color: var(--ai);">スキルゲージ</span>
-        <div id="skill-gauge-wrap"><div id="skill-gauge-fill"></div></div>
-        <div class="hp-bar-outer" style="margin-top:5px;"><div style="height:100%; background:var(--ai); width:100%;"></div></div>
+        <span style="font-size: 10px; color: var(--ai);">術師の魂 / 霊力</span>
+        <div class="hp-bar-outer"><div id="hp-fill-player"></div></div>
+        <div class="hp-bar-outer" style="height:6px; margin-top:2px; border:none;"><div id="skill-gauge-fill" style="width:0%;"></div></div>
     </div>
 </div>
+
 <div id="game-stage">
-    <div id="enemy-side"><img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" style="width:150%;" id="enemy-sprite"></div>
-    <div id="canvas-side">
-        <div id="skill-timer"></div>
-        <div id="canvas-wrap"><canvas id="draw-canvas"></canvas></div>
-        <div id="mondai-bun">---</div>
+    <div id="enemy-side">
+        <div id="enemy-cast-wrap"><div id="enemy-cast-fill"></div></div>
+        <img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" style="width:150%;" id="enemy-sprite">
     </div>
-    <div id="player-side"><img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" style="width:140%;"></div>
+    <div id="canvas-side">
+        <div id="mondai-bun">---</div>
+        <div id="canvas-wrap"><canvas id="draw-canvas"></canvas></div>
+        <div id="combo-ui" style="color:var(--kin); font-weight:bold; margin-top:5px;"></div>
+    </div>
+    <div id="player-side"><img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" style="width:140%;" id="player-sprite"></div>
 </div>
+
 <div id="bottom-hud">
     <div class="button-row">
-        <div class="el-btn el-hi" style="background:var(--hi)" onclick="startSkill('hi')">火</div>
-        <div class="el-btn el-mizu" style="background:var(--mizu)" onclick="startSkill('mizu')">水</div>
-        <div class="el-btn el-kaminari" style="background:var(--kaminari)" onclick="startSkill('kaminari')">雷</div>
-        <button class="btn-clear" id="clear-btn">墨を拭く</button>
+        <div class="el-btn" style="background:var(--hi)" onclick="startSkill('hi')">火</div>
+        <div class="el-btn" style="background:var(--mizu)" onclick="startSkill('mizu')">水</div>
+        <div class="el-btn" style="background:var(--kaminari)" onclick="startSkill('kaminari')">雷</div>
+        <button class="btn-clear" onclick="clearCanvas()">墨を拭く</button>
     </div>
     <button class="btn-attack" id="attack-btn">漢術発動！</button>
 </div>
 
 <script>
-const MONDAI_LIST = [
+const MONDAI_NORMAL = [
     { kanji: '火', yomi: 'ひ', bun: '___を噴く' }, { kanji: '水', yomi: 'みず', bun: '___を操る' },
-    { kanji: '雷', yomi: 'かみなり', bun: '___が落ちる' }, { kanji: '炎', yomi: 'ほのお', bun: '烈火の___' },
-    { kanji: '氷', yomi: 'こおり', bun: '___の刃' }, { kanji: '電', yomi: 'でん', bun: '___光石火' }
+    { kanji: '雷', yomi: 'かみなり', bun: '___が落ちる' }, { kanji: '電', yomi: 'でん', bun: '___光石火' }
 ];
+const MONDAI_DEFENSE = [{ kanji: '壁', yomi: 'かべ', bun: '鉄___防御！' }, { kanji: '守', yomi: 'まもる', bun: '命を___' }];
+
 let currentMondai = {}, inkData = [], currentStroke = [], isDrawing = false;
-let enemyHP = 100, skillGauge = 0, isSkillMode = false, skillStep = 0, skillTime = 0, timerId = null;
+let enemyHP = 100, playerHP = 100, skillGauge = 0, combo = 0;
+let enemyCast = 0, isDefensePhase = false, isSkillMode = false, skillStep = 0;
 
 const canvas = document.getElementById('draw-canvas'), ctx = canvas.getContext('2d');
 
@@ -85,25 +99,32 @@ function setup() {
 }
 
 function next() {
-    currentMondai = MONDAI_LIST[Math.floor(Math.random() * MONDAI_LIST.length)];
-    document.getElementById('mondai-bun').innerText = `${currentMondai.bun} (読み:${currentMondai.yomi})`;
-    if(isSkillMode) document.getElementById('skill-count').innerText = `詠唱中: ${skillStep+1} / 3文字`;
-    else document.getElementById('skill-count').innerText = "";
+    if (isDefensePhase) {
+        currentMondai = MONDAI_DEFENSE[Math.floor(Math.random() * MONDAI_DEFENSE.length)];
+        document.getElementById('mondai-bun').innerHTML = `<span style="color:#ff0">【防御】${currentMondai.kanji}を書け！</span>`;
+    } else {
+        currentMondai = MONDAI_NORMAL[Math.floor(Math.random() * MONDAI_NORMAL.length)];
+        document.getElementById('mondai-bun').innerText = `${currentMondai.bun} (${currentMondai.yomi})`;
+    }
     clearCanvas();
 }
 
-function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); inkData = []; }
+// 敵の詠唱タイマー
+setInterval(() => {
+    if (isDefensePhase || isSkillMode || enemyHP <= 0) return;
+    enemyCast += 1.5; // 溜まるスピード
+    if (enemyCast >= 100) {
+        triggerDefense();
+    }
+    document.getElementById('enemy-cast-fill').style.width = enemyCast + "%";
+}, 100);
 
-function getPos(e) {
-    const r = canvas.getBoundingClientRect();
-    const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
-    const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
-    return {x, y};
+function triggerDefense() {
+    isDefensePhase = true;
+    document.getElementById('canvas-wrap').classList.add('danger');
+    document.getElementById('battle-msg').innerText = "怨霊の強攻撃が来る！";
+    next();
 }
-
-canvas.addEventListener('touchstart', e => { e.preventDefault(); const p = getPos(e); isDrawing = true; currentStroke = [[p.x], [p.y], [0]]; ctx.beginPath(); ctx.moveTo(p.x, p.y); });
-canvas.addEventListener('touchmove', e => { if(!isDrawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); currentStroke[0].push(p.x); currentStroke[1].push(p.y); currentStroke[2].push(0); });
-window.addEventListener('touchend', () => { if(isDrawing) inkData.push(currentStroke); isDrawing = false; });
 
 async function recognizeAndAttack() {
     if (inkData.length === 0) return;
@@ -119,76 +140,78 @@ async function recognizeAndAttack() {
         const candidates = data[1][0][1];
 
         if (candidates.some(c => c === currentMondai.kanji)) {
-            if (isSkillMode) {
+            if (isDefensePhase) {
+                // 防御成功
+                isDefensePhase = false;
+                enemyCast = 0;
+                document.getElementById('canvas-wrap').classList.remove('danger');
+                document.getElementById('battle-msg').innerText = "防御成功！";
+                alert("完全防御！");
+                next();
+            } else if (isSkillMode) {
                 skillStep++;
-                if (skillStep >= 3) finishSkill(true);
-                else next();
+                if (skillStep >= 3) finishSkill(true); else next();
             } else {
-                damageEnemy(10);
-                updateSkillGauge(25);
+                combo++;
+                damageEnemy(10 + combo);
+                updateSkillGauge(20);
                 next();
             }
         } else {
-            if (isSkillMode) finishSkill(false);
-            else { alert("不発！正解は: " + currentMondai.kanji); clearCanvas(); }
+            if (isDefensePhase) {
+                // 防御失敗
+                playerTakeDamage(25);
+                isDefensePhase = false;
+                enemyCast = 0;
+                document.getElementById('canvas-wrap').classList.remove('danger');
+                alert("防御失敗！ダメージを受けた！");
+                next();
+            } else if (isSkillMode) {
+                finishSkill(false);
+            } else {
+                combo = 0;
+                alert("不発！");
+                clearCanvas();
+            }
         }
     } catch(e) { alert("術式エラー"); }
     btn.disabled = false;
-}
-
-function updateSkillGauge(val) {
-    skillGauge = Math.min(100, skillGauge + val);
-    document.getElementById('skill-gauge-fill').style.width = skillGauge + "%";
-    if (skillGauge >= 100) document.querySelectorAll('.el-btn').forEach(b => b.classList.add('ready'));
-}
-
-function startSkill(type) {
-    if (skillGauge < 100 || isSkillMode) return;
-    isSkillMode = true; skillStep = 0; skillTime = 15;
-    document.querySelectorAll('.el-btn').forEach(b => b.classList.remove('ready'));
-    document.getElementById('effect-layer').style.background = `var(--${type})`;
-    document.getElementById('effect-layer').style.opacity = "0.3";
-    
-    timerId = setInterval(() => {
-        skillTime--;
-        document.getElementById('skill-timer').innerText = `奥義発動中：${skillTime}`;
-        if (skillTime <= 0) finishSkill(false);
-    }, 1000);
-    next();
-}
-
-function finishSkill(success) {
-    clearInterval(timerId);
-    isSkillMode = false;
-    document.getElementById('skill-timer').innerText = "";
-    document.getElementById('skill-count').innerText = "";
-    document.getElementById('effect-layer').style.opacity = "0";
-    
-    if (success) {
-        damageEnemy(50); // 奥義大ダメージ
-        alert("奥義発動！怨霊を圧倒！");
-        skillGauge = 0;
-        document.getElementById('skill-gauge-fill').style.width = "0%";
-    } else {
-        alert("奥義失敗... 霊力が霧散した");
-        skillGauge = 50; // 失敗時は半分残す
-        updateSkillGauge(0);
-    }
-    next();
+    document.getElementById('combo-ui').innerText = combo > 0 ? combo + " Combo!" : "";
 }
 
 function damageEnemy(val) {
     enemyHP = Math.max(0, enemyHP - val);
-    document.getElementById('hp-fill').style.width = enemyHP + "%";
+    document.getElementById('hp-fill-enemy').style.width = enemyHP + "%";
     document.getElementById('enemy-side').classList.add('shake');
     setTimeout(() => {
         document.getElementById('enemy-side').classList.remove('shake');
-        if (enemyHP <= 0) { alert("怨霊浄化！"); enemyHP = 100; document.getElementById('hp-fill').style.width = "100%"; }
+        if (enemyHP <= 0) { alert("浄化！"); enemyHP = 100; next(); }
     }, 400);
 }
 
+function playerTakeDamage(val) {
+    playerHP = Math.max(0, playerHP - val);
+    document.getElementById('hp-fill-player').style.width = playerHP + "%";
+    document.getElementById('player-side').classList.add('shake');
+    combo = 0;
+    setTimeout(() => {
+        document.getElementById('player-side').classList.remove('shake');
+        if (playerHP <= 0) { alert("敗北... 修行し直せ"); location.reload(); }
+    }, 400);
+}
+
+// 共通機能
+function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); inkData = []; }
+function updateSkillGauge(v) { skillGauge = Math.min(100, skillGauge + v); document.getElementById('skill-gauge-fill').style.width = skillGauge + "%"; }
+function startSkill() { if(skillGauge < 100) return; isSkillMode = true; skillStep = 0; next(); }
+function finishSkill(s) { isSkillMode = false; if(s) { damageEnemy(40); skillGauge = 0; } else { alert("奥義失敗"); } updateSkillGauge(0); next(); }
+
+const getPos = (e) => { const r = canvas.getBoundingClientRect(); return { x: (e.touches?.[0].clientX || e.clientX) - r.left, y: (e.touches?.[0].clientY || e.clientY) - r.top }; };
+canvas.addEventListener('touchstart', e => { e.preventDefault(); const p = getPos(e); isDrawing = true; currentStroke = [[p.x],[p.y],[0]]; ctx.beginPath(); ctx.moveTo(p.x, p.y); });
+canvas.addEventListener('touchmove', e => { if(!isDrawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); currentStroke[0].push(p.x); currentStroke[1].push(p.y); currentStroke[2].push(0); });
+window.addEventListener('touchend', () => { if(isDrawing) inkData.push(currentStroke); isDrawing = false; });
 document.getElementById('attack-btn').addEventListener('click', recognizeAndAttack);
-document.getElementById('clear-btn').addEventListener('click', clearCanvas);
+
 window.onload = () => { setup(); next(); };
 </script>
 </body>
