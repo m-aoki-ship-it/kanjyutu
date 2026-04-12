@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>真・漢術師 - 黄金比 -</title>
+<title>真・漢術師 - 決定版 -</title>
 <style>
 :root { --kin: #d4af37; --shu: #8e2a2a; --ai: #2a5caa; }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
@@ -16,86 +16,71 @@ html, body { overflow: hidden; height: 100%; width: 100%; background: #000; colo
     background-size: cover; z-index: 1;
 }
 
-/* ★配置レイアウト：重ならないよう左右に分離、高さ制限 */
+/* ★配置：下から20%の位置を「地面」にする */
 #char-visuals {
-    position: absolute; inset: 0;
+    position: absolute; left: 0; right: 0; top: 0; bottom: 20%; /* 下20%をボタン用に空ける */
     display: flex; justify-content: space-between; align-items: flex-end;
-    z-index: 5; pointer-events: none;
-    padding: 0 50px; /* 画面端から少し離す */
+    z-index: 5; pointer-events: none; padding: 0 5%;
 }
 
 .char-box {
-    width: 40%; /* 画面の4割を使用 */
-    height: 65vh; /* 高さを画面の65%に制限 */
+    width: 45%; 
+    height: 55vh; /* 画面の半分強に高さを制限 */
     display: flex;
     align-items: flex-end;
 }
-
-/* 左の敵 */
-#enemy-box {
-    left: 0;
-}
-#enemy-sprite { 
+#enemy-sprite, #player-sprite { 
     width: 100%; height: 100%; object-fit: contain; 
-    object-position: left bottom;
     filter: drop-shadow(0 0 20px #000);
 }
+#enemy-sprite { object-position: left bottom; }
+#player-sprite { object-position: right bottom; }
 
-/* 右の自分 */
-#player-box {
-    right: 0; justify-content: flex-end;
-}
-#player-sprite { 
-    width: 100%; height: 100%; object-fit: contain; 
-    object-position: right bottom;
-    filter: drop-shadow(0 0 20px #000);
-}
-
-/* 全画面キャンバス */
+/* 描画キャンバス：中央のみに限定せず全画面（ただしUIは避ける） */
 #canvas-layer { position: absolute; inset: 0; z-index: 50; }
 canvas { width: 100%; height: 100%; }
 
-/* UI：キャラと被らない配置 */
+/* UIレイヤー */
 #ui-overlay {
     position: absolute; inset: 0; z-index: 100; pointer-events: none;
     display: flex; flex-direction: column; justify-content: space-between;
 }
+
+/* 上部：HPバー */
 #top-ui { 
-    padding: 20px 40px; 
+    height: 15%; padding: 20px;
     background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
 }
-.hp-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-.hp-bar { width: 30%; height: 12px; border: 1px solid var(--kin); border-radius: 6px; overflow: hidden; background: rgba(0,0,0,0.5); }
-#mondai-bun { 
-    text-align: center; font-size: 45px; font-weight: bold; 
-    text-shadow: 0 0 15px #000, 0 0 5px var(--kin);
-}
+.hp-row { display: flex; justify-content: space-between; align-items: center; max-width: 900px; margin: 0 auto; }
+.hp-bar { width: 35%; height: 10px; border: 1px solid var(--kin); border-radius: 5px; background: rgba(0,0,0,0.5); overflow: hidden; }
+#mondai-bun { text-align: center; font-size: 40px; font-weight: bold; margin-top: 10px; text-shadow: 0 0 10px #000; }
 
+/* 下部：ボタン（ここをコンパクトに！） */
 #bottom-ui {
-    padding-bottom: 40px; pointer-events: auto;
-    display: flex; flex-direction: column; align-items: center; gap: 20px;
+    height: 22%; padding-bottom: 20px; pointer-events: auto;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
 }
-.btn-row { display: flex; gap: 20px; align-items: center; }
-.el-btn { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; }
-.btn-clear { height: 50px; padding: 0 30px; background: rgba(0,0,0,0.7); color: var(--kin); border: 1px solid var(--kin); border-radius: 12px; font-weight: bold; }
+.btn-row { display: flex; gap: 15px; }
+.el-btn { width: 50px; height: 50px; border-radius: 50%; border: 1px solid #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; }
+.btn-clear { height: 40px; padding: 0 20px; background: #333; color: var(--kin); border: 1px solid var(--kin); border-radius: 8px; font-size: 14px; }
 .btn-attack { 
-    width: 85%; max-width: 600px; padding: 25px; 
+    width: 80%; max-width: 500px; height: 60px;
     background: linear-gradient(to bottom, #fceabb, #d4af37); 
-    color: #000; font-weight: bold; font-size: 32px; border-radius: 60px; border: none;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    color: #000; font-weight: bold; font-size: 24px; border-radius: 30px; border: none;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
 }
 
-/* ダメージ演出 */
 .hit { animation: shake 0.4s; }
-@keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(15px);} 75%{transform:translateX(-15px);} }
+@keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(10px);} 75%{transform:translateX(-10px);} }
 </style>
 </head>
 <body>
 
 <div id="stage-layer">
     <div id="char-visuals">
-        <div class="char-box" id="enemy-box"><img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" id="enemy-sprite"></div>
-        <div class="char-box" id="player-box"><img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" id="player-sprite"></div>
+        <div class="char-box"><img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" id="enemy-sprite"></div>
+        <div class="char-box"><img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" id="player-sprite"></div>
     </div>
 </div>
 
@@ -105,7 +90,7 @@ canvas { width: 100%; height: 100%; }
     <div id="top-ui">
         <div class="hp-row">
             <div class="hp-bar"><div id="hp-enemy" style="width:100%; height:100%; background:var(--shu); transition:0.3s;"></div></div>
-            <div style="color:var(--kin); font-weight:bold; font-size:20px;">怨霊対峙</div>
+            <div style="color:var(--kin); font-size:14px;">怨霊対峙</div>
             <div class="hp-bar"><div id="hp-player" style="width:100%; height:100%; background:var(--ai); transition:0.3s;"></div></div>
         </div>
         <div id="mondai-bun">---</div>
@@ -122,16 +107,13 @@ canvas { width: 100%; height: 100%; }
 </div>
 
 <script>
-const KANJI_DATA = [
-    {k:'一',b:'___の太刀'},{k:'火',b:'___を噴く'},{k:'天',b:'___の裁き'},
-    {k:'三',b:'___千世界'},{k:'龍',b:'昇___拳'},{k:'空',b:'___を翔ける'}
-];
+const KANJI_DATA = [{k:'一',b:'___の太刀'},{k:'火',b:'___を噴く'},{k:'天',b:'___の裁き'},{k:'三',b:'___千世界'},{k:'龍',b:'昇___拳'}];
 let enemyHP = 100, currentMondai = {}, inkData = [], currentStroke = [], isDrawing = false;
-
 const canvas = document.getElementById('draw-canvas'), ctx = canvas.getContext('2d');
+
 function setup() {
     canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 15; ctx.strokeStyle = '#fff';
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 12; ctx.strokeStyle = '#fff';
 }
 function next() {
     currentMondai = KANJI_DATA[Math.floor(Math.random() * KANJI_DATA.length)];
@@ -142,15 +124,13 @@ async function attack() {
     if (inkData.length === 0) return;
     const btn = document.getElementById('attack-btn');
     btn.disabled = true; btn.innerText = "鑑定中...";
-
     try {
         const res = await fetch("https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test", {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ "app_version": 0.4, "requests": [{ "ink": inkData, "language": "ja" }] })
         });
         const data = await res.json();
-        const recognized = data[1][0][1];
-        if (recognized.includes(currentMondai.k)) {
+        if (data[1][0][1].includes(currentMondai.k)) {
             enemyHP -= 34;
             document.getElementById('hp-enemy').style.width = Math.max(0, enemyHP) + "%";
             document.getElementById('enemy-sprite').classList.add('hit');
@@ -159,7 +139,7 @@ async function attack() {
                 if (enemyHP <= 0) { enemyHP = 100; document.getElementById('hp-enemy').style.width = "100%"; }
                 next();
             }, 400);
-        } else { alert("不発！正解は「" + currentMondai.k + "」でした"); clearCanvas(); }
+        } else { clearCanvas(); }
     } catch (e) { console.error(e); }
     btn.disabled = false; btn.innerText = "漢術発動！";
 }
