@@ -5,59 +5,78 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>真・漢術師 - 怨霊決戦 -</title>
 <style>
-:root { --sumi: #0a0a0a; --kin: #c9a063; --shu: #8e2a2a; --ai: #3a82f6; --glass: rgba(0,0,0,0.7); }
+:root {
+    --sumi: #0a0a0a; --kin: #c9a063; --shu: #8e2a2a; --ai: #3a82f6; --glass: rgba(0,0,0,0.8);
+}
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
-html, body { overflow: hidden; height: 100%; width: 100%; background: #000; color: #fff; font-family: serif; }
+html, body { overflow: hidden; height: 100%; width: 100%; background: #000; color: #fff; font-family: "Sawarabi Mincho", serif; }
 
-/* 背景 */
-#bg-layer { position: fixed; inset: 0; background: url('IMG_7089.png') no-repeat center center; background-size: cover; filter: brightness(0.25); z-index: 1; }
+/* 背景画像（少し暗くしてキャラを立たせる） */
+#bg-layer { 
+    position: fixed; inset: 0; 
+    background: url('IMG_7089.png') no-repeat center center; 
+    background-size: cover; filter: brightness(0.2); z-index: 1; 
+}
 
-/* メインレイアウト */
+/* 画面レイアウト：3カラム（敵・書道・自分） */
 #game-stage {
     position: relative; z-index: 10; width: 100vw; height: 100dvh;
-    display: grid; grid-template-columns: 35% 30% 35%; grid-template-rows: 60px 1fr 100px; padding: 5px;
-}
-
-/* 敵エリア：ここを大幅修正 */
-#enemy-side { 
-    grid-column: 1; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    position: relative;
+    display: grid;
+    grid-template-columns: 35% 30% 35%;
+    grid-template-rows: 60px 1fr 100px;
     padding: 10px;
 }
+
+/* 上部ステータス */
+#top-hud { grid-column: 1 / 4; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; }
+.hp-bar-outer { width: 130px; height: 12px; background: #222; border: 1px solid var(--kin); border-radius: 6px; overflow: hidden; }
+.hp-bar-inner { height: 100%; transition: 0.5s; }
+
+/* 敵エリア（全体が見えるように修正） */
+#enemy-side { 
+    grid-column: 1; 
+    display: flex; align-items: center; justify-content: center; 
+    position: relative; padding: 5px;
+}
 #enemy-sprite { 
-    width: 100%; 
-    height: 100%; 
-    object-fit: contain; /* 画像を枠内に収めて全体を見せる */
+    width: 100%; height: 90%; 
+    object-fit: contain; /* 枠内に収めて全体を表示 */
     transform: scaleX(-1); /* プレイヤー向きに反転 */
-    filter: drop-shadow(0 0 15px rgba(255,0,0,0.5));
+    filter: drop-shadow(0 0 15px rgba(255, 0, 0, 0.4));
 }
 
-/* 書道キャンバス */
+/* 中央：書道キャンバス */
 #canvas-side { grid-column: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
-#canvas-wrap { 
-    width: 240px; height: 240px; background: rgba(0,0,0,0.4); 
-    border: 3px solid var(--kin); border-radius: 10px; position: relative;
+#canvas-wrap {
+    width: 250px; height: 250px; 
+    background: rgba(255, 255, 255, 0.03); 
+    border: 3px solid var(--kin); border-radius: 12px; position: relative;
+    box-shadow: 0 0 25px rgba(0,0,0,0.9);
 }
-canvas { width: 100%; height: 100%; }
+canvas { width: 100%; height: 100%; cursor: crosshair; }
 
-/* プレイヤー：右端に配置 */
+/* 自分エリア（漢術師） */
 #player-side { grid-column: 3; display: flex; align-items: flex-end; justify-content: flex-end; overflow: hidden; }
-#player-chara { width: 140%; transform: translate(10%, 10%); }
-#player-chara img { width: 100%; height: auto; }
+#player-chara { width: 150%; transform: translate(15%, 15%); }
+#player-chara img { width: 100%; height: auto; filter: drop-shadow(0 0 10px #000); }
 
-/* 下部UI */
-#bottom-hud { grid-column: 1 / 4; background: var(--glass); border-top: 2px solid var(--kin); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+/* 下部操作UI */
+#bottom-hud { 
+    grid-column: 1 / 4; 
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: var(--glass); border-top: 2px solid var(--kin); border-radius: 20px 20px 0 0;
+    gap: 8px;
+}
+#mondai-yomi { font-size: 20px; font-weight: bold; color: var(--kin); }
 .btn-group { display: flex; gap: 30px; }
-.btn { padding: 12px 30px; border-radius: 8px; font-weight: bold; border: 1px solid #fff; color: #fff; cursor: pointer; }
+.btn { padding: 12px 35px; border-radius: 10px; font-weight: bold; font-size: 16px; border: 1px solid #fff; color: #fff; cursor: pointer; }
 .btn-clear { background: #333; border-color: var(--kin); color: var(--kin); }
 .btn-attack { background: linear-gradient(to bottom, var(--ai), #003366); box-shadow: 0 0 15px var(--ai); }
 
-/* アニメーション */
+/* 演出用 */
 .shake { animation: shake 0.4s; }
-@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-10px)} 75%{transform:translateX(10px)} }
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; color: var(--kin); font-size: 24px; }
 </style>
 </head>
 <body>
@@ -65,10 +84,16 @@ canvas { width: 100%; height: 100%; }
 <div id="bg-layer"></div>
 
 <div id="game-stage">
-    <div style="grid-column: 1/4; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
-        <div><span style="font-size: 10px; color: var(--shu);">怨霊 HP</span><div style="width:120px; height:8px; background:#222; border:1px solid #555;"><div id="hp-fill" style="height:100%; background:var(--shu); width:100%;"></div></div></div>
-        <div style="font-size: 20px; color: var(--kin); font-weight: bold;">02:18</div>
-        <div style="text-align: right;"><span style="font-size: 10px; color: var(--ai);">術師 HP</span><div style="width:120px; height:8px; background:#222; border:1px solid #555;"><div style="height:100%; background:var(--ai); width:90%;"></div></div></div>
+    <div id="top-hud">
+        <div>
+            <span style="font-size: 10px; color: var(--shu); display: block;">怨霊の気</span>
+            <div class="hp-bar-outer"><div id="hp-fill" class="hp-bar-inner" style="background: var(--shu); width: 100%;"></div></div>
+        </div>
+        <div style="font-size: 24px; font-weight: bold; color: var(--kin); letter-spacing: 2px;">決戦</div>
+        <div style="text-align: right;">
+            <span style="font-size: 10px; color: var(--ai); display: block;">術師の魂</span>
+            <div class="hp-bar-outer"><div class="hp-bar-inner" style="background: var(--ai); width: 90%;"></div></div>
+        </div>
     </div>
 
     <div id="enemy-side">
@@ -80,15 +105,17 @@ canvas { width: 100%; height: 100%; }
             <canvas id="draw-canvas"></canvas>
             <div id="hint" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:160px; color:rgba(255,255,255,0.03); pointer-events:none;"></div>
         </div>
-        <div id="mondai-bun" style="margin-top: 10px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px;">---</div>
+        <div id="mondai-bun" style="margin-top: 15px; font-size: 20px; font-weight: bold; text-shadow: 2px 2px 4px #000;">---</div>
     </div>
 
     <div id="player-side">
-        <div id="player-chara"><img src="a63674d4-2785-4110-a696-c6937a0a74ef.png"></div>
+        <div id="player-chara">
+            <img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" alt="漢術師">
+        </div>
     </div>
 
     <div id="bottom-hud">
-        <div id="mondai-yomi" style="font-size: 18px; font-weight: bold; color: var(--kin);">読み：---</div>
+        <div id="mondai-yomi">読み：---</div>
         <div class="btn-group">
             <button class="btn btn-clear" onclick="clearCanvas()">墨を拭く</button>
             <button class="btn btn-attack" onclick="recognizeAndAttack()">漢術発動！</button>
@@ -96,10 +123,14 @@ canvas { width: 100%; height: 100%; }
     </div>
 </div>
 
+<div id="loading">鑑定中...</div>
+
 <script>
+// 漢字リスト（例：2年生・3年生などの漢字をここに追加）
 const MONDAI_LIST = [
     { kanji: '悪', yomi: 'わるい', bun: '___いことをする' },
-    { kanji: '曜', yomi: 'よう', bun: '日曜日の___' }
+    { kanji: '曜', yomi: 'よう', bun: '日曜日の___' },
+    { kanji: '雲', yomi: 'くも', bun: '___の上の存在' }
 ];
 
 let currentMondai = {}, inkData = [], currentStroke = [], isDrawing = false, enemyHp = 100;
@@ -121,6 +152,7 @@ function next() {
 
 function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); inkData = []; }
 
+// 描画ロジック
 function start(x, y) { isDrawing = true; currentStroke = [[x], [y], [0]]; ctx.beginPath(); ctx.moveTo(x, y); }
 function move(x, y) { if (!isDrawing) return; ctx.lineTo(x, y); ctx.stroke(); currentStroke[0].push(x); currentStroke[1].push(y); currentStroke[2].push(0); }
 function end() { if (isDrawing) inkData.push(currentStroke); isDrawing = false; }
@@ -128,9 +160,14 @@ function end() { if (isDrawing) inkData.push(currentStroke); isDrawing = false; 
 canvas.addEventListener('touchstart', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); start(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top); });
 canvas.addEventListener('touchmove', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); move(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top); });
 window.addEventListener('touchend', end);
+canvas.addEventListener('mousedown', e => { const r = canvas.getBoundingClientRect(); start(e.clientX-r.left, e.clientY-r.top); });
+window.addEventListener('mousemove', e => { if(isDrawing) { const r = canvas.getBoundingClientRect(); move(e.clientX-r.left, e.clientY-r.top); } });
+window.addEventListener('mouseup', end);
 
+// 判定ロジック
 async function recognizeAndAttack() {
     if (inkData.length === 0) return;
+    document.getElementById('loading').style.display = 'flex';
     try {
         const res = await fetch(`https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test`, { 
             method: 'POST', headers: { 'Content-Type': 'application/json' }, 
@@ -149,13 +186,15 @@ async function recognizeAndAttack() {
                 next();
             }, 400);
         } else {
-            alert(`正解は「${currentMondai.kanji}」`);
+            alert(`喝！正解は「${currentMondai.kanji}」なり。`);
             clearCanvas();
         }
     } catch(e) { console.error(e); }
+    document.getElementById('loading').style.display = 'none';
 }
 
 window.onload = () => { setup(); next(); };
+window.onresize = setup;
 </script>
 </body>
 </html>
