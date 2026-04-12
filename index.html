@@ -10,49 +10,54 @@
 html, body { overflow: hidden; height: 100%; width: 100%; background: #000; color: #fff; font-family: serif; }
 
 /* 背景 */
-#bg-layer { position: fixed; inset: 0; background: url('IMG_7089.png') no-repeat center center; background-size: cover; filter: brightness(0.3); z-index: 1; }
+#bg-layer { position: fixed; inset: 0; background: url('IMG_7089.png') no-repeat center center; background-size: cover; filter: brightness(0.25); z-index: 1; }
 
-/* メインステージ */
+/* メインレイアウト */
 #game-stage {
     position: relative; z-index: 10; width: 100vw; height: 100dvh;
-    display: grid; grid-template-columns: 30% 40% 30%; grid-template-rows: 60px 1fr 100px; padding: 10px;
+    display: grid; grid-template-columns: 35% 30% 35%; grid-template-rows: 60px 1fr 100px; padding: 5px;
 }
 
-/* 上部HUD */
-#top-hud { grid-column: 1 / 4; display: flex; justify-content: space-between; align-items: center; }
-.hp-bar-outer { width: 150px; height: 10px; background: #222; border-radius: 5px; border: 1px solid #555; overflow: hidden; }
-.hp-bar-inner { height: 100%; background: var(--shu); width: 100%; transition: 0.3s; }
-
-/* 左：怨霊（最新の透過済みファイル） */
-#enemy-side { grid-column: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 20; }
+/* 敵エリア：ここを大幅修正 */
+#enemy-side { 
+    grid-column: 1; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    position: relative;
+    padding: 10px;
+}
 #enemy-sprite { 
-    width: 140%; 
-    transform: scaleX(-1); /* プレイヤー側を向く */
-    filter: drop-shadow(0 0 20px rgba(255,0,0,0.6)); /* 赤いオーラを強化 */
+    width: 100%; 
+    height: 100%; 
+    object-fit: contain; /* 画像を枠内に収めて全体を見せる */
+    transform: scaleX(-1); /* プレイヤー向きに反転 */
+    filter: drop-shadow(0 0 15px rgba(255,0,0,0.5));
 }
 
-/* 中央：書道 */
+/* 書道キャンバス */
 #canvas-side { grid-column: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
-#canvas-wrap { width: 280px; height: 280px; background: rgba(255,255,255,0.05); border: 3px solid var(--kin); border-radius: 10px; position: relative; }
-canvas { width: 100%; height: 100%; cursor: crosshair; }
+#canvas-wrap { 
+    width: 240px; height: 240px; background: rgba(0,0,0,0.4); 
+    border: 3px solid var(--kin); border-radius: 10px; position: relative;
+}
+canvas { width: 100%; height: 100%; }
 
-/* 右：漢術師 */
-#player-side { grid-column: 3; position: relative; }
-#player-chara { position: absolute; bottom: -30px; right: -30px; width: 130%; pointer-events: none; z-index: 5; }
-#player-chara img { width: 100%; height: auto; filter: drop-shadow(0 0 15px #000); }
+/* プレイヤー：右端に配置 */
+#player-side { grid-column: 3; display: flex; align-items: flex-end; justify-content: flex-end; overflow: hidden; }
+#player-chara { width: 140%; transform: translate(10%, 10%); }
+#player-chara img { width: 100%; height: auto; }
 
 /* 下部UI */
-#bottom-hud { grid-column: 1 / 4; display: grid; grid-template-columns: 1fr; background: var(--glass); border-top: 2px solid var(--kin); border-radius: 15px 15px 0 0; padding: 10px; }
-#mondai-info { text-align: center; margin-bottom: 5px; }
-.btn-group { display: flex; gap: 20px; justify-content: center; }
-.btn { padding: 10px 25px; border-radius: 5px; font-weight: bold; border: 1px solid #fff; color: #fff; cursor: pointer; }
+#bottom-hud { grid-column: 1 / 4; background: var(--glass); border-top: 2px solid var(--kin); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+.btn-group { display: flex; gap: 30px; }
+.btn { padding: 12px 30px; border-radius: 8px; font-weight: bold; border: 1px solid #fff; color: #fff; cursor: pointer; }
 .btn-clear { background: #333; border-color: var(--kin); color: var(--kin); }
-.btn-attack { background: linear-gradient(to bottom, var(--ai), #003366); box-shadow: 0 0 10px var(--ai); }
+.btn-attack { background: linear-gradient(to bottom, var(--ai), #003366); box-shadow: 0 0 15px var(--ai); }
 
 /* アニメーション */
 .shake { animation: shake 0.4s; }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-10px)} 75%{transform:translateX(10px)} }
-#loading { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; align-items: center; justify-content: center; z-index: 1000; color: var(--kin); }
 </style>
 </head>
 <body>
@@ -60,34 +65,30 @@ canvas { width: 100%; height: 100%; cursor: crosshair; }
 <div id="bg-layer"></div>
 
 <div id="game-stage">
-    <div id="top-hud">
-        <div><span style="font-size: 10px; color: var(--shu);">ENEMY HP</span><div class="hp-bar-outer"><div id="hp-fill" class="hp-bar-inner"></div></div></div>
-        <div style="font-size: 20px; font-weight: bold; color: var(--kin);">02:18</div>
-        <div style="text-align: right;"><span style="font-size: 10px; color: var(--ai);">PLAYER HP</span><div class="hp-bar-outer"><div class="hp-bar-inner" style="background:var(--ai); width:90%;"></div></div></div>
+    <div style="grid-column: 1/4; display: flex; justify-content: space-between; align-items: center; padding: 0 20px;">
+        <div><span style="font-size: 10px; color: var(--shu);">怨霊 HP</span><div style="width:120px; height:8px; background:#222; border:1px solid #555;"><div id="hp-fill" style="height:100%; background:var(--shu); width:100%;"></div></div></div>
+        <div style="font-size: 20px; color: var(--kin); font-weight: bold;">02:18</div>
+        <div style="text-align: right;"><span style="font-size: 10px; color: var(--ai);">術師 HP</span><div style="width:120px; height:8px; background:#222; border:1px solid #555;"><div style="height:100%; background:var(--ai); width:90%;"></div></div></div>
     </div>
 
     <div id="enemy-side">
         <img id="enemy-sprite" src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" alt="怨霊">
-        <div id="mondai-bun" style="font-size: 20px; font-weight: bold; margin-top: 10px;">---</div>
     </div>
 
     <div id="canvas-side">
         <div id="canvas-wrap">
             <canvas id="draw-canvas"></canvas>
-            <div id="hint" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:180px; color:rgba(255,255,255,0.03); pointer-events:none;"></div>
+            <div id="hint" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:160px; color:rgba(255,255,255,0.03); pointer-events:none;"></div>
         </div>
+        <div id="mondai-bun" style="margin-top: 10px; font-weight: bold; background: rgba(0,0,0,0.5); padding: 5px 15px; border-radius: 20px;">---</div>
     </div>
 
     <div id="player-side">
-        <div id="player-chara">
-            <img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" alt="漢術師">
-        </div>
+        <div id="player-chara"><img src="a63674d4-2785-4110-a696-c6937a0a74ef.png"></div>
     </div>
 
     <div id="bottom-hud">
-        <div id="mondai-info">
-            <div id="mondai-yomi" style="font-size: 18px; font-weight: bold; color: var(--kin);">読み：---</div>
-        </div>
+        <div id="mondai-yomi" style="font-size: 18px; font-weight: bold; color: var(--kin);">読み：---</div>
         <div class="btn-group">
             <button class="btn btn-clear" onclick="clearCanvas()">墨を拭く</button>
             <button class="btn btn-attack" onclick="recognizeAndAttack()">漢術発動！</button>
@@ -95,10 +96,7 @@ canvas { width: 100%; height: 100%; cursor: crosshair; }
     </div>
 </div>
 
-<div id="loading">鑑定中...</div>
-
 <script>
-// (中身のロジックは前回と同様)
 const MONDAI_LIST = [
     { kanji: '悪', yomi: 'わるい', bun: '___いことをする' },
     { kanji: '曜', yomi: 'よう', bun: '日曜日の___' }
@@ -133,7 +131,6 @@ window.addEventListener('touchend', end);
 
 async function recognizeAndAttack() {
     if (inkData.length === 0) return;
-    document.getElementById('loading').style.display = 'flex';
     try {
         const res = await fetch(`https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test`, { 
             method: 'POST', headers: { 'Content-Type': 'application/json' }, 
@@ -152,15 +149,13 @@ async function recognizeAndAttack() {
                 next();
             }, 400);
         } else {
-            alert(`不正解！正解は「${currentMondai.kanji}」`);
+            alert(`正解は「${currentMondai.kanji}」`);
             clearCanvas();
         }
     } catch(e) { console.error(e); }
-    document.getElementById('loading').style.display = 'none';
 }
 
 window.onload = () => { setup(); next(); };
-window.onresize = setup;
 </script>
 </body>
 </html>
