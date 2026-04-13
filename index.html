@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>真・漢術師 - 全身視認版 -</title>
+<title>真・漢術師 - 近接死闘 -</title>
 <style>
 :root { --kin: #d4af37; --shu: #8e2a2a; --ai: #2a5caa; }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
@@ -12,50 +12,48 @@ html, body { overflow: hidden; height: 100%; width: 100%; background: #000; colo
 /* 1. 背景 */
 #stage-bg { position: fixed; inset: 0; background: url('5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png') no-repeat center center; background-size: cover; z-index: 1; }
 
-/* 2. 書き込み枠（プレート）：一番奥 */
+/* 2. 書き込み枠（プレート）：中央の基準 */
 #canvas-plate {
     position: absolute;
     left: 50%; top: 45%; transform: translate(-50%, -50%);
-    width: 65vw; height: 45vh;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 60vw; height: 45vh;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 20px;
     z-index: 10;
     pointer-events: none;
 }
 
-/* 3. キャラクター配置 */
+/* 3. キャラクター配置：中央寄りに接近 */
 #char-visuals { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
 
-/* ★怨霊：見切れない最大サイズ */
+/* ★怨霊：中央へ接近 */
 #enemy-box { 
     position: absolute; 
-    left: 2%; 
-    bottom: 8%; /* 下部UIに被らないよう少し上げる */
-    width: 48%; /* 画面の約半分を確保 */
-    height: 75vh; /* 頭が見切れないよう高さを制限 */
+    left: 10%; /* 画面端から中央へ寄せる */
+    bottom: 8%; 
+    width: 45%; 
+    height: 75vh; 
     display: flex;
     align-items: flex-end;
-    justify-content: flex-start;
 }
 #enemy-sprite { 
     width: 100%; 
     height: 100%; 
-    object-fit: contain; /* ★重要：全身を必ず収める */
+    object-fit: contain; 
     object-position: left bottom; 
     filter: drop-shadow(0 0 30px #000); 
 }
 
-/* ★主人公：右側に配置 */
+/* ★主人公：中央へ接近 */
 #player-box { 
     position: absolute; 
-    right: 2%; 
+    right: 5%; /* 画面端から中央へ寄せる */
     bottom: 5%; 
-    width: 48%; 
-    height: 80vh; 
+    width: 50%; 
+    height: 85vh; 
     display: flex;
     align-items: flex-end;
-    justify-content: flex-end;
 }
 #player-sprite { 
     width: 100%; 
@@ -74,7 +72,7 @@ canvas { width: 100%; height: 100%; display: block; }
 #top-ui { background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); padding: 20px 40px; }
 .hp-row { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
 .hp-bar { width: 30%; height: 10px; border: 1px solid var(--kin); border-radius: 5px; overflow: hidden; background: rgba(0,0,0,0.5); }
-#mondai-bun { text-align: center; font-size: 52px; font-weight: bold; margin-top: 10px; text-shadow: 0 0 20px #000; }
+#mondai-bun { text-align: center; font-size: 52px; font-weight: bold; margin-top: 10px; text-shadow: 0 0 20px #000; letter-spacing: 0.1em; }
 
 #bottom-ui { background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 25px 0; pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 15px; }
 .btn-row { display: flex; gap: 30px; align-items: center; }
@@ -92,6 +90,7 @@ canvas { width: 100%; height: 100%; display: block; }
     border-radius: 30px;
     border: none;
     box-shadow: 0 6px 20px rgba(0,0,0,0.8);
+    cursor: pointer;
 }
 
 .hit { animation: hit-anim 0.4s; }
@@ -131,6 +130,7 @@ canvas { width: 100%; height: 100%; display: block; }
 </div>
 
 <script>
+// ロジック部分は変更なし
 const KANJI_DATA = [{k:'一',b:'___の太刀'},{k:'火',b:'___を噴く'},{k:'天',b:'___の裁き'},{k:'三',b:'___千世界'},{k:'龍',b:'昇___拳'}];
 let enemyHP = 100, currentMondai = {}, inkData = [], currentStroke = [], isDrawing = false;
 const canvas = document.getElementById('draw-canvas'), ctx = canvas.getContext('2d');
