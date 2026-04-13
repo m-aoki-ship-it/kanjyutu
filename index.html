@@ -3,17 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>真・漢術師 - 初等教育全書 -</title>
+<title>真・漢術師 - 寺子屋編 -</title>
 <style>
-:root { --kin: #d4af37; --shu: #8e2a2a; --ai: #2a5caa; --kaminari: #ffd700; }
+:root { --kin: #d4af37; --shu: #8e2a2a; --ai: #2a5caa; }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
 html, body { overflow: hidden; height: 100%; width: 100%; background: #000; color: #fff; font-family: serif; position: relative; }
 
-/* 背景・プレート */
+/* 背景・キャラ（現在の設定を継承） */
 #stage-bg { position: fixed; inset: 0; background: url('5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png') no-repeat center center; background-size: cover; z-index: 1; }
-#canvas-plate { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); width: 60vw; height: 45vh; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; z-index: 10; pointer-events: none; }
+#canvas-plate { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); width: 65vw; height: 45vh; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; z-index: 10; pointer-events: none; }
 
-/* キャラクター配置 */
 #char-visuals { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
 #enemy-box { position: absolute; left: 10%; bottom: 8%; width: 45%; height: 75vh; display: flex; align-items: flex-end; transition: 0.3s; }
 #enemy-sprite { width: 100%; height: 100%; object-fit: contain; object-position: left bottom; filter: drop-shadow(0 0 30px #000); }
@@ -24,67 +23,58 @@ html, body { overflow: hidden; height: 100%; width: 100%; background: #000; colo
 #canvas-layer { position: fixed; inset: 0; z-index: 150; pointer-events: auto; }
 canvas { width: 100%; height: 100%; display: block; }
 
-/* UI */
+/* UI：問題文にルビを追加 */
 #ui-overlay { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
-#top-ui { position: absolute; top:0; width:100%; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); padding: 20px 40px; }
-.hp-row { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
-.hp-container { width: 35%; }
-.hp-label { font-size: 14px; color: #ccc; margin-bottom: 4px; display: flex; justify-content: space-between; font-family: sans-serif; }
-.hp-bar { width: 100%; height: 12px; border: 1px solid #555; border-radius: 6px; overflow: hidden; background: rgba(0,0,0,0.5); }
-.hp-fill { height: 100%; transition: width 0.5s ease-out; }
-#mondai-bun { text-align: center; font-size: 52px; font-weight: bold; margin-top: 15px; text-shadow: 0 0 20px #000; letter-spacing: 0.1em; }
+#top-ui { position: absolute; top:0; width:100%; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); padding: 20px 40px; text-align: center; }
+
+#mondai-area { margin-top: 15px; display: inline-block; }
+#ruby-text { font-size: 20px; color: var(--kin); display: block; height: 24px; letter-spacing: 0.1em; margin-bottom: 2px; text-shadow: 2px 2px 4px #000; }
+#mondai-bun { font-size: 48px; font-weight: bold; text-shadow: 0 0 20px #000; letter-spacing: 0.1em; }
 
 #bottom-ui { position: absolute; bottom:0; width:100%; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 25px 0; pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 15px; }
 .btn-row { display: flex; gap: 20px; }
-.el-btn { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; transition: 0.2s; opacity: 0.6; }
-.el-btn.active { opacity: 1; transform: scale(1.15); border-color: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
+.el-btn { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; transition: 0.2s; }
 .btn-clear { height: 45px; padding: 0 20px; background: #222; color: var(--kin); border: 1px solid var(--kin); border-radius: 10px; cursor: pointer; }
-.btn-attack { width: 280px; height: 55px; background: linear-gradient(to bottom, #fceabb, #d4af37); color: #000; font-weight: bold; font-size: 24px; border-radius: 30px; border: none; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+.btn-attack { width: 280px; height: 55px; background: linear-gradient(to bottom, #fceabb, #d4af37); color: #000; font-weight: bold; font-size: 24px; border-radius: 30px; border: none; cursor: pointer; }
 
-/* リザルト */
+/* HPバー */
+.hp-row { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto; }
+.hp-container { width: 30%; }
+.hp-bar { width: 100%; height: 10px; border: 1px solid #555; border-radius: 5px; overflow: hidden; background: rgba(0,0,0,0.5); }
+.hp-fill { height: 100%; transition: width 0.5s ease; }
+
 #result-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; }
-#result-text { font-size: 80px; font-weight: bold; margin-bottom: 30px; letter-spacing: 0.5em; }
-
-/* アニメ */
-.enemy-damage { animation: e-hit 0.4s; }
-@keyframes e-hit { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1) translateX(20px); filter: brightness(2) sepia(1) hue-rotate(-50deg); } }
-.player-damage { animation: p-hit 0.4s; }
-@keyframes p-hit { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-15px); } 75% { transform: translateX(15px); } }
 </style>
 </head>
 <body>
 
 <div id="stage-bg"></div>
 <div id="canvas-plate"></div>
-
 <div id="char-visuals">
     <div id="enemy-box"><img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" id="enemy-sprite"></div>
     <div id="player-box"><img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" id="player-sprite"></div>
 </div>
-
 <div id="canvas-layer"><canvas id="draw-canvas"></canvas></div>
 
 <div id="ui-overlay">
     <div id="top-ui">
         <div class="hp-row">
             <div class="hp-container">
-                <div class="hp-label"><span>怨霊</span><span id="txt-enemy-hp">100</span></div>
                 <div class="hp-bar"><div id="bar-enemy" class="hp-fill" style="width:100%; background:var(--shu);"></div></div>
             </div>
-            <div id="mondai-bun">---</div>
+            <div id="mondai-area">
+                <span id="ruby-text"></span>
+                <div id="mondai-bun">---</div>
+            </div>
             <div class="hp-container">
-                <div class="hp-label"><span id="txt-player-hp">100</span><span>術師</span></div>
                 <div class="hp-bar"><div id="bar-player" class="hp-fill" style="width:100%; background:var(--ai);"></div></div>
             </div>
         </div>
     </div>
-
     <div id="bottom-ui">
         <div class="btn-row">
-            <div class="el-btn active" onclick="setElement(this, 'white')" style="background:#444">墨</div>
-            <div class="el-btn" onclick="setElement(this, '#ff4500')" style="background:#ff4500">火</div>
-            <div class="el-btn" onclick="setElement(this, '#00bfff')" style="background:#00bfff">水</div>
-            <div class="el-btn" onclick="setElement(this, '#ffd700')" style="background:#ffd700; color:#000;">雷</div>
+            <div class="el-btn" style="background:#ff4500">火</div>
+            <div class="el-btn" style="background:#00bfff">水</div>
             <button class="btn-clear" onclick="clearCanvas()">拭く</button>
         </div>
         <button class="btn-attack" id="attack-btn" onclick="performAttack()">漢術発動</button>
@@ -92,49 +82,40 @@ canvas { width: 100%; height: 100%; display: block; }
 </div>
 
 <div id="result-screen">
-    <div id="result-text">勝利</div>
-    <button style="padding:15px 50px; font-size:24px; cursor:pointer;" onclick="resetGame()">再戦</button>
+    <h1 id="result-text" style="font-size:80px; margin-bottom:20px;">勝利</h1>
+    <button style="padding:10px 40px; font-size:20px;" onclick="resetGame()">再戦</button>
 </div>
 
 <script>
-// 1-3年生の主要漢字セレクション
+// 1-3年生のやさしい漢字データ
 const KANJI_DB = [
-    // 1年
-    {k:'一', b:'___の太刀'}, {k:'二', b:'___の太刀'}, {k:'三', b:'___千世界'}, {k:'大', b:'___逆転'}, {k:'小', b:'___細工'},
-    {k:'力', b:'馬鹿___'}, {k:'火', b:'___を噴く'}, {k:'水', b:'___の泡'}, {k:'金', b:'___の成る木'}, {k:'土', b:'___壇場'},
-    {k:'天', b:'___の裁き'}, {k:'左', b:'___フック'}, {k:'右', b:'___ストレート'}, {k:'月', b:'___影'}, {k:'日', b:'___進月歩'},
-    // 2年
-    {k:'刀', b:'一___両断'}, {k:'丸', b:'花___'}, {k:'弓', b:'___矢'}, {k:'肉', b:'弱___強食'}, {k:'風', b:'神___'},
-    {k:'光', b:'___速'}, {k:'心', b:'___技体'}, {k:'地', b:'___獄'}, {k:'万', b:'___事休す'}, {k:'鳥', b:'一石二___'},
-    {k:'海', b:'___原'}, {k:'強', b:'___敵'}, {k:'弱', b:'___点'}, {k:'岩', b:'___山'}, {k:'首', b:'___根っこ'},
-    // 3年
-    {k:'命', b:'懸___'}, {k:'悪', b:'___霊退散'}, {k:'死', b:'___闘'}, {k:'勝', b:'___負'}, {k:'負', b:'___け犬'},
-    {k:'守', b:'死___'}, {k:'放', b:'解___'}, {k:'追', b:'___撃'}, {k:'落', b:'奈落の___'}, {k:'神', b:'___業'},
-    {k:'龍', b:'昇___拳'}, {k:'氷', b:'___山'}, {k:'鉄', b:'___拳'}, {k:'暗', b:'___黒'}, {k:'運', b:'___命'}
+    {k:'車', b:'___にのる', r:'くるま'}, {k:'空', b:'青い___', r:'そら'}, {k:'海', b:'広い___', r:'うみ'},
+    {k:'水', b:'___をのむ', r:'みず'}, {k:'力', b:'___もち', r:'ちから'}, {k:'王', b:'ライオンの___', r:'おう'},
+    {k:'森', b:'しずかな___', r:'もり'}, {k:'山', b:'高い___', r:'やま'}, {k:'川', b:'きれいな___', r:'かわ'},
+    {k:'石', b:'大きな___', r:'いし'}, {k:'花', b:'赤い___', r:'はな'}, {k:'竹', b:'___やぶ', r:'たけ'},
+    {k:'雨', b:'___がふる', r:'あめ'}, {k:'夜', b:'___あけ', r:'よ'}, {k:'走', b:'全力を___', r:'はしる'},
+    {k:'色', b:'なに___？', r:'いろ'}, {k:'光', b:'___る星', r:'ひかる'}, {k:'風', b:'つよい___', r:'かぜ'},
+    {k:'星', b:'ながれ___', r:'ほし'}, {k:'雪', b:'___ぐに', r:'ゆき'}, {k:'草', b:'___むら', r:'くさ'},
+    {k:'友', b:'___だち', r:'とも'}, {k:'青', b:'___空', r:'あおぞら'}, {k:'刀', b:'日本___', r:'かたな'},
+    {k:'足', b:'___がはやい', r:'あし'}
 ];
 
 let enemyHP = 100, playerHP = 100, isGameOver = false;
 let currentMondai = {}, inkData = [], currentStroke = [], isDrawing = false;
-let inkColor = 'white';
 const canvas = document.getElementById('draw-canvas'), ctx = canvas.getContext('2d');
 
 function setup() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 18;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 18; ctx.strokeStyle = 'white';
 }
 
 function nextQuestion() {
     if(isGameOver) return;
     currentMondai = KANJI_DB[Math.floor(Math.random() * KANJI_DB.length)];
+    document.getElementById('ruby-text').innerText = currentMondai.r;
     document.getElementById('mondai-bun').innerText = currentMondai.b;
     clearCanvas();
-}
-
-function setElement(el, color) {
-    document.querySelectorAll('.el-btn').forEach(b => b.classList.remove('active'));
-    el.classList.add('active');
-    inkColor = color;
 }
 
 async function performAttack() {
@@ -152,15 +133,9 @@ async function performAttack() {
         const recognized = data[1][0][1];
 
         if (recognized.includes(currentMondai.k)) {
-            enemyHP -= 34; // 約3回で撃破
-            updateHP('enemy', enemyHP);
-            document.getElementById('enemy-box').classList.add('enemy-damage');
-            setTimeout(() => document.getElementById('enemy-box').classList.remove('enemy-damage'), 400);
+            enemyHP -= 34; updateHP('enemy', enemyHP);
         } else {
-            playerHP -= 25;
-            updateHP('player', playerHP);
-            document.getElementById('player-box').classList.add('player-damage');
-            setTimeout(() => document.getElementById('player-box').classList.remove('player-damage'), 400);
+            playerHP -= 20; updateHP('player', playerHP);
         }
     } catch(e) { console.error(e); }
 
@@ -173,7 +148,6 @@ async function performAttack() {
 function updateHP(target, val) {
     const safeVal = Math.max(0, val);
     document.getElementById(`bar-${target}`).style.width = safeVal + "%";
-    document.getElementById(`txt-${target}-hp`).innerText = safeVal;
 }
 
 function checkGameState() {
@@ -183,11 +157,8 @@ function checkGameState() {
 
 function endGame(msg) {
     isGameOver = true;
-    const screen = document.getElementById('result-screen');
-    const text = document.getElementById('result-text');
-    text.innerText = msg;
-    text.style.color = msg === "勝利" ? "var(--kin)" : "var(--shu)";
-    screen.style.display = "flex";
+    document.getElementById('result-text').innerText = msg;
+    document.getElementById('result-screen').style.display = "flex";
 }
 
 function resetGame() {
@@ -203,7 +174,6 @@ const getPos = (e) => { const p = e.touches ? e.touches[0] : e; return { x: p.cl
 canvas.addEventListener('touchstart', e => {
     if(isGameOver) return;
     e.preventDefault(); const p = getPos(e); isDrawing = true;
-    ctx.strokeStyle = inkColor;
     currentStroke = [[p.x],[p.y],[0]]; ctx.beginPath(); ctx.moveTo(p.x, p.y);
 }, {passive:false});
 
