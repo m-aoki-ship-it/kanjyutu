@@ -3,105 +3,89 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>真・漢術師 - 寺子屋編 -</title>
+<title>真・漢術師 - 読解修練 -</title>
 <style>
 :root { --kin: #d4af37; --shu: #8e2a2a; --ai: #2a5caa; }
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
-html, body { overflow: hidden; height: 100%; width: 100%; background: #000; color: #fff; font-family: serif; position: relative; }
+html, body { overflow: hidden; height: 100%; width: 100%; background: #000; color: #fff; font-family: serif; }
 
-/* 背景・キャラ（現在の設定を継承） */
+/* 背景・プレート（あなたの今の設定をベースにしています） */
 #stage-bg { position: fixed; inset: 0; background: url('5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png') no-repeat center center; background-size: cover; z-index: 1; }
-#canvas-plate { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); width: 65vw; height: 45vh; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; z-index: 10; pointer-events: none; }
+#canvas-plate { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); width: 65vw; height: 45vh; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; z-index: 10; }
 
+/* 敵と主人公の配置 */
 #char-visuals { position: fixed; inset: 0; z-index: 50; pointer-events: none; }
-#enemy-box { position: absolute; left: 10%; bottom: 8%; width: 45%; height: 75vh; display: flex; align-items: flex-end; transition: 0.3s; }
+#enemy-box { position: absolute; left: 5%; bottom: 8%; width: 45%; height: 75vh; display: flex; align-items: flex-end; }
 #enemy-sprite { width: 100%; height: 100%; object-fit: contain; object-position: left bottom; filter: drop-shadow(0 0 30px #000); }
 #player-box { position: absolute; right: 5%; bottom: 5%; width: 50%; height: 85vh; display: flex; align-items: flex-end; }
 #player-sprite { width: 100%; height: 100%; object-fit: contain; object-position: right bottom; filter: drop-shadow(0 0 30px #000); }
 
-/* キャンバス */
+/* キャンバス（描き込み用） */
 #canvas-layer { position: fixed; inset: 0; z-index: 150; pointer-events: auto; }
 canvas { width: 100%; height: 100%; display: block; }
 
-/* UI：問題文にルビを追加 */
+/* ★UI：読み方（ルビ）を見やすく */
 #ui-overlay { position: fixed; inset: 0; z-index: 200; pointer-events: none; }
-#top-ui { position: absolute; top:0; width:100%; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); padding: 20px 40px; text-align: center; }
+#top-ui { position: absolute; top:0; width:100%; background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent); padding: 10px; text-align: center; }
 
-#mondai-area { margin-top: 15px; display: inline-block; }
-#ruby-text { font-size: 20px; color: var(--kin); display: block; height: 24px; letter-spacing: 0.1em; margin-bottom: 2px; text-shadow: 2px 2px 4px #000; }
-#mondai-bun { font-size: 48px; font-weight: bold; text-shadow: 0 0 20px #000; letter-spacing: 0.1em; }
+#mondai-container { display: inline-block; vertical-align: top; margin-top: 10px; }
+#yomikata { display: block; font-size: 24px; color: var(--kin); font-weight: bold; margin-bottom: 5px; text-shadow: 2px 2px 4px #000; height: 30px; }
+#mondai-text { font-size: 52px; font-weight: bold; text-shadow: 0 0 20px #000; letter-spacing: 0.1em; }
 
-#bottom-ui { position: absolute; bottom:0; width:100%; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 25px 0; pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+/* ボタン周り */
+#bottom-ui { position: absolute; bottom: 0; width: 100%; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent); padding: 30px 0; pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 15px; }
 .btn-row { display: flex; gap: 20px; }
-.el-btn { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; transition: 0.2s; }
-.btn-clear { height: 45px; padding: 0 20px; background: #222; color: var(--kin); border: 1px solid var(--kin); border-radius: 10px; cursor: pointer; }
-.btn-attack { width: 280px; height: 55px; background: linear-gradient(to bottom, #fceabb, #d4af37); color: #000; font-weight: bold; font-size: 24px; border-radius: 30px; border: none; cursor: pointer; }
+.btn-attack { width: 300px; height: 60px; background: linear-gradient(to bottom, #fceabb, #d4af37); color: #000; font-weight: bold; font-size: 28px; border-radius: 40px; border: none; cursor: pointer; }
+.btn-clear { background: #333; color: #fff; padding: 10px 20px; border-radius: 10px; border: 1px solid #777; }
 
 /* HPバー */
-.hp-row { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: 0 auto; }
-.hp-container { width: 30%; }
-.hp-bar { width: 100%; height: 10px; border: 1px solid #555; border-radius: 5px; overflow: hidden; background: rgba(0,0,0,0.5); }
-.hp-fill { height: 100%; transition: width 0.5s ease; }
-
-#result-screen { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; display: none; flex-direction: column; align-items: center; justify-content: center; pointer-events: auto; }
+.hp-row { display: flex; justify-content: space-between; padding: 10px 50px; }
+.hp-bar { width: 35%; height: 12px; border: 1px solid #555; background: #222; border-radius: 6px; overflow: hidden; }
+.hp-fill { height: 100%; transition: width 0.3s; }
 </style>
 </head>
 <body>
 
 <div id="stage-bg"></div>
 <div id="canvas-plate"></div>
+
 <div id="char-visuals">
     <div id="enemy-box"><img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" id="enemy-sprite"></div>
     <div id="player-box"><img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" id="player-sprite"></div>
 </div>
+
 <div id="canvas-layer"><canvas id="draw-canvas"></canvas></div>
 
 <div id="ui-overlay">
     <div id="top-ui">
         <div class="hp-row">
-            <div class="hp-container">
-                <div class="hp-bar"><div id="bar-enemy" class="hp-fill" style="width:100%; background:var(--shu);"></div></div>
+            <div class="hp-bar"><div id="hp-enemy" class="hp-fill" style="width:100%; background:var(--shu);"></div></div>
+            <div id="mondai-container">
+                <span id="yomikata">---</span><div id="mondai-text">---</div>
             </div>
-            <div id="mondai-area">
-                <span id="ruby-text"></span>
-                <div id="mondai-bun">---</div>
-            </div>
-            <div class="hp-container">
-                <div class="hp-bar"><div id="bar-player" class="hp-fill" style="width:100%; background:var(--ai);"></div></div>
-            </div>
+            <div class="hp-bar"><div id="hp-player" class="hp-fill" style="width:100%; background:var(--ai);"></div></div>
         </div>
     </div>
+
     <div id="bottom-ui">
         <div class="btn-row">
-            <div class="el-btn" style="background:#ff4500">火</div>
-            <div class="el-btn" style="background:#00bfff">水</div>
-            <button class="btn-clear" onclick="clearCanvas()">拭く</button>
+            <button class="btn-clear" onclick="clearCanvas()">墨を拭く</button>
         </div>
         <button class="btn-attack" id="attack-btn" onclick="performAttack()">漢術発動</button>
     </div>
 </div>
 
-<div id="result-screen">
-    <h1 id="result-text" style="font-size:80px; margin-bottom:20px;">勝利</h1>
-    <button style="padding:10px 40px; font-size:20px;" onclick="resetGame()">再戦</button>
-</div>
-
 <script>
-// 1-3年生のやさしい漢字データ
+// 1-3年生レベルの漢字データ（読み・漢字・問題文）
 const KANJI_DB = [
-    {k:'車', b:'___にのる', r:'くるま'}, {k:'空', b:'青い___', r:'そら'}, {k:'海', b:'広い___', r:'うみ'},
-    {k:'水', b:'___をのむ', r:'みず'}, {k:'力', b:'___もち', r:'ちから'}, {k:'王', b:'ライオンの___', r:'おう'},
-    {k:'森', b:'しずかな___', r:'もり'}, {k:'山', b:'高い___', r:'やま'}, {k:'川', b:'きれいな___', r:'かわ'},
-    {k:'石', b:'大きな___', r:'いし'}, {k:'花', b:'赤い___', r:'はな'}, {k:'竹', b:'___やぶ', r:'たけ'},
-    {k:'雨', b:'___がふる', r:'あめ'}, {k:'夜', b:'___あけ', r:'よ'}, {k:'走', b:'全力を___', r:'はしる'},
-    {k:'色', b:'なに___？', r:'いろ'}, {k:'光', b:'___る星', r:'ひかる'}, {k:'風', b:'つよい___', r:'かぜ'},
-    {k:'星', b:'ながれ___', r:'ほし'}, {k:'雪', b:'___ぐに', r:'ゆき'}, {k:'草', b:'___むら', r:'くさ'},
-    {k:'友', b:'___だち', r:'とも'}, {k:'青', b:'___空', r:'あおぞら'}, {k:'刀', b:'日本___', r:'かたな'},
-    {k:'足', b:'___がはやい', r:'あし'}
+    {k:'右', r:'みぎ', b:'___ストレート'}, {k:'左', r:'ひだり', b:'___フック'},
+    {k:'一', r:'いち', b:'___の太刀'}, {k:'天', r:'てん', b:'___の裁き'},
+    {k:'火', r:'ひ', b:'___をふく'}, {k:'水', r:'みず', b:'___のあわ'},
+    {k:'力', r:'ちから', b:'ばか___'}, {k:'車', r:'くるま', b:'___にのる'},
+    {k:'心', r:'こころ', b:'___のめ'}, {k:'風', r:'かぜ', b:'かみ___'}
 ];
 
-let enemyHP = 100, playerHP = 100, isGameOver = false;
-let currentMondai = {}, inkData = [], currentStroke = [], isDrawing = false;
+let enemyHP = 100, playerHP = 100, currentMondai = {}, inkData = [], currentStroke = [], isDrawing = false;
 const canvas = document.getElementById('draw-canvas'), ctx = canvas.getContext('2d');
 
 function setup() {
@@ -111,19 +95,16 @@ function setup() {
 }
 
 function nextQuestion() {
-    if(isGameOver) return;
     currentMondai = KANJI_DB[Math.floor(Math.random() * KANJI_DB.length)];
-    document.getElementById('ruby-text').innerText = currentMondai.r;
-    document.getElementById('mondai-bun').innerText = currentMondai.b;
+    document.getElementById('yomikata').innerText = currentMondai.r; // ★読み方を表示
+    document.getElementById('mondai-text').innerText = currentMondai.b; // ★問題文を表示
     clearCanvas();
 }
 
 async function performAttack() {
-    if (inkData.length === 0 || isGameOver) return;
+    if (inkData.length === 0) return;
     const btn = document.getElementById('attack-btn');
     btn.innerText = "鑑定中...";
-    btn.disabled = true;
-
     try {
         const res = await fetch("https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test", {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -133,57 +114,29 @@ async function performAttack() {
         const recognized = data[1][0][1];
 
         if (recognized.includes(currentMondai.k)) {
-            enemyHP -= 34; updateHP('enemy', enemyHP);
+            enemyHP -= 34;
+            document.getElementById('hp-enemy').style.width = Math.max(0, enemyHP) + "%";
         } else {
-            playerHP -= 20; updateHP('player', playerHP);
+            playerHP -= 20;
+            document.getElementById('hp-player').style.width = Math.max(0, playerHP) + "%";
         }
     } catch(e) { console.error(e); }
-
-    checkGameState();
     btn.innerText = "漢術発動";
-    btn.disabled = false;
-    if(!isGameOver) nextQuestion();
-}
-
-function updateHP(target, val) {
-    const safeVal = Math.max(0, val);
-    document.getElementById(`bar-${target}`).style.width = safeVal + "%";
-}
-
-function checkGameState() {
-    if (enemyHP <= 0) endGame("勝利");
-    else if (playerHP <= 0) endGame("敗北");
-}
-
-function endGame(msg) {
-    isGameOver = true;
-    document.getElementById('result-text').innerText = msg;
-    document.getElementById('result-screen').style.display = "flex";
-}
-
-function resetGame() {
-    enemyHP = 100; playerHP = 100; isGameOver = false;
-    updateHP('enemy', 100); updateHP('player', 100);
-    document.getElementById('result-screen').style.display = "none";
-    nextQuestion();
+    if (enemyHP > 0 && playerHP > 0) nextQuestion();
 }
 
 function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); inkData = []; }
 const getPos = (e) => { const p = e.touches ? e.touches[0] : e; return { x: p.clientX, y: p.clientY }; };
 
 canvas.addEventListener('touchstart', e => {
-    if(isGameOver) return;
     e.preventDefault(); const p = getPos(e); isDrawing = true;
     currentStroke = [[p.x],[p.y],[0]]; ctx.beginPath(); ctx.moveTo(p.x, p.y);
 }, {passive:false});
-
 canvas.addEventListener('touchmove', e => {
-    if(!isDrawing) return;
-    e.preventDefault(); const p = getPos(e);
+    if(!isDrawing) return; e.preventDefault(); const p = getPos(e);
     ctx.lineTo(p.x, p.y); ctx.stroke();
     currentStroke[0].push(p.x); currentStroke[1].push(p.y); currentStroke[2].push(0);
 }, {passive:false});
-
 window.addEventListener('touchend', () => { if(isDrawing) inkData.push(currentStroke); isDrawing = false; });
 
 window.onload = () => { setup(); nextQuestion(); };
