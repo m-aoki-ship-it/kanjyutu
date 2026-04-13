@@ -161,6 +161,67 @@ text-align:center;pointer-events:none;transition:opacity 0.5s;}
 text-shadow:0 0 20px var(–kin);line-height:1;}
 #combo-label{font-size:clamp(10px,2vw,14px);letter-spacing:3px;color:#aaa;}
 
+/* ========== 迎撃モーダル ========== */
+#intercept-modal{
+position:fixed;inset:0;z-index:700;
+display:none;align-items:center;justify-content:center;
+flex-direction:column;gap:10px;
+background:rgba(80,0,0,0.75);
+backdrop-filter:blur(4px);
+}
+#intercept-modal.active{display:flex;animation:intercept-in 0.2s ease;}
+@keyframes intercept-in{from{opacity:0;transform:scale(1.05)}to{opacity:1;transform:scale(1)}}
+
+#intercept-alert{
+font-size:clamp(16px,3vw,22px);font-weight:bold;color:#ff4444;
+letter-spacing:3px;text-shadow:0 0 15px #ff0000;
+animation:alert-pulse 0.4s ease infinite alternate;
+}
+@keyframes alert-pulse{from{opacity:0.7}to{opacity:1;text-shadow:0 0 25px #ff0000}}
+
+#intercept-yomi{
+font-size:clamp(11px,2vw,14px);color:#ffcc88;letter-spacing:2px;
+background:rgba(0,0,0,0.5);padding:2px 14px;border-radius:10px;
+}
+#intercept-mondai{
+font-size:clamp(30px,7vw,60px);font-weight:bold;
+text-shadow:0 0 20px #ff6666,2px 2px 4px #000;
+letter-spacing:4px;
+}
+/* 迎撃タイムゲージ */
+#intercept-timer-wrap{
+width:clamp(200px,40vw,340px);height:10px;
+background:#1a0000;border:1px solid #ff4444;border-radius:5px;overflow:hidden;
+}
+#intercept-timer-bar{
+height:100%;width:100%;
+background:linear-gradient(to right,#ff6600,#ff0000);
+border-radius:5px;transition:width 0.08s linear;
+}
+#intercept-canvas-frame{
+width:clamp(160px,30vw,260px);height:clamp(160px,30vw,260px);
+background:rgba(255,255,255,0.04);
+border:2px solid rgba(255,80,80,0.6);border-radius:4px;
+box-shadow:inset 0 0 20px rgba(0,0,0,0.7),0 0 20px rgba(255,0,0,0.2);
+}
+#intercept-canvas-frame::before{content:’’;position:absolute;inset:6px;border:1px solid rgba(255,80,80,0.15);pointer-events:none;}
+#intercept-canvas{width:100%;height:100%;cursor:crosshair;display:block;}
+
+.intercept-btns{display:flex;gap:12px;}
+#intercept-clear{
+padding:6px 14px;background:rgba(60,20,20,0.85);
+border:1px solid rgba(255,80,80,0.5);color:#ff8888;
+border-radius:6px;font-weight:bold;font-size:clamp(11px,2vw,13px);
+font-family:inherit;cursor:pointer;}
+#intercept-fire{
+width:clamp(160px,30vw,240px);height:clamp(36px,6vh,48px);
+background:linear-gradient(to bottom,#ff6040,#aa2000);
+color:#fff;font-weight:bold;font-size:clamp(14px,3vw,20px);
+border-radius:24px;border:none;
+box-shadow:0 3px 0 #600,0 0 15px rgba(255,60,0,0.4);
+letter-spacing:3px;font-family:inherit;cursor:pointer;}
+#intercept-fire:active{transform:translateY(2px);box-shadow:0 1px 0 #600;}
+
 /* ========== オーバーレイ ========== */
 #overlay{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;
 background:rgba(0,0,0,0.88);flex-direction:column;gap:20px;}
@@ -264,6 +325,24 @@ letter-spacing:3px;cursor:pointer;font-family:inherit;box-shadow:0 4px 0 #402000
     <button class="ougi-btn" id="ougi-btn" disabled onclick="triggerOugi()">奥義発動</button>
   </div>
   <button id="attack-btn" onclick="recognizeAndAttack()">漢術発動！</button>
+</div>
+
+<!-- 迎撃モーダル -->
+
+<div id="intercept-modal">
+  <div id="intercept-alert">⚠ 敵の攻撃！迎撃せよ！</div>
+  <div id="intercept-yomi">よみ：</div>
+  <div id="intercept-mondai">―</div>
+  <div id="intercept-timer-wrap">
+    <div id="intercept-timer-bar"></div>
+  </div>
+  <div id="intercept-canvas-frame" style="position:relative;">
+    <canvas id="intercept-canvas"></canvas>
+  </div>
+  <div class="intercept-btns">
+    <button id="intercept-clear" onclick="clearInterceptCanvas()">墨を拭く</button>
+    <button id="intercept-fire" onclick="submitIntercept()">迎撃！</button>
+  </div>
 </div>
 
 <!-- ゲームオーバー/勝利 -->
@@ -607,16 +686,148 @@ function setEnemy(idx) {
 }
 
 // ================================================
+//  迎撃システム
+//  ゲージ100% → モーダル表示 → 別問題を出題
+//  正解 → 防御成功、不正解/時間切れ → ダメージ
+// ================================================
+let interceptState = {
+  active: false,
+  q: {},
+  inkData: [],
+  isDrawing: false,
+  timerPct: 100,
+  timerInterval: null,
+};
+
+// 迎撃キャンバスのセットアップ
+const iCanvas = document.getElementById('intercept-canvas');
+const iCtx = iCanvas.getContext('2d');
+
+function setupInterceptCanvas() {
+  const r = iCanvas.getBoundingClientRect();
+  iCanvas.width  = r.width  * window.devicePixelRatio;
+  iCanvas.height = r.height * window.devicePixelRatio;
+  iCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  iCtx.lineCap = 'round'; iCtx.lineJoin = 'round';
+  iCtx.lineWidth = Math.max(10, r.width * 0.05);
+  iCtx.strokeStyle = 'rgba(255,180,100,0.95)';
+}
+function getIPos(e) {
+  const r = iCanvas.getBoundingClientRect();
+  const p = e.touches ? e.touches[0] : e;
+  return { x: p.clientX - r.left, y: p.clientY - r.top };
+}
+iCanvas.onmousedown = iCanvas.ontouchstart = (e) => {
+  if (!interceptState.active) return;
+  e.preventDefault(); interceptState.isDrawing = true;
+  const p = getIPos(e); iCtx.beginPath(); iCtx.moveTo(p.x, p.y);
+  interceptState.inkData.push([[p.x],[p.y],[0]]);
+};
+iCanvas.onmousemove = iCanvas.ontouchmove = (e) => {
+  if (!interceptState.isDrawing) return;
+  e.preventDefault();
+  const p = getIPos(e); iCtx.lineTo(p.x, p.y); iCtx.stroke();
+  const s = interceptState.inkData[interceptState.inkData.length-1];
+  s[0].push(p.x); s[1].push(p.y); s[2].push(0);
+};
+// mouseup/touchend は window側で拾う（既存イベントと共存）
+window.addEventListener('mouseup',  () => { interceptState.isDrawing = false; });
+window.addEventListener('touchend', () => { interceptState.isDrawing = false; });
+
+function clearInterceptCanvas() {
+  iCtx.clearRect(0, 0, iCanvas.width/window.devicePixelRatio, iCanvas.height/window.devicePixelRatio);
+  interceptState.inkData = [];
+}
+
+// 迎撃モーダルを開く（通常問題とは別の問題を出す）
+function openIntercept() {
+  interceptState.active = true;
+  interceptState.timerPct = 100;
+
+  // 通常問題と被らない別問題をランダムに選ぶ
+  let q;
+  do { q = KANJI_DATA[Math.floor(Math.random() * KANJI_DATA.length)]; }
+  while (q.k === state.currentQ.k);
+  interceptState.q = q;
+
+  document.getElementById('intercept-yomi').textContent   = 'よみ：' + q.y;
+  document.getElementById('intercept-mondai').textContent = q.b;
+  document.getElementById('intercept-timer-bar').style.width = '100%';
+  clearInterceptCanvas();
+
+  const modal = document.getElementById('intercept-modal');
+  modal.classList.add('active');
+  playSE('dmg'); // 警告SE
+
+  // タイムゲージ（3秒で0になったら失敗）
+  const INTERCEPT_TIME = 3000; // ms
+  const step = 100 / (INTERCEPT_TIME / 100);
+  interceptState.timerInterval = setInterval(() => {
+    interceptState.timerPct -= step;
+    document.getElementById('intercept-timer-bar').style.width =
+      Math.max(0, interceptState.timerPct) + '%';
+    if (interceptState.timerPct <= 0) {
+      clearInterval(interceptState.timerInterval);
+      closeIntercept(false); // 時間切れ → ダメージ
+    }
+  }, 100);
+
+  // キャンバスは開いた直後にサイズを計算する必要がある
+  setTimeout(() => setupInterceptCanvas(), 50);
+}
+
+// 迎撃モーダルを閉じる
+function closeIntercept(success) {
+  clearInterval(interceptState.timerInterval);
+  interceptState.active = false;
+  interceptState.isDrawing = false;
+  document.getElementById('intercept-modal').classList.remove('active');
+
+  if (success) {
+    // 防御成功 → ダメージなし、ゲージリセット
+    playSE('hit');
+    setMsg('迎撃成功！攻撃を防いだ！', '#88ff88');
+    resetCastGauge();
+  } else {
+    // 防御失敗 → ダメージ
+    const dmg = state.enemy.atk;
+    state.playerHP -= dmg;
+    hitAnim('player-inner');
+    showDmg('player-inner', dmg, '#ff6060');
+    playSE('dmg');
+    setMsg('迎撃失敗…！ -' + dmg + 'ダメージ！', '#ff6060');
+    resetCastGauge();
+    updateHUD();
+    if (state.playerHP <= 0) endGame(false);
+  }
+}
+
+// 迎撃判定送信
+async function submitIntercept() {
+  if (!interceptState.active) return;
+  if (interceptState.inkData.length === 0) return;
+
+  clearInterval(interceptState.timerInterval); // タイマー止める
+
+  try {
+    const res = await fetch("https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ "app_version": 0.4, "requests": [{ "ink": interceptState.inkData, "language": "ja" }] })
+    });
+    const data = await res.json();
+    const cands = data[1][0][1];
+    closeIntercept(cands.includes(interceptState.q.k));
+  } catch(e) {
+    closeIntercept(false); // 通信エラーは失敗扱い
+  }
+}
+
+// ================================================
 //  敵攻撃ループ（リアルタイム・ゲージ蓄積制）
-//
-//  ・100msごとに state.enemy.speed を加算し続ける
-//  ・プレイヤーが書いている間も止まらない
-//  ・ゲージ100%で自動発動 → 即0%リセット → 再蓄積
-//  ・正解時は resetCastGauge() でスタン（ゲージリセット）
-//  ・速度変更は ENEMIES[n].speed の値を書き換えるだけ
+//  ゲージ100% → 迎撃チャンス発生
 // ================================================
 function resetCastGauge() {
-  // 正解時スタン：ゲージをリセット
   state.castPct = 0;
   const g = document.getElementById('cast-gauge');
   g.style.width = '0%';
@@ -624,12 +835,10 @@ function resetCastGauge() {
 }
 
 setInterval(() => {
-  if (state.gameOver) return;
+  if (state.gameOver || interceptState.active) return; // 迎撃中はゲージ停止
 
-  // ゲージ蓄積（100msごと）
   state.castPct += state.enemy.speed;
 
-  // 視覚警告：70%超でオレンジ、90%超で点滅赤
   const g = document.getElementById('cast-gauge');
   if (state.castPct >= 90) {
     g.classList.add('danger'); g.classList.remove('warn');
@@ -639,19 +848,13 @@ setInterval(() => {
     g.classList.remove('warn','danger');
   }
 
-  // 100%到達 → 攻撃発動
+  // 100%到達 → 迎撃チャンス発動
   if (state.castPct >= 100) {
-    state.castPct = 0; // 即リセット → 再蓄積開始
+    state.castPct = 0;
+    g.style.width = '0%';
     g.classList.remove('warn','danger');
-
-    const dmg = state.enemy.atk;
-    state.playerHP -= dmg;
-    hitAnim('player-inner');
-    showDmg('player-inner', dmg, '#ff6060');
-    playSE('dmg');
-    setMsg('敵の攻撃を受けた！ -' + dmg, '#ff6060'); // 仕様通りのメッセージ
-    updateHUD();
-    if (state.playerHP <= 0) endGame(false);
+    openIntercept(); // ← ダメージを直接与えず迎撃モーダルへ
+    return;
   }
 
   g.style.width = state.castPct + '%';
@@ -683,7 +886,8 @@ async function recognizeAndAttack() {
       hitAnim('enemy-inner');
       showDmg('enemy-inner', dmg, 'var(--kin)');
       playSE('hit');
-      setMsg('漢術成功！' + dmg + 'ダメージ！', 'var(--kin2)');
+      setMsg('漢術成功！' + dmg + 'ダメージ！詠唱を断つ！', 'var(--kin2)');
+      resetCastGauge(); // ★正解でスタン：ゲージリセット
       updateCombo();
       if (state.enemyHP <= 0) setTimeout(() => nextWave(), 800);
     } else {
@@ -713,6 +917,7 @@ function triggerOugi() {
   sk.textContent = state.currentQ.k || '道';
   se.classList.add('active');
   playSE('ougi');
+  resetCastGauge(); // 奥義発動でも詠唱リセット
   const dmg = 50 + Math.floor(Math.random() * 30);
   setTimeout(() => {
     state.enemyHP -= dmg;
