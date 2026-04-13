@@ -34,7 +34,18 @@ background:linear-gradient(to bottom,rgba(0,0,0,0.75),transparent);}
 .hp-bar::after{content:’’;position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,255,255,0.25),transparent);}
 #hp-e-bar{background:linear-gradient(to right,#8e2a2a,#e05050);width:100%;}
 #hp-p-bar{background:linear-gradient(to right,#1a3a6a,#3080e0);width:100%;}
-#cast-gauge{position:absolute;bottom:0;left:0;width:0%;height:3px;background:#ff2020;box-shadow:0 0 6px #ff0000;transition:width 0.08s linear;}
+/* 敵攻撃ゲージ：HPバー内の下端に配置 */
+#cast-gauge{
+position:absolute;bottom:0;left:0;width:0%;height:4px;
+background:#ff2020;box-shadow:0 0 8px #ff0000;
+transition:width 0.08s linear;
+border-radius:0 0 7px 7px;
+}
+/* 70%超：オレンジ警告 */
+#cast-gauge.warn{background:#ff8800;box-shadow:0 0 8px #ff6600;}
+/* 90%超：赤点滅 */
+#cast-gauge.danger{background:#ff0000;box-shadow:0 0 12px #ff0000;animation:gauge-blink 0.2s ease infinite alternate;}
+@keyframes gauge-blink{from{opacity:1;box-shadow:0 0 12px #ff0000}to{opacity:0.5;box-shadow:0 0 20px #ff4444}}
 .hp-text{font-size:10px;color:var(–kin);opacity:0.8;text-align:right;}
 .ougi-wrap{height:6px;background:#0a0a1a;border:1px solid rgba(120,60,200,0.4);border-radius:3px;overflow:hidden;margin-top:3px;}
 .ougi-bar{height:100%;width:0%;background:linear-gradient(to right,#4a1a9a,#9060ff);border-radius:3px;transition:width 0.3s ease;box-shadow:0 0 8px #7040c0;}
@@ -596,23 +607,54 @@ function setEnemy(idx) {
 }
 
 // ================================================
-//  敵攻撃ループ
+//  敵攻撃ループ（リアルタイム・ゲージ蓄積制）
+//
+//  ・100msごとに state.enemy.speed を加算し続ける
+//  ・プレイヤーが書いている間も止まらない
+//  ・ゲージ100%で自動発動 → 即0%リセット → 再蓄積
+//  ・正解時は resetCastGauge() でスタン（ゲージリセット）
+//  ・速度変更は ENEMIES[n].speed の値を書き換えるだけ
 // ================================================
+function resetCastGauge() {
+  // 正解時スタン：ゲージをリセット
+  state.castPct = 0;
+  const g = document.getElementById('cast-gauge');
+  g.style.width = '0%';
+  g.classList.remove('warn','danger');
+}
+
 setInterval(() => {
   if (state.gameOver) return;
+
+  // ゲージ蓄積（100msごと）
   state.castPct += state.enemy.speed;
+
+  // 視覚警告：70%超でオレンジ、90%超で点滅赤
+  const g = document.getElementById('cast-gauge');
+  if (state.castPct >= 90) {
+    g.classList.add('danger'); g.classList.remove('warn');
+  } else if (state.castPct >= 70) {
+    g.classList.add('warn'); g.classList.remove('danger');
+  } else {
+    g.classList.remove('warn','danger');
+  }
+
+  // 100%到達 → 攻撃発動
   if (state.castPct >= 100) {
-    state.castPct = 0;
+    state.castPct = 0; // 即リセット → 再蓄積開始
+    g.classList.remove('warn','danger');
+
     const dmg = state.enemy.atk;
     state.playerHP -= dmg;
     hitAnim('player-inner');
     showDmg('player-inner', dmg, '#ff6060');
     playSE('dmg');
-    setMsg('敵の攻撃！' + dmg + 'ダメージ！', '#ff6060');
+    setMsg('敵の攻撃を受けた！ -' + dmg, '#ff6060'); // 仕様通りのメッセージ
     updateHUD();
     if (state.playerHP <= 0) endGame(false);
   }
-  document.getElementById('cast-gauge').style.width = state.castPct + '%';
+
+  g.style.width = state.castPct + '%';
 }, 100);
 
 // ================================================
