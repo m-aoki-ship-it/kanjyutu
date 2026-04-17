@@ -7,189 +7,245 @@
 <title>真・漢術師 ～怨霊討伐録～</title>
 <style>
 :root {
-  --kin: #d4af37; --kin2: #f0d070; --shu: #8e2a2a; --shu2: #c04040;
-  --ai: #1a3a6a; --ai2: #3060aa;
-  --hud-h: 72px;
-  --btn-h: 110px;
+  --kin: #d4af37; --kin2: #f0d070;
 }
 *{margin:0;padding:0;box-sizing:border-box;touch-action:none;-webkit-tap-highlight-color:transparent;}
-html,body{overflow:hidden;height:100%;width:100%;background:#000;color:#fff;
+html,body{
+  overflow:hidden;height:100%;width:100%;
+  background:#000;color:#fff;
   font-family:'Hiragino Mincho ProN','Yu Mincho','ＭＳ 明朝',serif;
-  user-select:none;-webkit-user-select:none;}
+  user-select:none;-webkit-user-select:none;
+}
 
-/* ========== 背景 ========== */
-#bg{position:fixed;inset:0;z-index:1;}
-#bg-img{position:absolute;inset:0;
-background:url(‘5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png’) no-repeat center center;
-background-size:cover;}
-#bg-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.45);}
+/* ===== 背景 ===== */
+#bg{position:fixed;inset:0;z-index:0;}
+#bg-img{
+position:absolute;inset:0;
+background:url(‘5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png’) no-repeat center/cover;
+}
+#bg-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.5);}
 
-/* ========== 上部HUD ========== */
+/* ===== 上部HUD ===== */
 #top-hud{
-position:fixed;top:0;width:100%;
-padding:env(safe-area-inset-top,8px) 16px 8px;
+position:fixed;top:0;left:0;right:0;
+z-index:100;
+padding:env(safe-area-inset-top,6px) 12px 6px;
 display:flex;justify-content:space-between;align-items:flex-start;
-z-index:500;
-background:linear-gradient(to bottom,rgba(0,0,0,0.75),transparent);
+background:linear-gradient(to bottom,rgba(0,0,0,0.8),transparent);
 }
-.status-block{width:clamp(130px,25vw,220px);}
-.char-name{font-size:11px;letter-spacing:2px;margin-bottom:3px;opacity:0.85;}
+.status-block{width:clamp(120px,28vw,210px);}
+.char-name{font-size:11px;letter-spacing:1px;margin-bottom:2px;opacity:0.85;}
 .hp-wrap{
-position:relative;height:14px;background:#1a0a0a;
-border:1px solid rgba(212,175,55,0.4);border-radius:7px;overflow:hidden;margin-bottom:3px;
+height:13px;background:#1a0a0a;
+border:1px solid rgba(212,175,55,0.4);border-radius:6px;overflow:hidden;margin-bottom:2px;
 }
-.hp-bar{height:100%;border-radius:7px;transition:width 0.4s ease;position:relative;}
-.hp-bar::after{content:’’;position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,255,255,0.25),transparent);}
+.hp-bar{height:100%;border-radius:6px;transition:width 0.4s;position:relative;}
+.hp-bar::after{content:’’;position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,255,255,0.2),transparent);}
 #hp-e-bar{background:linear-gradient(to right,#8e2a2a,#e05050);width:100%;}
 #hp-p-bar{background:linear-gradient(to right,#1a3a6a,#3080e0);width:100%;}
 #cast-gauge-wrap{
-height:6px;background:#1a0000;
-border:1px solid rgba(255,40,40,0.3);border-radius:3px;overflow:hidden;margin-bottom:3px;
+height:5px;background:#1a0000;
+border:1px solid rgba(255,40,40,0.3);border-radius:3px;overflow:hidden;margin-bottom:2px;
 }
 #cast-gauge{
-height:100%;width:0%;background:#ff2020;box-shadow:0 0 8px #ff0000;
+height:100%;width:0%;background:#ff2020;
 transition:width 0.08s linear;border-radius:3px;
 }
-#cast-gauge.warn{background:#ff8800;box-shadow:0 0 8px #ff6600;}
-#cast-gauge.danger{background:#ff0000;box-shadow:0 0 12px #ff0000;animation:gauge-blink 0.2s ease infinite alternate;}
-@keyframes gauge-blink{from{opacity:1;box-shadow:0 0 12px #ff0000}to{opacity:0.5;box-shadow:0 0 20px #ff4444}}
-.hp-text{font-size:10px;color:var(–kin);opacity:0.8;text-align:right;}
+#cast-gauge.warn{background:#ff8800;}
+#cast-gauge.danger{background:#ff0000;animation:gblink 0.2s ease infinite alternate;}
+@keyframes gblink{from{opacity:1}to{opacity:0.4}}
+.hp-text{font-size:9px;color:var(–kin);opacity:0.8;text-align:right;}
 .ougi-wrap{
-height:6px;background:#0a0a1a;
-border:1px solid rgba(120,60,200,0.4);border-radius:3px;overflow:hidden;margin-top:3px;
+height:5px;background:#0a0a1a;
+border:1px solid rgba(120,60,200,0.4);border-radius:3px;overflow:hidden;margin-top:2px;
 }
 .ougi-bar{
-height:100%;width:0%;background:linear-gradient(to right,#4a1a9a,#9060ff);
-border-radius:3px;transition:width 0.3s ease;box-shadow:0 0 8px #7040c0;
+height:100%;width:0%;
+background:linear-gradient(to right,#4a1a9a,#9060ff);
+border-radius:3px;transition:width 0.3s;
 }
 #center-msg{
-position:absolute;left:50%;transform:translateX(-50%);top:8px;
-text-align:center;font-size:clamp(11px,2vw,14px);
-color:var(–kin);letter-spacing:1px;white-space:nowrap;
-text-shadow:0 0 10px rgba(212,175,55,0.5);
+position:absolute;left:50%;transform:translateX(-50%);
+top:calc(env(safe-area-inset-top,6px) + 2px);
+font-size:clamp(10px,1.8vw,13px);color:var(–kin);
+letter-spacing:1px;white-space:nowrap;text-align:center;
+text-shadow:0 0 8px rgba(212,175,55,0.5);
 }
 
-/* ==========================================================
-LANDSCAPE：3カラムGrid
-========================================================== */
-#stage{
+/* ===================================================
+メインレイアウト
+全画面をflex縦積み：HUD / ステージ / ボタン
+=================================================== */
+#layout{
 position:fixed;
-top:var(–hud-h); bottom:var(–btn-h);
-left:0; right:0; z-index:10;
-display:grid;
-grid-template-columns: 26% 1fr 26%;
-align-items:stretch;
+/* HUDの実際の高さをJSで設定するのではなく、paddingで逃がす */
+inset:0;
+display:flex;
+flex-direction:column;
+padding-top:env(safe-area-inset-top,0px);
+padding-bottom:env(safe-area-inset-bottom,0px);
+z-index:10;
 }
-.char-slot{
+
+/* HUDの高さ分のスペーサー（JSで動的に設定） */
+#hud-spacer{flex-shrink:0;}
+
+/* ステージ：残りの高さをすべて使う */
+#stage{
+flex:1;
+min-height:0;
+display:flex; /* landscapeデフォルト：横並び */
+overflow:hidden;
+}
+
+/* ===== LANDSCAPE：左キャラ | 中央UI | 右キャラ ===== */
+#enemy-slot, #player-slot{
+flex:0 0 26%;
 display:flex;align-items:flex-end;justify-content:center;
-overflow:hidden;padding-bottom:4px;
+overflow:hidden;
 }
-.char-inner{
-position:relative;width:100%;height:100%;
-display:flex;align-items:flex-end;justify-content:center;
-}
-.char-inner img{
-width:auto;max-width:100%;height:auto;max-height:100%;
+#enemy-slot img, #player-slot img{
+width:auto;max-width:100%;
+height:auto;max-height:100%;
 object-fit:contain;
-filter:drop-shadow(0 0 24px rgba(0,0,0,0.95));
+filter:drop-shadow(0 0 20px rgba(0,0,0,0.9));
 }
 #center-col{
+flex:1;
 display:flex;flex-direction:column;
 align-items:center;justify-content:center;
-gap:6px;padding:4px 8px;overflow:hidden;
+gap:6px;padding:4px 6px;
+min-width:0;
 }
 
-/* 問題エリア */
+/* ===== PORTRAIT：縦積み ===== */
+@media (orientation:portrait){
+#stage{
+flex-direction:column;
+}
+/* キャラ帯：上部に横並びで小さく */
+#char-row{
+display:flex !important;
+flex:0 0 auto;
+height:clamp(70px,15vw,110px);
+justify-content:space-between;
+align-items:flex-end;
+padding:0 8px 2px;
+}
+#char-row img{
+height:100%;width:auto;
+object-fit:contain;
+filter:drop-shadow(0 0 12px rgba(0,0,0,0.9));
+}
+/* landscape用キャラ枠を非表示 */
+#enemy-slot, #player-slot{ display:none !important; }
+/* 中央UIが残りを全部使う */
+#center-col{
+flex:1;
+justify-content:flex-start;
+padding:6px 10px;
+}
+}
+/* portraitキャラ帯はlandscapeで非表示 */
+#char-row{ display:none; }
+
+/* ===== 問題エリア ===== */
 #question-area{
-width:100%;text-align:center;
+width:100%;text-align:center;flex-shrink:0;
 background:rgba(0,0,0,0.65);
 border:1px solid rgba(212,175,55,0.3);border-radius:8px;
-padding:5px 12px 7px;flex-shrink:0;
+padding:4px 10px 6px;
 }
 #yomikata{
 display:inline-block;
-font-size:clamp(11px,1.6vw,14px);color:var(–kin2);
-background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.25);
-padding:1px 12px;border-radius:8px;margin-bottom:2px;letter-spacing:2px;
+font-size:clamp(10px,1.5vw,13px);color:var(–kin2);
+background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.2);
+padding:1px 10px;border-radius:6px;margin-bottom:2px;letter-spacing:2px;
 }
 #mondai-bun{
-font-size:clamp(18px,3.5vw,32px);font-weight:bold;
-text-shadow:0 0 16px rgba(212,175,55,0.6),2px 2px 4px #000;
-letter-spacing:clamp(2px,0.8vw,6px);line-height:1.2;
+font-size:clamp(20px,4vw,36px);font-weight:bold;
+text-shadow:0 0 14px rgba(212,175,55,0.6),2px 2px 4px #000;
+letter-spacing:clamp(2px,1vw,8px);line-height:1.3;
 }
 
-/* キャンバス */
+/* ===== キャンバス ===== */
 #canvas-area{
-width:100%;flex:1;
+flex:1;width:100%;
 display:flex;align-items:center;justify-content:center;
 min-height:0;
 }
 #canvas-frame{
-width:min(100%, calc(100vh - var(–hud-h) - var(–btn-h) - 80px));
+/* 正方形：幅と高さの小さい方に合わせる */
+width:min(100%, calc(var(–canvas-max, 99vh)));
 aspect-ratio:1/1;
+max-height:100%;
 background:rgba(255,255,255,0.03);
 border:2px solid rgba(212,175,55,0.4);
-position:relative;border-radius:4px;
-box-shadow:inset 0 0 30px rgba(0,0,0,0.6),0 0 20px rgba(212,175,55,0.15);
+border-radius:4px;position:relative;
+box-shadow:inset 0 0 30px rgba(0,0,0,0.6),0 0 15px rgba(212,175,55,0.1);
 }
 #canvas-frame::before{
 content:’’;position:absolute;inset:8px;
-border:1px solid rgba(212,175,55,0.12);pointer-events:none;
+border:1px solid rgba(212,175,55,0.1);pointer-events:none;
 }
-canvas{width:100%;height:100%;cursor:crosshair;display:block;}
+canvas{width:100%;height:100%;display:block;cursor:crosshair;}
 
-/* ==========================================================
-PORTRAIT：縦画面レイアウト
-キャラを左右下部に小さく、キャンバスを中央に大きく
-========================================================== */
-@media (orientation: portrait) {
-:root{ –hud-h: 110px; –btn-h: 120px; }
+/* ===== 下部ボタン ===== */
+#bottom-hud{
+flex-shrink:0;
+padding:8px 12px calc(env(safe-area-inset-bottom,0px) + 8px);
+background:linear-gradient(to top,rgba(0,0,0,0.95) 80%,transparent);
+border-top:1px solid rgba(212,175,55,0.2);
+display:flex;flex-direction:column;align-items:center;gap:7px;
+}
+.btn-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;}
+.circle-btn{
+width:clamp(34px,8vw,46px);height:clamp(34px,8vw,46px);
+border-radius:50%;border:2px solid rgba(255,255,255,0.5);
+color:#fff;font-weight:bold;font-size:clamp(11px,2.5vw,15px);
+display:flex;align-items:center;justify-content:center;
+cursor:pointer;font-family:inherit;
+}
+.circle-btn:active{transform:scale(0.9);}
+.fire{background:radial-gradient(#e44,#a00);}
+.water{background:radial-gradient(#48e,#025);}
+.thunder{background:radial-gradient(#ee0,#880);}
+.clear-btn{
+padding:5px 12px;background:rgba(40,30,20,0.9);
+border:1px solid rgba(212,175,55,0.5);color:var(–kin);
+border-radius:6px;font-weight:bold;font-size:clamp(11px,2vw,13px);
+font-family:inherit;cursor:pointer;
+}
+.ougi-btn{
+padding:5px 12px;
+background:linear-gradient(to bottom,rgba(100,50,180,0.9),rgba(60,20,120,0.9));
+border:1px solid rgba(160,100,255,0.6);color:#c090ff;
+border-radius:6px;font-weight:bold;font-size:clamp(11px,2vw,13px);
+font-family:inherit;cursor:pointer;transition:opacity 0.2s;
+}
+.ougi-btn:disabled{opacity:0.3;cursor:default;}
+#attack-btn{
+width:clamp(200px,55vw,340px);height:clamp(40px,7vh,52px);
+background:linear-gradient(to bottom,#f0d080,#b08030 50%,#806020);
+color:#201000;font-weight:bold;font-size:clamp(15px,3.5vw,22px);
+border-radius:30px;border:none;letter-spacing:4px;
+box-shadow:0 4px 0 #402000,0 0 16px rgba(212,175,55,0.25);
+font-family:inherit;cursor:pointer;transition:transform 0.08s,box-shadow 0.08s;
+}
+#attack-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #402000;}
 
-/* stage を1カラムにしてキャラ枠を非表示 */
-#stage{
-grid-template-columns: 1fr;
-top:var(–hud-h);
-bottom:var(–btn-h);
+/* ===== コンボ ===== */
+#combo-display{
+position:fixed;right:2%;top:50%;transform:translateY(-50%);
+z-index:200;text-align:center;pointer-events:none;transition:opacity 0.5s;
 }
-.char-slot{ display:none; }
+#combo-num{font-size:clamp(26px,6vw,52px);font-weight:bold;color:var(–kin);text-shadow:0 0 18px var(–kin);}
+#combo-label{font-size:clamp(9px,2vw,13px);letter-spacing:3px;color:#aaa;}
 
-#center-col{
-justify-content:flex-start;
-padding:6px 12px;
-gap:8px;
-}
-#mondai-bun{ font-size:clamp(22px,7vw,42px); }
-#canvas-frame{
-width:min(100%, calc(100vw - 24px));
-}
-
-/* 縦画面キャラ：左下・右下に小さく固定配置 */
-#portrait-chars{
-display:flex !important;
-position:fixed;
-bottom:var(–btn-h);
-left:0; right:0;
-height:clamp(80px, 18vh, 140px);
-z-index:12;
-pointer-events:none;
-justify-content:space-between;
-align-items:flex-end;
-padding:0 4px;
-}
-#portrait-chars img{
-height:100%;width:auto;
-object-fit:contain;
-filter:drop-shadow(0 0 16px rgba(0,0,0,0.9));
-}
-}
-
-/* portrait用キャラ帯（landscape時は常に非表示） */
-#portrait-chars{ display:none; }
-
-/* ダメージ数字 */
+/* ===== ダメージ ===== */
 .dmg-popup{
 position:absolute;top:0;left:50%;transform:translateX(-50%);
-font-size:clamp(20px,4vw,36px);font-weight:bold;pointer-events:none;
+font-size:clamp(18px,4vw,34px);font-weight:bold;pointer-events:none;
 animation:dmg-fly 1.2s ease-out forwards;
 text-shadow:0 0 10px currentColor,2px 2px 4px #000;
 }
@@ -198,259 +254,193 @@ text-shadow:0 0 10px currentColor,2px 2px 4px #000;
 100%{opacity:0;transform:translate(-50%,-60px) scale(0.8)}
 }
 @keyframes hit-flash{
-0%,100%{filter:drop-shadow(0 0 20px rgba(0,0,0,0.9))}
-50%{filter:drop-shadow(0 0 30px #ff0000) brightness(2.5)}
+0%,100%{filter:drop-shadow(0 0 16px rgba(0,0,0,0.9))}
+50%{filter:drop-shadow(0 0 28px #ff0000) brightness(2.5)}
 }
 .hit-anim img{animation:hit-flash 0.3s ease !important;}
 
-/* 奥義エフェクト */
+/* ===== 奥義 ===== */
 #skill-effect{position:fixed;inset:0;z-index:800;pointer-events:none;display:none;align-items:center;justify-content:center;}
 #skill-effect.active{display:flex;}
 .skill-kanji{
 font-size:clamp(80px,20vw,180px);font-weight:bold;color:transparent;
 -webkit-text-stroke:3px var(–kin);
-text-shadow:0 0 40px var(–kin),0 0 80px rgba(212,175,55,0.5);
-animation:skill-kanji-anim 1.5s ease forwards;
+text-shadow:0 0 40px var(–kin);
+animation:sk-anim 1.5s ease forwards;
 }
-@keyframes skill-kanji-anim{
+@keyframes sk-anim{
 0%{transform:scale(0.3) rotate(-10deg);opacity:0}
 30%{transform:scale(1.2) rotate(2deg);opacity:1}
-70%{transform:scale(1.0) rotate(0deg);opacity:1}
+70%{transform:scale(1) rotate(0);opacity:1}
 100%{transform:scale(2) rotate(5deg);opacity:0}
 }
 #skill-overlay{
 position:absolute;inset:0;
 background:radial-gradient(circle,rgba(120,60,200,0.5),transparent 70%);
-animation:skill-overlay-anim 1.5s ease forwards;
+animation:sk-ov 1.5s ease forwards;
 }
-@keyframes skill-overlay-anim{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
+@keyframes sk-ov{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
 
-/* ========== 下部HUD ========== */
-#bottom-hud{
-position:fixed;bottom:0;width:100%;
-padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 10px);
-background:linear-gradient(to top,rgba(0,0,0,0.92) 80%,transparent);
-border-top:1px solid rgba(212,175,55,0.25);
-z-index:500;display:flex;flex-direction:column;align-items:center;gap:8px;
-}
-.btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;}
-.circle-btn{
-width:clamp(36px,6vw,50px);height:clamp(36px,6vw,50px);border-radius:50%;
-border:2px solid rgba(255,255,255,0.5);color:#fff;font-weight:bold;
-font-size:clamp(12px,2vw,16px);display:flex;align-items:center;justify-content:center;
-cursor:pointer;font-family:inherit;
-}
-.circle-btn:active{transform:scale(0.9);}
-.fire{background:radial-gradient(#e44,#a00);box-shadow:0 0 10px rgba(220,60,60,0.5);}
-.water{background:radial-gradient(#48e,#025);box-shadow:0 0 10px rgba(40,120,220,0.5);}
-.thunder{background:radial-gradient(#ee0,#880);box-shadow:0 0 10px rgba(200,200,0,0.5);}
-.clear-btn{
-padding:6px 14px;background:rgba(40,30,20,0.85);
-border:1px solid rgba(212,175,55,0.5);color:var(–kin);
-border-radius:6px;font-weight:bold;font-size:clamp(11px,2vw,13px);
-font-family:inherit;cursor:pointer;letter-spacing:1px;
-}
-.clear-btn:active{transform:scale(0.95);}
-.ougi-btn{
-padding:6px 16px;
-background:linear-gradient(to bottom,rgba(100,50,180,0.85),rgba(60,20,120,0.85));
-border:1px solid rgba(160,100,255,0.6);color:#c090ff;
-border-radius:6px;font-weight:bold;font-size:clamp(11px,2vw,13px);
-font-family:inherit;cursor:pointer;letter-spacing:1px;transition:opacity 0.2s;
-}
-.ougi-btn:disabled{opacity:0.3;cursor:default;}
-.ougi-btn:not(:disabled):active{transform:scale(0.95);}
-#attack-btn{
-width:clamp(220px,60vw,360px);height:clamp(42px,7vh,56px);
-background:linear-gradient(to bottom,#f0d080 0%,#b08030 50%,#806020 100%);
-color:#201000;font-weight:bold;font-size:clamp(16px,3.5vw,24px);
-border-radius:30px;border:none;
-box-shadow:0 4px 0 #402000,0 0 20px rgba(212,175,55,0.3);
-letter-spacing:4px;font-family:inherit;cursor:pointer;
-transition:transform 0.08s,box-shadow 0.08s;
-}
-#attack-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #402000;}
-
-/* コンボ */
-#combo-display{
-position:fixed;right:2%;top:50%;transform:translateY(-50%);
-z-index:600;text-align:center;pointer-events:none;transition:opacity 0.5s;
-}
-#combo-num{font-size:clamp(28px,6vw,56px);font-weight:bold;color:var(–kin);text-shadow:0 0 20px var(–kin);line-height:1;}
-#combo-label{font-size:clamp(10px,2vw,14px);letter-spacing:3px;color:#aaa;}
-
-/* 迎撃モーダル */
+/* ===== 迎撃モーダル ===== */
 #intercept-modal{
 position:fixed;inset:0;z-index:700;
-display:none;align-items:center;justify-content:center;
-flex-direction:column;gap:10px;
-background:rgba(80,0,0,0.75);backdrop-filter:blur(4px);
+display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+background:rgba(80,0,0,0.78);backdrop-filter:blur(4px);
 }
-#intercept-modal.active{display:flex;animation:intercept-in 0.2s ease;}
-@keyframes intercept-in{from{opacity:0;transform:scale(1.05)}to{opacity:1;transform:scale(1)}}
+#intercept-modal.active{display:flex;animation:ic-in 0.2s ease;}
+@keyframes ic-in{from{opacity:0;transform:scale(1.05)}to{opacity:1;transform:scale(1)}}
 #intercept-alert{
-font-size:clamp(16px,3vw,22px);font-weight:bold;color:#ff4444;
-letter-spacing:3px;text-shadow:0 0 15px #ff0000;
-animation:alert-pulse 0.4s ease infinite alternate;
+font-size:clamp(15px,3vw,21px);font-weight:bold;color:#ff4444;
+letter-spacing:3px;animation:ap 0.4s ease infinite alternate;
 }
-@keyframes alert-pulse{from{opacity:0.7}to{opacity:1;text-shadow:0 0 25px #ff0000}}
-#intercept-yomi{
-font-size:clamp(11px,2vw,14px);color:#ffcc88;letter-spacing:2px;
-background:rgba(0,0,0,0.5);padding:2px 14px;border-radius:10px;
-}
-#intercept-mondai{
-font-size:clamp(28px,6vw,56px);font-weight:bold;
-text-shadow:0 0 20px #ff6666,2px 2px 4px #000;letter-spacing:4px;
-}
-#intercept-timer-wrap{
-width:clamp(200px,50vw,340px);height:10px;
-background:#1a0000;border:1px solid #ff4444;border-radius:5px;overflow:hidden;
-}
-#intercept-timer-bar{
-height:100%;width:100%;
-background:linear-gradient(to right,#ff6600,#ff0000);
-border-radius:5px;transition:width 0.08s linear;
-}
+@keyframes ap{from{opacity:0.7}to{opacity:1;text-shadow:0 0 20px #ff0000}}
+#intercept-yomi{font-size:13px;color:#ffcc88;background:rgba(0,0,0,0.5);padding:2px 12px;border-radius:8px;}
+#intercept-mondai{font-size:clamp(28px,6vw,54px);font-weight:bold;text-shadow:0 0 18px #ff6666,2px 2px 4px #000;letter-spacing:4px;}
+#intercept-timer-wrap{width:clamp(180px,48vw,320px);height:9px;background:#1a0000;border:1px solid #ff4444;border-radius:4px;overflow:hidden;}
+#intercept-timer-bar{height:100%;width:100%;background:linear-gradient(to right,#ff6600,#ff0000);border-radius:4px;transition:width 0.08s linear;}
 #intercept-canvas-frame{
-width:clamp(180px,40vw,280px);height:clamp(180px,40vw,280px);
-background:rgba(255,255,255,0.04);
-border:2px solid rgba(255,80,80,0.6);border-radius:4px;
-box-shadow:inset 0 0 20px rgba(0,0,0,0.7),0 0 20px rgba(255,0,0,0.2);
-position:relative;
+width:clamp(170px,38vw,270px);height:clamp(170px,38vw,270px);
+background:rgba(255,255,255,0.04);border:2px solid rgba(255,80,80,0.6);
+border-radius:4px;position:relative;
 }
-#intercept-canvas{width:100%;height:100%;cursor:crosshair;display:block;}
+#intercept-canvas{width:100%;height:100%;display:block;cursor:crosshair;}
 .intercept-btns{display:flex;gap:12px;}
 #intercept-clear{
-padding:6px 14px;background:rgba(60,20,20,0.85);
+padding:6px 12px;background:rgba(60,20,20,0.9);
 border:1px solid rgba(255,80,80,0.5);color:#ff8888;
-border-radius:6px;font-weight:bold;font-size:clamp(11px,2vw,13px);
-font-family:inherit;cursor:pointer;
+border-radius:6px;font-weight:bold;font-size:12px;font-family:inherit;cursor:pointer;
 }
 #intercept-fire{
-width:clamp(160px,35vw,240px);height:clamp(36px,6vh,48px);
+width:clamp(150px,32vw,230px);height:clamp(36px,6vh,46px);
 background:linear-gradient(to bottom,#ff6040,#aa2000);
-color:#fff;font-weight:bold;font-size:clamp(14px,3vw,20px);
-border-radius:24px;border:none;
-box-shadow:0 3px 0 #600,0 0 15px rgba(255,60,0,0.4);
-letter-spacing:3px;font-family:inherit;cursor:pointer;
+color:#fff;font-weight:bold;font-size:clamp(13px,3vw,18px);
+border-radius:22px;border:none;letter-spacing:3px;
+box-shadow:0 3px 0 #600;font-family:inherit;cursor:pointer;
 }
-#intercept-fire:active{transform:translateY(2px);box-shadow:0 1px 0 #600;}
 
-/* オーバーレイ */
-#overlay{
-position:fixed;inset:0;z-index:900;display:none;
-align-items:center;justify-content:center;
-background:rgba(0,0,0,0.88);flex-direction:column;gap:20px;
-}
+/* ===== ゲームオーバー ===== */
+#overlay{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.9);flex-direction:column;gap:20px;}
 #overlay.show{display:flex;}
-#overlay-title{font-size:clamp(36px,8vw,72px);font-weight:bold;letter-spacing:6px;text-shadow:0 0 30px currentColor;}
-#overlay-sub{font-size:clamp(14px,3vw,20px);color:#aaa;letter-spacing:2px;}
+#overlay-title{font-size:clamp(34px,8vw,68px);font-weight:bold;letter-spacing:6px;text-shadow:0 0 28px currentColor;}
+#overlay-sub{font-size:clamp(13px,3vw,18px);color:#aaa;letter-spacing:2px;}
 #retry-btn{
-padding:14px 40px;background:linear-gradient(to bottom,#f0d080,#a06020);
-color:#201000;font-size:clamp(16px,3vw,22px);font-weight:bold;
-border:none;border-radius:30px;letter-spacing:3px;
-cursor:pointer;font-family:inherit;box-shadow:0 4px 0 #402000;
+padding:13px 38px;background:linear-gradient(to bottom,#f0d080,#a06020);
+color:#201000;font-size:clamp(15px,3vw,20px);font-weight:bold;
+border:none;border-radius:28px;letter-spacing:3px;cursor:pointer;
+font-family:inherit;box-shadow:0 4px 0 #402000;
 }
-#retry-btn:active{transform:translateY(2px);}
 </style>
 
 </head>
 <body>
 
-<div id="bg">
-  <div id="bg-img"></div>
-  <div id="bg-overlay"></div>
-</div>
+<div id="bg"><div id="bg-img"></div><div id="bg-overlay"></div></div>
+
+<!-- 上部HUD -->
 
 <div id="top-hud">
   <div class="status-block">
-    <div class="char-name" style="color:#e06060;">【怨霊】<span id="enemy-name">鬼火</span></div>
+    <div class="char-name" style="color:#e06060">【怨霊】<span id="enemy-name">鬼火</span></div>
     <div class="hp-wrap"><div id="hp-e-bar" class="hp-bar"></div></div>
-    <div class="hp-text"><span id="hp-e-num">100</span> / <span id="hp-e-max">100</span></div>
+    <div class="hp-text"><span id="hp-e-num">80</span> / <span id="hp-e-max">80</span></div>
     <div id="cast-gauge-wrap"><div id="cast-gauge"></div></div>
     <div class="ougi-wrap"></div>
   </div>
   <div id="center-msg">敵の攻撃に備えよ！</div>
-  <div class="status-block" style="text-align:right;">
-    <div class="char-name" style="color:#6090e0;">【術師】漢術師</div>
+  <div class="status-block" style="text-align:right">
+    <div class="char-name" style="color:#6090e0">【術師】漢術師</div>
     <div class="hp-wrap"><div id="hp-p-bar" class="hp-bar"></div></div>
     <div class="hp-text"><span id="hp-p-num">100</span> / 100</div>
     <div class="ougi-wrap"><div id="ougi-bar" class="ougi-bar"></div></div>
   </div>
 </div>
 
-<!-- portrait専用：左下に敵・右下に術師 -->
+<!-- フレックスレイアウト全体 -->
 
-<div id="portrait-chars">
-  <img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" id="portrait-enemy-img" alt="敵">
-  <img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" id="portrait-player-img" alt="術師">
+<div id="layout">
+  <div id="hud-spacer"></div>
+
+  <div id="stage">
+    <!-- portrait専用キャラ帯（landscape時はCSS非表示） -->
+    <div id="char-row">
+      <img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" alt="敵">
+      <img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" alt="術師">
+    </div>
+
+```
+<!-- landscape：左キャラ -->
+<div id="enemy-slot">
+  <div class="char-inner" id="enemy-inner">
+    <img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" alt="敵">
+  </div>
 </div>
 
-<div id="stage">
-  <!-- 左：敵（landscape） -->
-  <div class="char-slot">
-    <div class="char-inner" id="enemy-inner">
-      <img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" id="enemy-img" alt="敵">
-    </div>
+<!-- 中央 -->
+<div id="center-col">
+  <div id="question-area">
+    <div id="yomikata">読み込み中…</div>
+    <div id="mondai-bun">―――</div>
   </div>
-
-  <!-- 中央 -->
-
-  <div id="center-col">
-    <div id="question-area">
-      <div id="yomikata">読み込み中…</div>
-      <div id="mondai-bun">―――</div>
-    </div>
-    <div id="canvas-area">
-      <div id="canvas-frame">
-        <canvas id="draw-canvas"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- 右：術師（landscape） -->
-
-  <div class="char-slot">
-    <div class="char-inner" id="player-inner">
-      <img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" id="player-img" alt="術師">
+  <div id="canvas-area">
+    <div id="canvas-frame">
+      <canvas id="draw-canvas"></canvas>
     </div>
   </div>
 </div>
+
+<!-- landscape：右キャラ -->
+<div id="player-slot">
+  <div class="char-inner" id="player-inner">
+    <img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" alt="術師">
+  </div>
+</div>
+```
+
+  </div>
+
+  <!-- 下部ボタン -->
+
+  <div id="bottom-hud">
+    <div class="btn-row">
+      <button class="circle-btn fire">火</button>
+      <button class="circle-btn water">水</button>
+      <button class="circle-btn thunder">雷</button>
+      <button class="clear-btn" onclick="clearCanvas()">墨を拭く</button>
+      <button class="ougi-btn" id="ougi-btn" disabled onclick="triggerOugi()">奥義発動</button>
+    </div>
+    <button id="attack-btn" onclick="recognizeAndAttack()">漢術発動！</button>
+  </div>
+</div>
+
+<!-- 奥義エフェクト -->
 
 <div id="skill-effect">
   <div id="skill-overlay"></div>
-  <div id="skill-kanji" class="skill-kanji"></div>
+  <div class="skill-kanji" id="skill-kanji"></div>
 </div>
 
-<div id="combo-display" style="opacity:0;">
+<!-- コンボ -->
+
+<div id="combo-display" style="opacity:0">
   <div id="combo-num">0</div>
   <div id="combo-label">COMBO</div>
 </div>
 
-<div id="bottom-hud">
-  <div class="btn-row">
-    <button class="circle-btn fire">火</button>
-    <button class="circle-btn water">水</button>
-    <button class="circle-btn thunder">雷</button>
-    <button class="clear-btn" onclick="clearCanvas()">墨を拭く</button>
-    <button class="ougi-btn" id="ougi-btn" disabled onclick="triggerOugi()">奥義発動</button>
-  </div>
-  <button id="attack-btn" onclick="recognizeAndAttack()">漢術発動！</button>
-</div>
+<!-- 迎撃モーダル -->
 
 <div id="intercept-modal">
   <div id="intercept-alert">⚠ 敵の攻撃！迎撃せよ！</div>
   <div id="intercept-yomi">よみ：</div>
   <div id="intercept-mondai">―</div>
   <div id="intercept-timer-wrap"><div id="intercept-timer-bar"></div></div>
-  <div id="intercept-canvas-frame">
-    <canvas id="intercept-canvas"></canvas>
-  </div>
+  <div id="intercept-canvas-frame"><canvas id="intercept-canvas"></canvas></div>
   <div class="intercept-btns">
     <button id="intercept-clear" onclick="clearInterceptCanvas()">墨を拭く</button>
     <button id="intercept-fire" onclick="submitIntercept()">迎撃！</button>
   </div>
 </div>
+
+<!-- ゲームオーバー -->
 
 <div id="overlay">
   <div id="overlay-title">敗北…</div>
@@ -459,6 +449,19 @@ cursor:pointer;font-family:inherit;box-shadow:0 4px 0 #402000;
 </div>
 
 <script>
+// ================================================
+//  HUDスペーサー：実際のHUD高さをJSで計測して設定
+// ================================================
+function adjustLayout() {
+  const hud = document.getElementById('top-hud');
+  const spacer = document.getElementById('hud-spacer');
+  spacer.style.height = hud.getBoundingClientRect().height + 'px';
+  setTimeout(setupCanvas, 50);
+}
+
+// ================================================
+//  問題データ
+// ================================================
 const KANJI_DATA = [
   {k:'一',y:'いち',b:'___ばん大きい'},{k:'二',y:'に',b:'___かいだて'},
   {k:'三',y:'さん',b:'___びきのこぶた'},{k:'四',y:'よっつ',b:'___つのりんご'},
@@ -648,153 +651,138 @@ let state = {
   combo:0, wave:0, enemy:ENEMIES[0], gameOver:false, attackRunning:false,
 };
 
-// 向き切り替え
-function applyOrientation() {
-  const isPortrait = window.innerHeight > window.innerWidth;
-  document.getElementById('portrait-chars').style.display = isPortrait ? 'flex' : 'none';
-}
-window.addEventListener('resize', () => { applyOrientation(); setTimeout(setupCanvas, 100); });
-
 // 音
-const AC = new (window.AudioContext || window.webkitAudioContext)();
-function playTone(freq, type, dur, vol=0.3) {
-  const o = AC.createOscillator(), g = AC.createGain();
-  o.connect(g); g.connect(AC.destination);
-  o.type = type; o.frequency.value = freq;
-  g.gain.setValueAtTime(vol, AC.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001, AC.currentTime + dur);
-  o.start(); o.stop(AC.currentTime + dur);
+const AC = new (window.AudioContext||window.webkitAudioContext)();
+function playTone(f,t,d,v=0.3){
+  const o=AC.createOscillator(),g=AC.createGain();
+  o.connect(g);g.connect(AC.destination);
+  o.type=t;o.frequency.value=f;
+  g.gain.setValueAtTime(v,AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);
+  o.start();o.stop(AC.currentTime+d);
 }
-function playSE(type) {
-  if (AC.state === 'suspended') AC.resume();
-  switch(type) {
-    case 'hit':  playTone(220,'sawtooth',0.15,0.4); break;
-    case 'dmg':  playTone(150,'square',0.2,0.5); break;
-    case 'miss': playTone(180,'triangle',0.1,0.2); playTone(160,'triangle',0.15,0.2); break;
-    case 'ougi': [880,1100,1320,1760].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.3,0.5),i*80)); break;
-    case 'wave': [523,659,784].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.25),i*100)); break;
-    case 'lose': [400,320,260,200].forEach((f,i)=>setTimeout(()=>playTone(f,'sawtooth',0.4,0.4),i*150)); break;
-  }
+function playSE(t){
+  if(AC.state==='suspended')AC.resume();
+  if(t==='hit') playTone(220,'sawtooth',0.15,0.4);
+  else if(t==='dmg') playTone(150,'square',0.2,0.5);
+  else if(t==='miss'){playTone(180,'triangle',0.1,0.2);playTone(160,'triangle',0.15,0.2);}
+  else if(t==='ougi')[880,1100,1320,1760].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.3,0.5),i*80));
+  else if(t==='wave')[523,659,784].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.25),i*100));
+  else if(t==='lose')[400,320,260,200].forEach((f,i)=>setTimeout(()=>playTone(f,'sawtooth',0.4,0.4),i*150));
 }
 
 // Canvas
-const canvas = document.getElementById('draw-canvas');
-const ctx = canvas.getContext('2d');
-function setupCanvas() {
-  const r = canvas.getBoundingClientRect();
-  canvas.width  = r.width  * window.devicePixelRatio;
-  canvas.height = r.height * window.devicePixelRatio;
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  ctx.lineWidth = Math.max(10, r.width * 0.04);
-  ctx.strokeStyle = 'rgba(255,230,150,0.95)';
+const canvas=document.getElementById('draw-canvas');
+const ctx=canvas.getContext('2d');
+function setupCanvas(){
+  const r=canvas.getBoundingClientRect();
+  if(r.width===0||r.height===0)return;
+  canvas.width=r.width*devicePixelRatio;
+  canvas.height=r.height*devicePixelRatio;
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.lineWidth=Math.max(10,r.width*0.04);
+  ctx.strokeStyle='rgba(255,230,150,0.95)';
 }
-function getPos(e) {
-  const r = canvas.getBoundingClientRect();
-  const p = e.touches ? e.touches[0] : e;
-  return { x: p.clientX - r.left, y: p.clientY - r.top };
+function getPos(e){
+  const r=canvas.getBoundingClientRect(),p=e.touches?e.touches[0]:e;
+  return{x:p.clientX-r.left,y:p.clientY-r.top};
 }
-canvas.onmousedown = canvas.ontouchstart = (e) => {
-  e.preventDefault(); state.isDrawing = true;
-  const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y);
+canvas.onmousedown=canvas.ontouchstart=(e)=>{
+  e.preventDefault();state.isDrawing=true;
+  const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);
   state.inkData.push([[p.x],[p.y],[0]]);
 };
-canvas.onmousemove = canvas.ontouchmove = (e) => {
-  if (!state.isDrawing) return; e.preventDefault();
-  const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke();
-  const s = state.inkData[state.inkData.length-1];
-  s[0].push(p.x); s[1].push(p.y); s[2].push(0);
+canvas.onmousemove=canvas.ontouchmove=(e)=>{
+  if(!state.isDrawing)return;e.preventDefault();
+  const p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();
+  const s=state.inkData[state.inkData.length-1];
+  s[0].push(p.x);s[1].push(p.y);s[2].push(0);
 };
-window.onmouseup = window.ontouchend = () => { state.isDrawing = false; };
-function clearCanvas() {
-  ctx.clearRect(0,0,canvas.width/window.devicePixelRatio,canvas.height/window.devicePixelRatio);
-  state.inkData = [];
+window.onmouseup=window.ontouchend=()=>{state.isDrawing=false;};
+function clearCanvas(){
+  ctx.clearRect(0,0,canvas.width/devicePixelRatio,canvas.height/devicePixelRatio);
+  state.inkData=[];
 }
 
 // HUD
-function updateHUD() {
-  document.getElementById('hp-e-bar').style.width = Math.max(0,state.enemyHP/state.enemyMaxHP*100)+'%';
-  document.getElementById('hp-p-bar').style.width = Math.max(0,state.playerHP/state.playerMaxHP*100)+'%';
-  document.getElementById('hp-e-num').textContent = Math.max(0,state.enemyHP);
-  document.getElementById('hp-p-num').textContent = Math.max(0,state.playerHP);
-  document.getElementById('ougi-bar').style.width = state.ougiPct+'%';
-  document.getElementById('ougi-btn').disabled = state.ougiPct < 100;
+function updateHUD(){
+  document.getElementById('hp-e-bar').style.width=Math.max(0,state.enemyHP/state.enemyMaxHP*100)+'%';
+  document.getElementById('hp-p-bar').style.width=Math.max(0,state.playerHP/state.playerMaxHP*100)+'%';
+  document.getElementById('hp-e-num').textContent=Math.max(0,state.enemyHP);
+  document.getElementById('hp-p-num').textContent=Math.max(0,state.playerHP);
+  document.getElementById('ougi-bar').style.width=state.ougiPct+'%';
+  document.getElementById('ougi-btn').disabled=state.ougiPct<100;
 }
-function setMsg(txt, color='var(--kin)') {
-  const m = document.getElementById('center-msg');
-  m.textContent = txt; m.style.color = color;
+function setMsg(txt,color='var(--kin)'){
+  const m=document.getElementById('center-msg');m.textContent=txt;m.style.color=color;
 }
-function showDmg(targetId, amount, color) {
-  const d = document.createElement('div');
-  d.className = 'dmg-popup'; d.textContent = '-'+amount; d.style.color = color;
-  document.getElementById(targetId).appendChild(d);
+function showDmg(tid,amt,color){
+  const d=document.createElement('div');
+  d.className='dmg-popup';d.textContent='-'+amt;d.style.color=color;
+  document.getElementById(tid).appendChild(d);
   setTimeout(()=>d.remove(),1200);
 }
-function hitAnim(id) {
-  const el = document.getElementById(id);
+function hitAnim(id){
+  const el=document.getElementById(id);
   el.classList.add('hit-anim');
   setTimeout(()=>el.classList.remove('hit-anim'),350);
 }
-function updateCombo() {
-  const cd = document.getElementById('combo-display');
-  if (state.combo >= 2) {
-    document.getElementById('combo-num').textContent = state.combo;
-    cd.style.opacity = '1';
+function updateCombo(){
+  const cd=document.getElementById('combo-display');
+  if(state.combo>=2){
+    document.getElementById('combo-num').textContent=state.combo;
+    cd.style.opacity='1';
     setTimeout(()=>cd.style.opacity='0',2000);
-  } else { cd.style.opacity = '0'; }
+  }else{cd.style.opacity='0';}
 }
 
-function nextQuestion() {
-  state.currentQ = KANJI_DATA[Math.floor(Math.random()*KANJI_DATA.length)];
-  document.getElementById('mondai-bun').textContent = state.currentQ.b;
-  document.getElementById('yomikata').textContent = 'よみ：'+state.currentQ.y;
+function nextQuestion(){
+  state.currentQ=KANJI_DATA[Math.floor(Math.random()*KANJI_DATA.length)];
+  document.getElementById('mondai-bun').textContent=state.currentQ.b;
+  document.getElementById('yomikata').textContent='よみ：'+state.currentQ.y;
   clearCanvas();
 }
-
-function setEnemy(idx) {
-  state.enemy = ENEMIES[Math.min(idx,ENEMIES.length-1)];
-  state.enemyMaxHP = state.enemy.hp; state.enemyHP = state.enemy.hp; state.castPct = 0;
-  document.getElementById('enemy-name').textContent = state.enemy.name;
-  document.getElementById('hp-e-max').textContent = state.enemy.hp;
+function setEnemy(idx){
+  state.enemy=ENEMIES[Math.min(idx,ENEMIES.length-1)];
+  state.enemyMaxHP=state.enemy.hp;state.enemyHP=state.enemy.hp;state.castPct=0;
+  document.getElementById('enemy-name').textContent=state.enemy.name;
+  document.getElementById('hp-e-max').textContent=state.enemy.hp;
 }
 
 // 迎撃
-let interceptState = { active:false, q:{}, inkData:[], isDrawing:false, timerPct:100, timerInterval:null };
-const iCanvas = document.getElementById('intercept-canvas');
-const iCtx = iCanvas.getContext('2d');
-function setupInterceptCanvas() {
-  const r = iCanvas.getBoundingClientRect();
-  iCanvas.width = r.width*window.devicePixelRatio; iCanvas.height = r.height*window.devicePixelRatio;
-  iCtx.scale(window.devicePixelRatio,window.devicePixelRatio);
-  iCtx.lineCap='round'; iCtx.lineJoin='round';
-  iCtx.lineWidth=Math.max(10,r.width*0.05); iCtx.strokeStyle='rgba(255,180,100,0.95)';
+let iState={active:false,q:{},inkData:[],isDrawing:false,timerPct:100,timerInterval:null};
+const iCanvas=document.getElementById('intercept-canvas');
+const iCtx=iCanvas.getContext('2d');
+function setupIC(){
+  const r=iCanvas.getBoundingClientRect();
+  iCanvas.width=r.width*devicePixelRatio;iCanvas.height=r.height*devicePixelRatio;
+  iCtx.scale(devicePixelRatio,devicePixelRatio);
+  iCtx.lineCap='round';iCtx.lineJoin='round';
+  iCtx.lineWidth=Math.max(10,r.width*0.05);
+  iCtx.strokeStyle='rgba(255,180,100,0.95)';
 }
-function getIPos(e) {
-  const r=iCanvas.getBoundingClientRect(), p=e.touches?e.touches[0]:e;
-  return{x:p.clientX-r.left,y:p.clientY-r.top};
-}
-iCanvas.onmousedown = iCanvas.ontouchstart = (e) => {
-  if (!interceptState.active) return;
-  e.preventDefault(); interceptState.isDrawing=true;
-  const p=getIPos(e); iCtx.beginPath(); iCtx.moveTo(p.x,p.y);
-  interceptState.inkData.push([[p.x],[p.y],[0]]);
+function getIP(e){const r=iCanvas.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:p.clientX-r.left,y:p.clientY-r.top};}
+iCanvas.onmousedown=iCanvas.ontouchstart=(e)=>{
+  if(!iState.active)return;e.preventDefault();iState.isDrawing=true;
+  const p=getIP(e);iCtx.beginPath();iCtx.moveTo(p.x,p.y);
+  iState.inkData.push([[p.x],[p.y],[0]]);
 };
-iCanvas.onmousemove = iCanvas.ontouchmove = (e) => {
-  if (!interceptState.isDrawing) return; e.preventDefault();
-  const p=getIPos(e); iCtx.lineTo(p.x,p.y); iCtx.stroke();
-  const s=interceptState.inkData[interceptState.inkData.length-1];
-  s[0].push(p.x); s[1].push(p.y); s[2].push(0);
+iCanvas.onmousemove=iCanvas.ontouchmove=(e)=>{
+  if(!iState.isDrawing)return;e.preventDefault();
+  const p=getIP(e);iCtx.lineTo(p.x,p.y);iCtx.stroke();
+  const s=iState.inkData[iState.inkData.length-1];s[0].push(p.x);s[1].push(p.y);s[2].push(0);
 };
-window.addEventListener('mouseup', ()=>{ interceptState.isDrawing=false; });
-window.addEventListener('touchend',()=>{ interceptState.isDrawing=false; });
-function clearInterceptCanvas() {
-  iCtx.clearRect(0,0,iCanvas.width/window.devicePixelRatio,iCanvas.height/window.devicePixelRatio);
-  interceptState.inkData=[];
+window.addEventListener('mouseup',()=>{iState.isDrawing=false;});
+window.addEventListener('touchend',()=>{iState.isDrawing=false;});
+function clearInterceptCanvas(){
+  iCtx.clearRect(0,0,iCanvas.width/devicePixelRatio,iCanvas.height/devicePixelRatio);
+  iState.inkData=[];
 }
-function openIntercept() {
-  interceptState.active=true; interceptState.timerPct=100;
-  let q; do { q=KANJI_DATA[Math.floor(Math.random()*KANJI_DATA.length)]; } while(q.k===state.currentQ.k);
-  interceptState.q=q;
+function openIntercept(){
+  iState.active=true;iState.timerPct=100;
+  let q;do{q=KANJI_DATA[Math.floor(Math.random()*KANJI_DATA.length)];}while(q.k===state.currentQ.k);
+  iState.q=q;
   document.getElementById('intercept-yomi').textContent='よみ：'+q.y;
   document.getElementById('intercept-mondai').textContent=q.b;
   document.getElementById('intercept-timer-bar').style.width='100%';
@@ -802,114 +790,114 @@ function openIntercept() {
   document.getElementById('intercept-modal').classList.add('active');
   playSE('dmg');
   const step=100/(3000/100);
-  interceptState.timerInterval=setInterval(()=>{
-    interceptState.timerPct-=step;
-    document.getElementById('intercept-timer-bar').style.width=Math.max(0,interceptState.timerPct)+'%';
-    if (interceptState.timerPct<=0) { clearInterval(interceptState.timerInterval); closeIntercept(false); }
+  iState.timerInterval=setInterval(()=>{
+    iState.timerPct-=step;
+    document.getElementById('intercept-timer-bar').style.width=Math.max(0,iState.timerPct)+'%';
+    if(iState.timerPct<=0){clearInterval(iState.timerInterval);closeIntercept(false);}
   },100);
-  setTimeout(()=>setupInterceptCanvas(),50);
+  setTimeout(()=>setupIC(),50);
 }
-function closeIntercept(success) {
-  clearInterval(interceptState.timerInterval);
-  interceptState.active=false; interceptState.isDrawing=false;
+function closeIntercept(success){
+  clearInterval(iState.timerInterval);
+  iState.active=false;iState.isDrawing=false;
   document.getElementById('intercept-modal').classList.remove('active');
-  if (success) { playSE('hit'); setMsg('迎撃成功！攻撃を防いだ！','#88ff88'); resetCastGauge(); }
-  else {
-    const dmg=state.enemy.atk; state.playerHP-=dmg;
-    hitAnim('player-inner'); showDmg('player-inner',dmg,'#ff6060');
-    playSE('dmg'); setMsg('迎撃失敗…！ -'+dmg+'ダメージ！','#ff6060');
-    resetCastGauge(); updateHUD();
-    if (state.playerHP<=0) endGame(false);
+  if(success){playSE('hit');setMsg('迎撃成功！攻撃を防いだ！','#88ff88');resetCastGauge();}
+  else{
+    const dmg=state.enemy.atk;state.playerHP-=dmg;
+    hitAnim('player-inner');showDmg('player-inner',dmg,'#ff6060');
+    playSE('dmg');setMsg('迎撃失敗…！ -'+dmg+'ダメージ！','#ff6060');
+    resetCastGauge();updateHUD();
+    if(state.playerHP<=0)endGame(false);
   }
 }
-async function submitIntercept() {
-  if (!interceptState.active||interceptState.inkData.length===0) return;
-  clearInterval(interceptState.timerInterval);
-  try {
+async function submitIntercept(){
+  if(!iState.active||iState.inkData.length===0)return;
+  clearInterval(iState.timerInterval);
+  try{
     const res=await fetch("https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test",{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({"app_version":0.4,"requests":[{"ink":interceptState.inkData,"language":"ja"}]})
+      body:JSON.stringify({"app_version":0.4,"requests":[{"ink":iState.inkData,"language":"ja"}]})
     });
     const data=await res.json();
-    closeIntercept(data[1][0][1].includes(interceptState.q.k));
-  } catch(e) { closeIntercept(false); }
+    closeIntercept(data[1][0][1].includes(iState.q.k));
+  }catch(e){closeIntercept(false);}
 }
 
-function resetCastGauge() {
+function resetCastGauge(){
   state.castPct=0;
   const g=document.getElementById('cast-gauge');
-  g.style.width='0%'; g.classList.remove('warn','danger');
+  g.style.width='0%';g.classList.remove('warn','danger');
 }
 setInterval(()=>{
-  if (state.gameOver||interceptState.active) return;
+  if(state.gameOver||iState.active)return;
   state.castPct+=state.enemy.speed;
   const g=document.getElementById('cast-gauge');
-  if (state.castPct>=90){g.classList.add('danger');g.classList.remove('warn');}
-  else if (state.castPct>=70){g.classList.add('warn');g.classList.remove('danger');}
+  if(state.castPct>=90){g.classList.add('danger');g.classList.remove('warn');}
+  else if(state.castPct>=70){g.classList.add('warn');g.classList.remove('danger');}
   else{g.classList.remove('warn','danger');}
   g.style.width=Math.min(state.castPct,100)+'%';
-  if (state.castPct>=100){state.castPct=0;g.style.width='0%';g.classList.remove('warn','danger');openIntercept();}
+  if(state.castPct>=100){state.castPct=0;g.style.width='0%';g.classList.remove('warn','danger');openIntercept();}
 },100);
 
-async function recognizeAndAttack() {
-  if (state.gameOver||state.attackRunning) return;
-  if (state.inkData.length===0){setMsg('まず漢字を書け！','#aaa');return;}
+async function recognizeAndAttack(){
+  if(state.gameOver||state.attackRunning)return;
+  if(state.inkData.length===0){setMsg('まず漢字を書け！','#aaa');return;}
   state.attackRunning=true;
   document.getElementById('attack-btn').textContent='判定中…';
-  try {
+  try{
     const res=await fetch("https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test",{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({"app_version":0.4,"requests":[{"ink":state.inkData,"language":"ja"}]})
     });
     const data=await res.json();
     const cands=data[1][0][1];
-    if (cands.includes(state.currentQ.k)) {
-      state.combo++; const dmg=20+state.combo*3; state.enemyHP-=dmg;
+    if(cands.includes(state.currentQ.k)){
+      state.combo++;const dmg=20+state.combo*3;state.enemyHP-=dmg;
       state.ougiPct=Math.min(100,state.ougiPct+15);
-      hitAnim('enemy-inner'); showDmg('enemy-inner',dmg,'var(--kin)');
-      playSE('hit'); setMsg('漢術成功！'+dmg+'ダメージ！詠唱を断つ！','var(--kin2)');
-      resetCastGauge(); updateCombo();
-      if (state.enemyHP<=0) setTimeout(()=>nextWave(),800);
-    } else { state.combo=0; playSE('miss'); setMsg('不発…！正解は「'+state.currentQ.k+'」','#ff8888'); }
+      hitAnim('enemy-inner');showDmg('enemy-inner',dmg,'var(--kin)');
+      playSE('hit');setMsg('漢術成功！'+dmg+'ダメージ！','var(--kin2)');
+      resetCastGauge();updateCombo();
+      if(state.enemyHP<=0)setTimeout(()=>nextWave(),800);
+    }else{state.combo=0;playSE('miss');setMsg('不発…！正解は「'+state.currentQ.k+'」','#ff8888');}
     updateHUD();
-  } catch(e){setMsg('通信エラー…もう一度','#aaa');}
+  }catch(e){setMsg('通信エラー…もう一度','#aaa');}
   document.getElementById('attack-btn').textContent='漢術発動！';
-  state.attackRunning=false; nextQuestion();
+  state.attackRunning=false;nextQuestion();
 }
 
-function triggerOugi() {
-  if (state.ougiPct<100||state.gameOver) return;
-  state.ougiPct=0; updateHUD();
+function triggerOugi(){
+  if(state.ougiPct<100||state.gameOver)return;
+  state.ougiPct=0;updateHUD();
   document.getElementById('skill-kanji').textContent=state.currentQ.k||'道';
   document.getElementById('skill-effect').classList.add('active');
-  playSE('ougi'); resetCastGauge();
+  playSE('ougi');resetCastGauge();
   const dmg=50+Math.floor(Math.random()*30);
   setTimeout(()=>{
-    state.enemyHP-=dmg; hitAnim('enemy-inner'); showDmg('enemy-inner',dmg,'#c090ff');
-    setMsg('奥義発動！'+dmg+'の大ダメージ！！','#c090ff'); updateHUD();
-    if (state.enemyHP<=0) setTimeout(()=>nextWave(),800);
+    state.enemyHP-=dmg;hitAnim('enemy-inner');showDmg('enemy-inner',dmg,'#c090ff');
+    setMsg('奥義発動！'+dmg+'の大ダメージ！！','#c090ff');updateHUD();
+    if(state.enemyHP<=0)setTimeout(()=>nextWave(),800);
   },600);
   setTimeout(()=>document.getElementById('skill-effect').classList.remove('active'),1600);
   nextQuestion();
 }
 
-function nextWave() {
+function nextWave(){
   state.wave++;
-  if (state.wave>=ENEMIES.length){endGame(true);return;}
-  setEnemy(state.wave); playSE('wave');
+  if(state.wave>=ENEMIES.length){endGame(true);return;}
+  setEnemy(state.wave);playSE('wave');
   setMsg(state.wave+'波目！「'+state.enemy.name+'」が現れた！','#ffaa44');
   nextQuestion();
 }
 
-function endGame(win) {
+function endGame(win){
   state.gameOver=true;
   document.getElementById('overlay').classList.add('show');
-  if (win){
+  if(win){
     document.getElementById('overlay-title').textContent='勝利！';
     document.getElementById('overlay-title').style.color='var(--kin)';
     document.getElementById('overlay-sub').textContent='怨霊をすべて浄化した！';
     playSE('wave');
-  } else {
+  }else{
     document.getElementById('overlay-title').textContent='敗北…';
     document.getElementById('overlay-title').style.color='#e06060';
     document.getElementById('overlay-sub').textContent='また挑め、術師よ';
@@ -917,15 +905,17 @@ function endGame(win) {
   }
 }
 
-function resetGame() {
+function resetGame(){
   state.playerHP=100;state.castPct=0;state.ougiPct=0;
   state.combo=0;state.wave=0;state.gameOver=false;state.attackRunning=false;
   document.getElementById('overlay').classList.remove('show');
   setEnemy(0);updateHUD();nextQuestion();setMsg('敵の攻撃に備えよ！');
 }
 
-window.onload = () => {
-  setupCanvas(); setEnemy(0); updateHUD(); nextQuestion(); applyOrientation();
+window.addEventListener('resize',()=>{adjustLayout();});
+window.onload=()=>{
+  adjustLayout();
+  setEnemy(0);updateHUD();nextQuestion();
 };
 </script>
 
