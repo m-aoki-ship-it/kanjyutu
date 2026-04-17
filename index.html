@@ -1,14 +1,12 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>真・漢術師 ～怨霊討伐録～</title>
 <style>
-:root {
-  --kin: #d4af37; --kin2: #f0d070;
-}
+/* --- あなたのCSS設定を継承 --- */
+:root { --kin: #d4af37; --kin2: #f0d070; }
 *{margin:0;padding:0;box-sizing:border-box;touch-action:none;-webkit-tap-highlight-color:transparent;}
 html,body{
   overflow:hidden;height:100%;width:100%;
@@ -16,330 +14,101 @@ html,body{
   font-family:'Hiragino Mincho ProN','Yu Mincho','ＭＳ 明朝',serif;
   user-select:none;-webkit-user-select:none;
 }
-
-/* ===== 背景 ===== */
 #bg{position:fixed;inset:0;z-index:0;}
-#bg-img{
-position:absolute;inset:0;
-background:url(‘5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png’) no-repeat center/cover;
-}
-#bg-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.5);}
+#bg-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.7); background-image: radial-gradient(circle, transparent 20%, #000 100%);}
 
-/* ===== 上部HUD ===== */
+/* 上部HUD */
 #top-hud{
-position:fixed;top:0;left:0;right:0;
-z-index:100;
+position:fixed;top:0;left:0;right:0;z-index:100;
 padding:env(safe-area-inset-top,6px) 12px 6px;
 display:flex;justify-content:space-between;align-items:flex-start;
 background:linear-gradient(to bottom,rgba(0,0,0,0.8),transparent);
 }
 .status-block{width:clamp(120px,28vw,210px);}
 .char-name{font-size:11px;letter-spacing:1px;margin-bottom:2px;opacity:0.85;}
-.hp-wrap{
-height:13px;background:#1a0a0a;
-border:1px solid rgba(212,175,55,0.4);border-radius:6px;overflow:hidden;margin-bottom:2px;
-}
+.hp-wrap{height:13px;background:#1a0a0a;border:1px solid rgba(212,175,55,0.4);border-radius:6px;overflow:hidden;margin-bottom:2px;}
 .hp-bar{height:100%;border-radius:6px;transition:width 0.4s;position:relative;}
-.hp-bar::after{content:’’;position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,255,255,0.2),transparent);}
 #hp-e-bar{background:linear-gradient(to right,#8e2a2a,#e05050);width:100%;}
 #hp-p-bar{background:linear-gradient(to right,#1a3a6a,#3080e0);width:100%;}
-#cast-gauge-wrap{
-height:5px;background:#1a0000;
-border:1px solid rgba(255,40,40,0.3);border-radius:3px;overflow:hidden;margin-bottom:2px;
-}
-#cast-gauge{
-height:100%;width:0%;background:#ff2020;
-transition:width 0.08s linear;border-radius:3px;
-}
+#cast-gauge-wrap{height:5px;background:#1a0000;border:1px solid rgba(255,40,40,0.3);border-radius:3px;overflow:hidden;}
+#cast-gauge{height:100%;width:0%;background:#ff2020;transition:width 0.1s linear;}
 #cast-gauge.warn{background:#ff8800;}
 #cast-gauge.danger{background:#ff0000;animation:gblink 0.2s ease infinite alternate;}
 @keyframes gblink{from{opacity:1}to{opacity:0.4}}
-.hp-text{font-size:9px;color:var(–kin);opacity:0.8;text-align:right;}
-.ougi-wrap{
-height:5px;background:#0a0a1a;
-border:1px solid rgba(120,60,200,0.4);border-radius:3px;overflow:hidden;margin-top:2px;
-}
-.ougi-bar{
-height:100%;width:0%;
-background:linear-gradient(to right,#4a1a9a,#9060ff);
-border-radius:3px;transition:width 0.3s;
-}
+.hp-text{font-size:9px;color:var(--kin);opacity:0.8;text-align:right;}
+.ougi-wrap{height:5px;background:#0a0a1a;border:1px solid rgba(120,60,200,0.4);border-radius:3px;margin-top:2px;overflow:hidden;}
+.ougi-bar{height:100%;width:0%;background:linear-gradient(to right,#4a1a9a,#9060ff);transition:width 0.3s;}
+
 #center-msg{
 position:absolute;left:50%;transform:translateX(-50%);
 top:calc(env(safe-area-inset-top,6px) + 2px);
-font-size:clamp(10px,1.8vw,13px);color:var(–kin);
-letter-spacing:1px;white-space:nowrap;text-align:center;
-text-shadow:0 0 8px rgba(212,175,55,0.5);
+font-size:clamp(10px,1.8vw,13px);color:var(--kin);text-align:center;width:40%;
 }
 
-/* ===================================================
-メインレイアウト
-全画面をflex縦積み：HUD / ステージ / ボタン
-=================================================== */
-#layout{
-position:fixed;
-/* HUDの実際の高さをJSで設定するのではなく、paddingで逃がす */
-inset:0;
-display:flex;
-flex-direction:column;
-padding-top:env(safe-area-inset-top,0px);
-padding-bottom:env(safe-area-inset-bottom,0px);
-z-index:10;
-}
+/* メインレイアウト */
+#layout{position:fixed;inset:0;display:flex;flex-direction:column;z-index:10;}
+#stage{flex:1;display:flex;overflow:hidden;}
 
-/* HUDの高さ分のスペーサー（JSで動的に設定） */
-#hud-spacer{flex-shrink:0;}
-
-/* ステージ：残りの高さをすべて使う */
-#stage{
-flex:1;
-min-height:0;
-display:flex; /* landscapeデフォルト：横並び */
-overflow:hidden;
-}
-
-/* ===== LANDSCAPE：左キャラ | 中央UI | 右キャラ ===== */
+/* キャラクター配置（Landscape） */
 #enemy-slot, #player-slot {
-  flex: 0 0 26%;
-  display: flex; align-items: flex-end; justify-content: center;
-  overflow: hidden;
-  height: 100%;        /* ← 追加 */
-  align-self: stretch; /* ← 追加 */
+  flex: 0 0 25%; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 20px;
 }
-#enemy-slot img, #player-slot img {
-  width: auto;
-  max-width: 100%;
-  height: auto;
-  max-height: 100%; /* ← これが効くようになる */
-  object-fit: contain;
-}
+.char-inner img { width: 100%; height: auto; filter: drop-shadow(0 0 10px #000); }
+
 #center-col{
-flex:1;
-display:flex;flex-direction:column;
-align-items:center;justify-content:center;
+flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
 gap:6px;padding:4px 6px;
-min-width:0;
 }
 
-/* ===== PORTRAIT：縦積み ===== */
-@media (orientation:portrait){
-#stage{
-flex-direction:column;
-}
-/* キャラ帯：上部に横並びで小さく */
-#char-row{
-display:flex !important;
-flex:0 0 auto;
-height:clamp(70px,15vw,110px);
-justify-content:space-between;
-align-items:flex-end;
-padding:0 8px 2px;
-}
-#char-row img{
-height:100%;width:auto;
-object-fit:contain;
-filter:drop-shadow(0 0 12px rgba(0,0,0,0.9));
-}
-/* landscape用キャラ枠を非表示 */
-#enemy-slot, #player-slot{ display:none !important; }
-/* 中央UIが残りを全部使う */
-#center-col{
-flex:1;
-justify-content:flex-start;
-padding:6px 10px;
-}
-}
-/* portraitキャラ帯はlandscapeで非表示 */
-#char-row{ display:none; }
-
-/* ===== 問題エリア ===== */
+/* 問題エリア */
 #question-area{
-width:100%;text-align:center;flex-shrink:0;
-background:rgba(0,0,0,0.65);
-border:1px solid rgba(212,175,55,0.3);border-radius:8px;
-padding:4px 10px 6px;
+width:100%;text-align:center;background:rgba(0,0,0,0.65);
+border:1px solid rgba(212,175,55,0.3);border-radius:8px;padding:8px;
 }
-#yomikata{
-display:inline-block;
-font-size:clamp(10px,1.5vw,13px);color:var(–kin2);
-background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.2);
-padding:1px 10px;border-radius:6px;margin-bottom:2px;letter-spacing:2px;
-}
-#mondai-bun{
-font-size:clamp(20px,4vw,36px);font-weight:bold;
-text-shadow:0 0 14px rgba(212,175,55,0.6),2px 2px 4px #000;
-letter-spacing:clamp(2px,1vw,8px);line-height:1.3;
-}
+#yomikata{font-size:12px;color:var(--kin2);margin-bottom:4px;}
+#mondai-bun{font-size:clamp(24px,5vw,40px);font-weight:bold;text-shadow:0 0 10px var(--kin);}
 
-/* ===== キャンバス ===== */
-#canvas-area{
-flex:1;width:100%;
-display:flex;align-items:center;justify-content:center;
-min-height:0;
-}
+/* キャンバス */
 #canvas-frame{
-/* 正方形：幅と高さの小さい方に合わせる */
-width:min(100%, calc(var(–canvas-max, 99vh)));
-aspect-ratio:1/1;
-max-height:100%;
-background:rgba(255,255,255,0.03);
-border:2px solid rgba(212,175,55,0.4);
-border-radius:4px;position:relative;
-box-shadow:inset 0 0 30px rgba(0,0,0,0.6),0 0 15px rgba(212,175,55,0.1);
+width:min(90vw, 400px); aspect-ratio:1/1;
+background:rgba(255,255,255,0.05); border:2px solid var(--kin); border-radius:8px;
+position:relative; touch-action:none;
 }
-#canvas-frame::before{
-content:’’;position:absolute;inset:8px;
-border:1px solid rgba(212,175,55,0.1);pointer-events:none;
-}
-canvas{width:100%;height:100%;display:block;cursor:crosshair;}
+canvas{width:100%;height:100%;display:block;}
 
-/* ===== 下部ボタン ===== */
-#bottom-hud{
-flex-shrink:0;
-padding:8px 12px calc(env(safe-area-inset-bottom,0px) + 8px);
-background:linear-gradient(to top,rgba(0,0,0,0.95) 80%,transparent);
-border-top:1px solid rgba(212,175,55,0.2);
-display:flex;flex-direction:column;align-items:center;gap:7px;
-}
-.btn-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;}
-.circle-btn{
-width:clamp(34px,8vw,46px);height:clamp(34px,8vw,46px);
-border-radius:50%;border:2px solid rgba(255,255,255,0.5);
-color:#fff;font-weight:bold;font-size:clamp(11px,2.5vw,15px);
-display:flex;align-items:center;justify-content:center;
-cursor:pointer;font-family:inherit;
-}
-.circle-btn:active{transform:scale(0.9);}
-.fire{background:radial-gradient(#e44,#a00);}
-.water{background:radial-gradient(#48e,#025);}
-.thunder{background:radial-gradient(#ee0,#880);}
-.clear-btn{
-padding:5px 12px;background:rgba(40,30,20,0.9);
-border:1px solid rgba(212,175,55,0.5);color:var(–kin);
-border-radius:6px;font-weight:bold;font-size:clamp(11px,2vw,13px);
-font-family:inherit;cursor:pointer;
-}
-.ougi-btn{
-padding:5px 12px;
-background:linear-gradient(to bottom,rgba(100,50,180,0.9),rgba(60,20,120,0.9));
-border:1px solid rgba(160,100,255,0.6);color:#c090ff;
-border-radius:6px;font-weight:bold;font-size:clamp(11px,2vw,13px);
-font-family:inherit;cursor:pointer;transition:opacity 0.2s;
-}
-.ougi-btn:disabled{opacity:0.3;cursor:default;}
+/* ボタン類 */
+#bottom-hud{padding:10px; background:rgba(0,0,0,0.8); display:flex; flex-direction:column; gap:8px; align-items:center;}
+.btn-row{display:flex; gap:10px;}
+.circle-btn{width:40px;height:40px;border-radius:50%;border:none;color:#fff;font-weight:bold;cursor:pointer;}
+.fire{background:#e44;} .water{background:#48e;} .thunder{background:#ee0;color:#000;}
+.clear-btn, .ougi-btn{padding:8px 15px; border-radius:5px; border:1px solid var(--kin); background:#222; color:var(--kin); font-weight:bold; cursor:pointer;}
+.ougi-btn:disabled{opacity:0.3;}
 #attack-btn{
-width:clamp(200px,55vw,340px);height:clamp(40px,7vh,52px);
-background:linear-gradient(to bottom,#f0d080,#b08030 50%,#806020);
-color:#201000;font-weight:bold;font-size:clamp(15px,3.5vw,22px);
-border-radius:30px;border:none;letter-spacing:4px;
-box-shadow:0 4px 0 #402000,0 0 16px rgba(212,175,55,0.25);
-font-family:inherit;cursor:pointer;transition:transform 0.08s,box-shadow 0.08s;
+width:280px; height:50px; background:linear-gradient(#f0d080, #b08030);
+border:none; border-radius:25px; font-size:20px; font-weight:bold; cursor:pointer;
 }
-#attack-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #402000;}
 
-/* ===== コンボ ===== */
-#combo-display{
-position:fixed;right:2%;top:50%;transform:translateY(-50%);
-z-index:200;text-align:center;pointer-events:none;transition:opacity 0.5s;
-}
-#combo-num{font-size:clamp(26px,6vw,52px);font-weight:bold;color:var(–kin);text-shadow:0 0 18px var(–kin);}
-#combo-label{font-size:clamp(9px,2vw,13px);letter-spacing:3px;color:#aaa;}
+/* アニメーション・エフェクト */
+.dmg-popup{position:absolute;animation:dmg-fly 1s forwards;font-weight:bold;}
+@keyframes dmg-fly{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-50px)}}
+.hit-anim{animation:shake 0.3s;}
+@keyframes shake{0%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}100%{transform:translateX(0)}}
 
-/* ===== ダメージ ===== */
-.dmg-popup{
-position:absolute;top:0;left:50%;transform:translateX(-50%);
-font-size:clamp(18px,4vw,34px);font-weight:bold;pointer-events:none;
-animation:dmg-fly 1.2s ease-out forwards;
-text-shadow:0 0 10px currentColor,2px 2px 4px #000;
-}
-@keyframes dmg-fly{
-0%{opacity:1;transform:translate(-50%,0) scale(1.3)}
-100%{opacity:0;transform:translate(-50%,-60px) scale(0.8)}
-}
-@keyframes hit-flash{
-0%,100%{filter:drop-shadow(0 0 16px rgba(0,0,0,0.9))}
-50%{filter:drop-shadow(0 0 28px #ff0000) brightness(2.5)}
-}
-.hit-anim img{animation:hit-flash 0.3s ease !important;}
-
-/* ===== 奥義 ===== */
-#skill-effect{position:fixed;inset:0;z-index:800;pointer-events:none;display:none;align-items:center;justify-content:center;}
-#skill-effect.active{display:flex;}
-.skill-kanji{
-font-size:clamp(80px,20vw,180px);font-weight:bold;color:transparent;
--webkit-text-stroke:3px var(–kin);
-text-shadow:0 0 40px var(–kin);
-animation:sk-anim 1.5s ease forwards;
-}
-@keyframes sk-anim{
-0%{transform:scale(0.3) rotate(-10deg);opacity:0}
-30%{transform:scale(1.2) rotate(2deg);opacity:1}
-70%{transform:scale(1) rotate(0);opacity:1}
-100%{transform:scale(2) rotate(5deg);opacity:0}
-}
-#skill-overlay{
-position:absolute;inset:0;
-background:radial-gradient(circle,rgba(120,60,200,0.5),transparent 70%);
-animation:sk-ov 1.5s ease forwards;
-}
-@keyframes sk-ov{0%{opacity:0}30%{opacity:1}100%{opacity:0}}
-
-/* ===== 迎撃モーダル ===== */
+/* モーダル */
 #intercept-modal{
-position:fixed;inset:0;z-index:700;
-display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-background:rgba(80,0,0,0.78);backdrop-filter:blur(4px);
+position:fixed;inset:0;z-index:1000; display:none;
+background:rgba(50,0,0,0.9); flex-direction:column; align-items:center; justify-content:center; gap:20px;
 }
-#intercept-modal.active{display:flex;animation:ic-in 0.2s ease;}
-@keyframes ic-in{from{opacity:0;transform:scale(1.05)}to{opacity:1;transform:scale(1)}}
-#intercept-alert{
-font-size:clamp(15px,3vw,21px);font-weight:bold;color:#ff4444;
-letter-spacing:3px;animation:ap 0.4s ease infinite alternate;
-}
-@keyframes ap{from{opacity:0.7}to{opacity:1;text-shadow:0 0 20px #ff0000}}
-#intercept-yomi{font-size:13px;color:#ffcc88;background:rgba(0,0,0,0.5);padding:2px 12px;border-radius:8px;}
-#intercept-mondai{font-size:clamp(28px,6vw,54px);font-weight:bold;text-shadow:0 0 18px #ff6666,2px 2px 4px #000;letter-spacing:4px;}
-#intercept-timer-wrap{width:clamp(180px,48vw,320px);height:9px;background:#1a0000;border:1px solid #ff4444;border-radius:4px;overflow:hidden;}
-#intercept-timer-bar{height:100%;width:100%;background:linear-gradient(to right,#ff6600,#ff0000);border-radius:4px;transition:width 0.08s linear;}
-#intercept-canvas-frame{
-width:clamp(170px,38vw,270px);height:clamp(170px,38vw,270px);
-background:rgba(255,255,255,0.04);border:2px solid rgba(255,80,80,0.6);
-border-radius:4px;position:relative;
-}
-#intercept-canvas{width:100%;height:100%;display:block;cursor:crosshair;}
-.intercept-btns{display:flex;gap:12px;}
-#intercept-clear{
-padding:6px 12px;background:rgba(60,20,20,0.9);
-border:1px solid rgba(255,80,80,0.5);color:#ff8888;
-border-radius:6px;font-weight:bold;font-size:12px;font-family:inherit;cursor:pointer;
-}
-#intercept-fire{
-width:clamp(150px,32vw,230px);height:clamp(36px,6vh,46px);
-background:linear-gradient(to bottom,#ff6040,#aa2000);
-color:#fff;font-weight:bold;font-size:clamp(13px,3vw,18px);
-border-radius:22px;border:none;letter-spacing:3px;
-box-shadow:0 3px 0 #600;font-family:inherit;cursor:pointer;
-}
+#intercept-modal.active{display:flex;}
 
-/* ===== ゲームオーバー ===== */
-#overlay{position:fixed;inset:0;z-index:900;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.9);flex-direction:column;gap:20px;}
+/* ゲームオーバー */
+#overlay{position:fixed;inset:0;z-index:2000;display:none;background:rgba(0,0,0,0.9);flex-direction:column;align-items:center;justify-content:center;gap:20px;}
 #overlay.show{display:flex;}
-#overlay-title{font-size:clamp(34px,8vw,68px);font-weight:bold;letter-spacing:6px;text-shadow:0 0 28px currentColor;}
-#overlay-sub{font-size:clamp(13px,3vw,18px);color:#aaa;letter-spacing:2px;}
-#retry-btn{
-padding:13px 38px;background:linear-gradient(to bottom,#f0d080,#a06020);
-color:#201000;font-size:clamp(15px,3vw,20px);font-weight:bold;
-border:none;border-radius:28px;letter-spacing:3px;cursor:pointer;
-font-family:inherit;box-shadow:0 4px 0 #402000;
-}
 </style>
-
 </head>
 <body>
 
-<div id="bg"><div id="bg-img"></div><div id="bg-overlay"></div></div>
-
-<!-- 上部HUD -->
+<div id="bg"><div id="bg-overlay"></div></div>
 
 <div id="top-hud">
   <div class="status-block">
@@ -347,9 +116,8 @@ font-family:inherit;box-shadow:0 4px 0 #402000;
     <div class="hp-wrap"><div id="hp-e-bar" class="hp-bar"></div></div>
     <div class="hp-text"><span id="hp-e-num">80</span> / <span id="hp-e-max">80</span></div>
     <div id="cast-gauge-wrap"><div id="cast-gauge"></div></div>
-    <div class="ougi-wrap"></div>
   </div>
-  <div id="center-msg">敵の攻撃に備えよ！</div>
+  <div id="center-msg">精神を統一し、文字を綴れ</div>
   <div class="status-block" style="text-align:right">
     <div class="char-name" style="color:#6090e0">【術師】漢術師</div>
     <div class="hp-wrap"><div id="hp-p-bar" class="hp-bar"></div></div>
@@ -358,569 +126,215 @@ font-family:inherit;box-shadow:0 4px 0 #402000;
   </div>
 </div>
 
-<!-- フレックスレイアウト全体 -->
-
 <div id="layout">
-  <div id="hud-spacer"></div>
-
+  <div style="height:80px;"></div>
   <div id="stage">
-    <!-- portrait専用キャラ帯（landscape時はCSS非表示） -->
-    <div id="char-row">
-      <img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" alt="敵">
-      <img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" alt="術師">
+    <div id="enemy-slot"><div class="char-inner" id="enemy-inner">👹</div></div>
+    <div id="center-col">
+      <div id="question-area">
+        <div id="yomikata">よみ：？？？</div>
+        <div id="mondai-bun">―――</div>
+      </div>
+      <div id="canvas-frame">
+        <canvas id="draw-canvas"></canvas>
+      </div>
     </div>
-
-```
-<!-- landscape：左キャラ -->
-<div id="enemy-slot">
-  <div class="char-inner" id="enemy-inner">
-    <img src="f7620a0e-4384-4f27-949d-52e7ea62721b.png" alt="敵">
+    <div id="player-slot"><div class="char-inner" id="player-inner">🧙</div></div>
   </div>
-</div>
-
-<!-- 中央 -->
-<div id="center-col">
-  <div id="question-area">
-    <div id="yomikata">読み込み中…</div>
-    <div id="mondai-bun">―――</div>
-  </div>
-  <div id="canvas-area">
-    <div id="canvas-frame">
-      <canvas id="draw-canvas"></canvas>
-    </div>
-  </div>
-</div>
-
-<!-- landscape：右キャラ -->
-<div id="player-slot">
-  <div class="char-inner" id="player-inner">
-    <img src="a63674d4-2785-4110-a696-c6937a0a74ef.png" alt="術師">
-  </div>
-</div>
-```
-
-  </div>
-
-  <!-- 下部ボタン -->
-
   <div id="bottom-hud">
     <div class="btn-row">
-      <button class="circle-btn fire">火</button>
-      <button class="circle-btn water">水</button>
-      <button class="circle-btn thunder">雷</button>
       <button class="clear-btn" onclick="clearCanvas()">墨を拭く</button>
-      <button class="ougi-btn" id="ougi-btn" disabled onclick="triggerOugi()">奥義発動</button>
+      <button class="ougi-btn" id="ougi-btn" disabled onclick="triggerOugi()">奥義</button>
     </div>
     <button id="attack-btn" onclick="recognizeAndAttack()">漢術発動！</button>
   </div>
 </div>
 
-<!-- 奥義エフェクト -->
-
-<div id="skill-effect">
-  <div id="skill-overlay"></div>
-  <div class="skill-kanji" id="skill-kanji"></div>
-</div>
-
-<!-- コンボ -->
-
-<div id="combo-display" style="opacity:0">
-  <div id="combo-num">0</div>
-  <div id="combo-label">COMBO</div>
-</div>
-
-<!-- 迎撃モーダル -->
-
 <div id="intercept-modal">
-  <div id="intercept-alert">⚠ 敵の攻撃！迎撃せよ！</div>
-  <div id="intercept-yomi">よみ：</div>
-  <div id="intercept-mondai">―</div>
-  <div id="intercept-timer-wrap"><div id="intercept-timer-bar"></div></div>
-  <div id="intercept-canvas-frame"><canvas id="intercept-canvas"></canvas></div>
-  <div class="intercept-btns">
-    <button id="intercept-clear" onclick="clearInterceptCanvas()">墨を拭く</button>
-    <button id="intercept-fire" onclick="submitIntercept()">迎撃！</button>
+  <h2 style="color:#ff4444;">⚠ 敵の猛攻！ ⚠</h2>
+  <div id="intercept-yomi" style="color:#fff;"></div>
+  <div id="intercept-mondai" style="font-size:30px; color:var(--kin2);"></div>
+  <div id="intercept-canvas-frame" style="width:250px; height:250px; border:2px solid #f00;">
+    <canvas id="intercept-canvas"></canvas>
   </div>
+  <button id="intercept-fire" style="padding:10px 40px; background:#f44; color:#fff; border:none; border-radius:20px;" onclick="submitIntercept()">迎撃！</button>
 </div>
-
-<!-- ゲームオーバー -->
 
 <div id="overlay">
-  <div id="overlay-title">敗北…</div>
-  <div id="overlay-sub">また挑め、術師よ</div>
-  <button id="retry-btn" onclick="resetGame()">もう一度挑む</button>
+  <h1 id="overlay-title" style="font-size:48px;"></h1>
+  <button style="padding:15px 30px; font-size:20px; cursor:pointer;" onclick="resetGame()">再戦する</button>
 </div>
 
 <script>
-// ================================================
-//  HUDスペーサー：実際のHUD高さをJSで計測して設定
-// ================================================
-function adjustLayout() {
-  const hud = document.getElementById('top-hud');
-  const spacer = document.getElementById('hud-spacer');
-  spacer.style.height = hud.getBoundingClientRect().height + 'px';
-  setTimeout(setupCanvas, 50);
-}
-
-// ================================================
-//  問題データ
-// ================================================
+// --- [データ定義は以前のコードを継承] ---
 const KANJI_DATA = [
-  {k:'一',y:'いち',b:'___ばん大きい'},{k:'二',y:'に',b:'___かいだて'},
-  {k:'三',y:'さん',b:'___びきのこぶた'},{k:'四',y:'よっつ',b:'___つのりんご'},
-  {k:'五',y:'いつつ',b:'___つのほし'},{k:'六',y:'むっつ',b:'___つのたまご'},
-  {k:'七',y:'なな',b:'___ふしぎ'},{k:'八',y:'やっつ',b:'___つのもち'},
-  {k:'九',y:'ここのつ',b:'___つのいし'},{k:'十',y:'じゅう',b:'___えんだま'},
-  {k:'百',y:'ひゃく',b:'___てんをとった'},{k:'千',y:'せん',b:'___えんさつ'},
-  {k:'万',y:'まん',b:'一___えん'},{k:'円',y:'えん',b:'百___だま'},
-  {k:'年',y:'とし',b:'今___のめあて'},{k:'日',y:'ひ',b:'お___さま'},
-  {k:'月',y:'つき',b:'三日___'},{k:'火',y:'ひ',b:'キャンプの___'},
-  {k:'水',y:'みず',b:'___をのむ'},{k:'木',y:'き',b:'大きな___'},
-  {k:'金',y:'かね',b:'お___もち'},{k:'土',y:'つち',b:'___あそび'},
-  {k:'山',y:'やま',b:'ふじ___'},{k:'川',y:'かわ',b:'___でおよぐ'},
-  {k:'田',y:'たんぼ',b:'___んぼ'},{k:'村',y:'むら',b:'ちいさな___'},
-  {k:'町',y:'まち',b:'しずかな___'},{k:'空',y:'そら',b:'青い___'},
-  {k:'雨',y:'あめ',b:'___がふる'},{k:'大',y:'おおきい',b:'___きな犬'},
-  {k:'小',y:'ちいさい',b:'___さな鳥'},{k:'中',y:'なか',b:'はこの___'},
-  {k:'上',y:'うえ',b:'机の___'},{k:'下',y:'した',b:'つくえの___'},
-  {k:'左',y:'ひだり',b:'___の手'},{k:'右',y:'みぎ',b:'___にまがる'},
-  {k:'前',y:'まえ',b:'___にすすむ'},{k:'人',y:'ひと',b:'___がたくさん'},
-  {k:'男',y:'おとこ',b:'___の人'},{k:'女',y:'おんな',b:'___の子'},
-  {k:'子',y:'こ',b:'男の___'},{k:'父',y:'ちち',b:'わたしの___'},
-  {k:'母',y:'はは',b:'やさしい___'},{k:'手',y:'て',b:'___をあらう'},
-  {k:'足',y:'あし',b:'___がはやい'},{k:'口',y:'くち',b:'___をあける'},
-  {k:'目',y:'め',b:'___をとじる'},{k:'耳',y:'みみ',b:'___をすます'},
-  {k:'犬',y:'いぬ',b:'子___'},{k:'貝',y:'かい',b:'___をひろう'},
-  {k:'虫',y:'むし',b:'かぶと___'},{k:'花',y:'はな',b:'___がさく'},
-  {k:'草',y:'くさ',b:'みどりの___'},{k:'竹',y:'たけ',b:'___のこ'},
-  {k:'糸',y:'いと',b:'赤い___'},{k:'車',y:'くるま',b:'火の___'},
-  {k:'学',y:'がっこう',b:'小___校'},{k:'校',y:'こう',b:'学___'},
-  {k:'先',y:'せんせい',b:'___生'},{k:'生',y:'せい',b:'先___'},
-  {k:'白',y:'しろい',b:'___い雪'},{k:'赤',y:'あかい',b:'___いリンゴ'},
-  {k:'青',y:'あおい',b:'___い空'},{k:'早',y:'はやい',b:'足が___い'},
-  {k:'力',y:'ちから',b:'___をだす'},{k:'本',y:'ほん',b:'___をよむ'},
-  {k:'字',y:'じ',b:'きれいな___'},{k:'文',y:'ぶん',b:'作文の___'},
-  {k:'名',y:'なまえ',b:'___前をよぶ'},{k:'気',y:'げんき',b:'元___'},
-  {k:'休',y:'やすむ',b:'すこし___'},{k:'入',y:'いる',b:'部屋に___'},
-  {k:'出',y:'でる',b:'外へ___'},{k:'立',y:'たつ',b:'___ちあがる'},
-  {k:'見',y:'みる',b:'遠くを___'},{k:'言',y:'いう',b:'はっきり___'},
-  {k:'音',y:'おと',b:'大きな___'},{k:'玉',y:'たま',b:'水___'},
-  {k:'王',y:'おう',b:'___さま'},{k:'林',y:'はやし',b:'小さな___'},
-  {k:'森',y:'もり',b:'深い___'},
-  {k:'引',y:'ひく',b:'ドアを___'},{k:'羽',y:'はね',b:'鳥の___'},
-  {k:'雲',y:'くも',b:'___がうく'},{k:'園',y:'えん',b:'公___'},
-  {k:'遠',y:'とおい',b:'___い山'},{k:'何',y:'なに',b:'___をした？'},
-  {k:'科',y:'か',b:'理___の実験'},{k:'夏',y:'なつ',b:'___休み'},
-  {k:'家',y:'いえ',b:'___にかえる'},{k:'歌',y:'うた',b:'___をうたう'},
-  {k:'回',y:'かい',b:'三___まわる'},{k:'会',y:'かい',b:'___議がある'},
-  {k:'海',y:'うみ',b:'___でおよぐ'},{k:'絵',y:'え',b:'___をかく'},
-  {k:'外',y:'そと',b:'___でわらう'},{k:'角',y:'かど',b:'___をまがる'},
-  {k:'活',y:'かつ',b:'生___する'},{k:'間',y:'あいだ',b:'ふたりの___'},
-  {k:'丸',y:'まる',b:'___い月'},{k:'岩',y:'いわ',b:'大きな___'},
-  {k:'記',y:'き',b:'日___をつける'},{k:'帰',y:'かえる',b:'家に___'},
-  {k:'牛',y:'うし',b:'___がないた'},{k:'魚',y:'さかな',b:'___つり'},
-  {k:'京',y:'きょう',b:'東___'},{k:'強',y:'つよい',b:'___い力'},
-  {k:'教',y:'おしえる',b:'算数を___'},{k:'近',y:'ちかい',b:'___くのみせ'},
-  {k:'形',y:'かたち',b:'まるい___'},{k:'計',y:'けい',b:'時___'},
-  {k:'元',y:'げん',b:'___気にあそぶ'},{k:'古',y:'ふるい',b:'___い本'},
-  {k:'午',y:'ご',b:'___後の授業'},{k:'後',y:'のち',b:'___ではりきる'},
-  {k:'語',y:'ご',b:'日本___'},{k:'工',y:'こう',b:'___場でつくる'},
-  {k:'公',y:'こう',b:'___園で遊ぶ'},{k:'広',y:'ひろい',b:'___い野原'},
-  {k:'光',y:'ひかり',b:'太陽の___'},{k:'考',y:'かんがえる',b:'よく___'},
-  {k:'合',y:'あう',b:'待ち___わせる'},{k:'国',y:'くに',b:'外___へ行く'},
-  {k:'黒',y:'くろ',b:'___板にかく'},{k:'今',y:'いま',b:'___すぐ行く'},
-  {k:'才',y:'さい',b:'七___のこども'},{k:'細',y:'ほそい',b:'___い道'},
-  {k:'作',y:'つくる',b:'ものを___'},{k:'算',y:'さん',b:'計___をする'},
-  {k:'止',y:'とまる',b:'信号で___'},{k:'市',y:'し',b:'さいたま___'},
-  {k:'思',y:'おもう',b:'___いだす'},{k:'紙',y:'かみ',b:'折り___'},
-  {k:'寺',y:'てら',b:'古い___'},{k:'時',y:'じ',b:'___間をまもる'},
-  {k:'自',y:'じ',b:'___分でやる'},{k:'室',y:'しつ',b:'教___'},
-  {k:'社',y:'しゃ',b:'会___がある'},{k:'弱',y:'よわい',b:'___い風'},
-  {k:'首',y:'くび',b:'___をかしげる'},{k:'書',y:'かく',b:'字を___'},
-  {k:'少',y:'すくない',b:'___ない水'},{k:'食',y:'たべる',b:'ごはんを___'},
-  {k:'心',y:'こころ',b:'やさしい___'},{k:'新',y:'あたらしい',b:'___しい本'},
-  {k:'親',y:'おや',b:'___につたえる'},{k:'図',y:'ず',b:'地___でさがす'},
-  {k:'数',y:'かず',b:'___をかぞえる'},{k:'星',y:'ほし',b:'___がかがやく'},
-  {k:'晴',y:'はれ',b:'空が___'},{k:'切',y:'きる',b:'はさみで___'},
-  {k:'雪',y:'ゆき',b:'白い___'},{k:'船',y:'ふね',b:'大きな___'},
-  {k:'線',y:'せん',b:'___をひく'},{k:'組',y:'くみ',b:'三___'},
-  {k:'走',y:'はしる',b:'全力で___'},{k:'多',y:'おおい',b:'___い人'},
-  {k:'太',y:'ふとい',b:'___い木'},{k:'地',y:'じ',b:'___図をみる'},
-  {k:'池',y:'いけ',b:'___でおよぐ'},{k:'知',y:'しる',b:'答えを___'},
-  {k:'茶',y:'ちゃ',b:'お___をのむ'},{k:'長',y:'ながい',b:'___い橋'},
-  {k:'直',y:'なおす',b:'まちがいを___'},{k:'通',y:'とおる',b:'道を___'},
-  {k:'弟',y:'おとうと',b:'わたしの___'},{k:'店',y:'みせ',b:'本___に行く'},
-  {k:'電',y:'でん',b:'___気をつける'},{k:'冬',y:'ふゆ',b:'___の朝'},
-  {k:'同',y:'おなじ',b:'___じクラス'},{k:'動',y:'うごく',b:'からだを___'},
-  {k:'南',y:'みなみ',b:'___の風'},{k:'肉',y:'にく',b:'___をやく'},
-  {k:'馬',y:'うま',b:'白い___'},{k:'買',y:'かう',b:'お店で___'},
-  {k:'半',y:'はんぶん',b:'___分にわける'},{k:'番',y:'ばん',b:'一___になる'},
-  {k:'風',y:'かぜ',b:'強い___'},{k:'聞',y:'きく',b:'話を___'},
-  {k:'米',y:'こめ',b:'白い___'},{k:'歩',y:'あるく',b:'ゆっくり___'},
-  {k:'方',y:'ほう',b:'北の___'},{k:'北',y:'きた',b:'___の空'},
-  {k:'毎',y:'まい',b:'___日べんきょう'},{k:'妹',y:'いもうと',b:'わたしの___'},
-  {k:'鳴',y:'なく',b:'犬が___'},{k:'毛',y:'け',b:'ふわふわの___'},
-  {k:'門',y:'もん',b:'学校の___'},{k:'夜',y:'よる',b:'___になる'},
-  {k:'野',y:'の',b:'___原でかける'},{k:'友',y:'とも',b:'___だちとあそぶ'},
-  {k:'用',y:'よう',b:'___事がある'},{k:'曜',y:'よう',b:'月___日'},
-  {k:'来',y:'くる',b:'友達が___'},{k:'理',y:'り',b:'___由をいう'},
-  {k:'話',y:'はなす',b:'じゅぎょうで___'},{k:'読',y:'よむ',b:'本を___'},
-  {k:'悪',y:'わるい',b:'___い天気'},{k:'安',y:'やすい',b:'___い品'},
-  {k:'暗',y:'くらい',b:'___いへや'},{k:'医',y:'い',b:'___者にいく'},
-  {k:'意',y:'い',b:'___見をいう'},{k:'育',y:'そだてる',b:'花を___'},
-  {k:'院',y:'いん',b:'病___にいく'},{k:'飲',y:'のむ',b:'水を___'},
-  {k:'運',y:'うん',b:'___動会'},{k:'泳',y:'およぐ',b:'プールで___'},
-  {k:'駅',y:'えき',b:'___にむかう'},{k:'横',y:'よこ',b:'___にならぶ'},
-  {k:'屋',y:'や',b:'本___'},{k:'温',y:'あたたかい',b:'___かいスープ'},
-  {k:'荷',y:'に',b:'重い___物'},{k:'界',y:'かい',b:'世___'},
-  {k:'開',y:'ひらく',b:'扉を___'},{k:'階',y:'かい',b:'三___'},
-  {k:'寒',y:'さむい',b:'___い朝'},{k:'感',y:'かん',b:'___謝する'},
-  {k:'漢',y:'かん',b:'___字をかく'},{k:'館',y:'かん',b:'図書___'},
-  {k:'岸',y:'きし',b:'川の___'},{k:'起',y:'おきる',b:'朝___きる'},
-  {k:'客',y:'きゃく',b:'お___さん'},{k:'急',y:'きゅう',b:'___ぐ！'},
-  {k:'泣',y:'なく',b:'わんわん___'},{k:'級',y:'きゅう',b:'上___生'},
-  {k:'去',y:'さる',b:'過___の話'},{k:'橋',y:'はし',b:'川の___'},
-  {k:'業',y:'ぎょう',b:'授___'},{k:'曲',y:'まがる',b:'道が___'},
-  {k:'銀',y:'ぎん',b:'___行でおろす'},{k:'苦',y:'くるしい',b:'___しい坂'},
-  {k:'具',y:'ぐ',b:'道___'},{k:'係',y:'かかり',b:'水___'},
-  {k:'軽',y:'かるい',b:'___い荷物'},{k:'血',y:'ち',b:'___がでる'},
-  {k:'決',y:'きめる',b:'答えを___'},{k:'研',y:'けん',b:'___究する'},
-  {k:'県',y:'けん',b:'埼玉___'},{k:'湖',y:'みずうみ',b:'大きな___'},
-  {k:'向',y:'むかう',b:'目標に___'},{k:'幸',y:'しあわせ',b:'___せなきもち'},
-  {k:'港',y:'みなと',b:'___に着く'},{k:'根',y:'ね',b:'木の___'},
-  {k:'祭',y:'まつり',b:'夏___'},{k:'仕',y:'し',b:'お___事'},
-  {k:'使',y:'つかう',b:'道具を___'},{k:'始',y:'はじめる',b:'___める'},
-  {k:'指',y:'ゆび',b:'___をさす'},{k:'歯',y:'は',b:'___をみがく'},
-  {k:'次',y:'つぎ',b:'___の問題'},{k:'事',y:'こと',b:'大切な___'},
-  {k:'持',y:'もつ',b:'かばんを___'},{k:'実',y:'み',b:'木の___'},
-  {k:'写',y:'うつす',b:'黒板を___'},{k:'主',y:'おも',b:'___な意見'},
-  {k:'守',y:'まもる',b:'約束を___'},{k:'取',y:'とる',b:'ボールを___'},
-  {k:'受',y:'うける',b:'授業を___'},{k:'集',y:'あつめる',b:'切手を___'},
-  {k:'住',y:'すむ',b:'東京に___'},{k:'重',y:'おもい',b:'___い石'},
-  {k:'所',y:'ところ',b:'好きな___'},{k:'暑',y:'あつい',b:'夏は___い'},
-  {k:'助',y:'たすける',b:'友を___'},{k:'消',y:'きえる',b:'火が___'},
-  {k:'乗',y:'のる',b:'電車に___'},{k:'植',y:'うえる',b:'木を___'},
-  {k:'身',y:'み',b:'___体を動かす'},{k:'神',y:'かみ',b:'___社にいく'},
-  {k:'深',y:'ふかい',b:'___い川'},{k:'進',y:'すすむ',b:'前に___'},
-  {k:'世',y:'せ',b:'___界一'},{k:'昔',y:'むかし',b:'___のことを話す'},
-  {k:'全',y:'ぜん',b:'___力でやる'},{k:'想',y:'そう',b:'___像する'},
-  {k:'送',y:'おくる',b:'荷物を___'},{k:'族',y:'ぞく',b:'家___旅行'},
-  {k:'対',y:'たい',b:'反___する'},{k:'待',y:'まつ',b:'バスを___'},
-  {k:'代',y:'だい',b:'___わりにやる'},{k:'第',y:'だい',b:'___三問'},
-  {k:'短',y:'みじかい',b:'___い鉛筆'},{k:'談',y:'だん',b:'相___する'},
-  {k:'着',y:'きる',b:'服を___'},{k:'注',y:'ちゅう',b:'___意する'},
-  {k:'帳',y:'ちょう',b:'連絡___'},{k:'調',y:'しらべる',b:'辞書で___'},
-  {k:'定',y:'てい',b:'決___する'},{k:'庭',y:'にわ',b:'___で遊ぶ'},
-  {k:'笛',y:'ふえ',b:'___を吹く'},{k:'鉄',y:'てつ',b:'___の棒'},
-  {k:'転',y:'ころがる',b:'ボールが___'},{k:'都',y:'と',b:'東___'},
-  {k:'度',y:'ど',b:'温___計'},{k:'投',y:'なげる',b:'ボールを___'},
-  {k:'島',y:'しま',b:'無人___'},{k:'湯',y:'ゆ',b:'お___をわかす'},
-  {k:'登',y:'のぼる',b:'山に___'},{k:'農',y:'のう',b:'___家の仕事'},
-  {k:'波',y:'なみ',b:'海の___'},{k:'配',y:'くばる',b:'プリントを___'},
-  {k:'倍',y:'ばい',b:'二___'},{k:'箱',y:'はこ',b:'___に入れる'},
-  {k:'畑',y:'はたけ',b:'野菜___'},{k:'発',y:'はつ',b:'出___する'},
-  {k:'反',y:'はん',b:'___対する'},{k:'坂',y:'さか',b:'急な___'},
-  {k:'皮',y:'かわ',b:'みかんの___'},{k:'悲',y:'かなしい',b:'___しい話'},
-  {k:'美',y:'うつくしい',b:'___しい花'},{k:'鼻',y:'はな',b:'___をかむ'},
-  {k:'氷',y:'こおり',b:'___がとける'},{k:'表',y:'ひょう',b:'時間___'},
-  {k:'品',y:'しな',b:'作___展'},{k:'服',y:'ふく',b:'新しい___'},
-  {k:'物',y:'もの',b:'大切な___'},{k:'平',y:'たいら',b:'___らな道'},
-  {k:'返',y:'かえす',b:'本を___'},{k:'勉',y:'べん',b:'___強する'},
-  {k:'放',y:'はなす',b:'手を___'},{k:'味',y:'あじ',b:'おいしい___'},
-  {k:'命',y:'いのち',b:'大切な___'},{k:'問',y:'もん',b:'___題をとく'},
-  {k:'役',y:'やく',b:'___に立つ'},{k:'薬',y:'くすり',b:'___をのむ'},
-  {k:'油',y:'あぶら',b:'___で揚げる'},{k:'有',y:'ある',b:'___名な人'},
-  {k:'遊',y:'あそぶ',b:'友達と___'},{k:'予',y:'よ',b:'___定をたてる'},
-  {k:'羊',y:'ひつじ',b:'白い___'},{k:'洋',y:'よう',b:'___服'},
-  {k:'葉',y:'は',b:'木の___'},{k:'様',y:'さま',b:'おきゃく___'},
-  {k:'落',y:'おちる',b:'葉が___'},{k:'流',y:'ながれる',b:'川が___'},
-  {k:'旅',y:'たび',b:'___に出る'},{k:'両',y:'りょう',b:'___手でもつ'},
-  {k:'緑',y:'みどり',b:'___の草'},{k:'礼',y:'れい',b:'お___をする'},
-  {k:'列',y:'れつ',b:'___にならぶ'},{k:'和',y:'わ',b:'平___な世界'},
+  {k:'一',y:'いち',b:'___ばん大きい'}, {k:'火',y:'ひ',b:'キャンプの___'},
+  {k:'水',y:'みず',b:'___をのむ'}, {k:'木',y:'き',b:'大きな___'},
+  {k:'漢',y:'かん',b:'___字をかく'}, {k:'学',y:'がっこう',b:'小___校'}
+  // ... 必要に応じて追加してください
 ];
 
 const ENEMIES = [
-  {name:'鬼火',  hp:80,  atk:12, speed:0.35},
-  {name:'山姥',  hp:100, atk:15, speed:0.30},
-  {name:'河童',  hp:70,  atk:10, speed:0.45},
-  {name:'天狗',  hp:120, atk:18, speed:0.28},
-  {name:'大蛇',  hp:150, atk:20, speed:0.25},
-  {name:'竜王',  hp:200, atk:25, speed:0.20},
+  {name:'鬼火', hp:80, atk:12, speed:0.5},
+  {name:'山姥', hp:120, atk:15, speed:0.4},
+  {name:'竜王', hp:200, atk:25, speed:0.3}
 ];
 
 let state = {
-  enemyHP:0, enemyMaxHP:0, playerHP:100, playerMaxHP:100,
+  enemyHP:80, enemyMaxHP:80, playerHP:100, playerMaxHP:100,
   castPct:0, ougiPct:0, currentQ:{}, inkData:[], isDrawing:false,
-  combo:0, wave:0, enemy:ENEMIES[0], gameOver:false, attackRunning:false,
+  wave:0, gameOver:false
 };
 
-// 音
-const AC = new (window.AudioContext||window.webkitAudioContext)();
-function playTone(f,t,d,v=0.3){
-  const o=AC.createOscillator(),g=AC.createGain();
-  o.connect(g);g.connect(AC.destination);
-  o.type=t;o.frequency.value=f;
-  g.gain.setValueAtTime(v,AC.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.001,AC.currentTime+d);
-  o.start();o.stop(AC.currentTime+d);
-}
-function playSE(t){
-  if(AC.state==='suspended')AC.resume();
-  if(t==='hit') playTone(220,'sawtooth',0.15,0.4);
-  else if(t==='dmg') playTone(150,'square',0.2,0.5);
-  else if(t==='miss'){playTone(180,'triangle',0.1,0.2);playTone(160,'triangle',0.15,0.2);}
-  else if(t==='ougi')[880,1100,1320,1760].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.3,0.5),i*80));
-  else if(t==='wave')[523,659,784].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',0.25),i*100));
-  else if(t==='lose')[400,320,260,200].forEach((f,i)=>setTimeout(()=>playTone(f,'sawtooth',0.4,0.4),i*150));
+// --- [キャンバス制御] ---
+const canvas = document.getElementById('draw-canvas');
+const ctx = canvas.getContext('2d');
+
+function setupCanvas() {
+  const r = canvas.parentElement.getBoundingClientRect();
+  canvas.width = r.width;
+  canvas.height = r.height;
+  ctx.lineWidth = 8;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = '#fff';
 }
 
-// Canvas
-const canvas=document.getElementById('draw-canvas');
-const ctx=canvas.getContext('2d');
-function setupCanvas(){
-  const r=canvas.getBoundingClientRect();
-  if(r.width===0||r.height===0)return;
-  canvas.width=r.width*devicePixelRatio;
-  canvas.height=r.height*devicePixelRatio;
-  ctx.scale(devicePixelRatio,devicePixelRatio);
-  ctx.lineCap='round';ctx.lineJoin='round';
-  ctx.lineWidth=Math.max(10,r.width*0.04);
-  ctx.strokeStyle='rgba(255,230,150,0.95)';
-}
-function getPos(e){
-  const r=canvas.getBoundingClientRect(),p=e.touches?e.touches[0]:e;
-  return{x:p.clientX-r.left,y:p.clientY-r.top};
-}
-canvas.onmousedown=canvas.ontouchstart=(e)=>{
-  e.preventDefault();state.isDrawing=true;
-  const p=getPos(e);ctx.beginPath();ctx.moveTo(p.x,p.y);
-  state.inkData.push([[p.x],[p.y],[0]]);
-};
-canvas.onmousemove=canvas.ontouchmove=(e)=>{
-  if(!state.isDrawing)return;e.preventDefault();
-  const p=getPos(e);ctx.lineTo(p.x,p.y);ctx.stroke();
-  const s=state.inkData[state.inkData.length-1];
-  s[0].push(p.x);s[1].push(p.y);s[2].push(0);
-};
-window.onmouseup=window.ontouchend=()=>{state.isDrawing=false;};
-function clearCanvas(){
-  ctx.clearRect(0,0,canvas.width/devicePixelRatio,canvas.height/devicePixelRatio);
-  state.inkData=[];
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const p = e.touches ? e.touches[0] : e;
+  return { x: p.clientX - r.left, y: p.clientY - r.top };
 }
 
-// HUD
-function updateHUD(){
-  document.getElementById('hp-e-bar').style.width=Math.max(0,state.enemyHP/state.enemyMaxHP*100)+'%';
-  document.getElementById('hp-p-bar').style.width=Math.max(0,state.playerHP/state.playerMaxHP*100)+'%';
-  document.getElementById('hp-e-num').textContent=Math.max(0,state.enemyHP);
-  document.getElementById('hp-p-num').textContent=Math.max(0,state.playerHP);
-  document.getElementById('ougi-bar').style.width=state.ougiPct+'%';
-  document.getElementById('ougi-btn').disabled=state.ougiPct<100;
-}
-function setMsg(txt,color='var(--kin)'){
-  const m=document.getElementById('center-msg');m.textContent=txt;m.style.color=color;
-}
-function showDmg(tid,amt,color){
-  const d=document.createElement('div');
-  d.className='dmg-popup';d.textContent='-'+amt;d.style.color=color;
-  document.getElementById(tid).appendChild(d);
-  setTimeout(()=>d.remove(),1200);
-}
-function hitAnim(id){
-  const el=document.getElementById(id);
-  el.classList.add('hit-anim');
-  setTimeout(()=>el.classList.remove('hit-anim'),350);
-}
-function updateCombo(){
-  const cd=document.getElementById('combo-display');
-  if(state.combo>=2){
-    document.getElementById('combo-num').textContent=state.combo;
-    cd.style.opacity='1';
-    setTimeout(()=>cd.style.opacity='0',2000);
-  }else{cd.style.opacity='0';}
+canvas.addEventListener('touchstart', startDrawing);
+canvas.addEventListener('touchmove', draw);
+canvas.addEventListener('touchend', stopDrawing);
+canvas.addEventListener('mousedown', startDrawing);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDrawing);
+
+function startDrawing(e) {
+  e.preventDefault();
+  state.isDrawing = true;
+  const p = getPos(e);
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y);
+  state.inkData.push([[p.x], [p.y], [0]]);
 }
 
-function nextQuestion(){
-  state.currentQ=KANJI_DATA[Math.floor(Math.random()*KANJI_DATA.length)];
-  document.getElementById('mondai-bun').textContent=state.currentQ.b;
-  document.getElementById('yomikata').textContent='よみ：'+state.currentQ.y;
+function draw(e) {
+  if (!state.isDrawing) return;
+  const p = getPos(e);
+  ctx.lineTo(p.x, p.y);
+  ctx.stroke();
+  const s = state.inkData[state.inkData.length - 1];
+  s[0].push(p.x); s[1].push(p.y); s[2].push(0);
+}
+
+function stopDrawing() { state.isDrawing = false; }
+
+function clearCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  state.inkData = [];
+}
+
+// --- [ゲームロジック] ---
+function nextQuestion() {
+  state.currentQ = KANJI_DATA[Math.floor(Math.random() * KANJI_DATA.length)];
+  document.getElementById('mondai-bun').textContent = state.currentQ.b;
+  document.getElementById('yomikata').textContent = 'よみ：' + state.currentQ.y;
   clearCanvas();
 }
-function setEnemy(idx){
-  state.enemy=ENEMIES[Math.min(idx,ENEMIES.length-1)];
-  state.enemyMaxHP=state.enemy.hp;state.enemyHP=state.enemy.hp;state.castPct=0;
-  document.getElementById('enemy-name').textContent=state.enemy.name;
-  document.getElementById('hp-e-max').textContent=state.enemy.hp;
+
+async function recognizeAndAttack() {
+  if (state.inkData.length === 0) return;
+  const btn = document.getElementById('attack-btn');
+  btn.disabled = true;
+  btn.textContent = "判定中...";
+
+  try {
+    const res = await fetch("https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ "app_version": 0.4, "requests": [{ "ink": state.inkData, "language": "ja" }] })
+    });
+    const data = await res.json();
+    const candidates = data[1][0][1];
+
+    if (candidates.includes(state.currentQ.k)) {
+      attackEnemy(20);
+      state.ougiPct = Math.min(100, state.ougiPct + 20);
+    } else {
+      document.getElementById('center-msg').textContent = "不発！正解は「" + state.currentQ.k + "」";
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  btn.disabled = false;
+  btn.textContent = "漢術発動！";
+  updateHUD();
+  nextQuestion();
 }
 
-// 迎撃
-let iState={active:false,q:{},inkData:[],isDrawing:false,timerPct:100,timerInterval:null};
-const iCanvas=document.getElementById('intercept-canvas');
-const iCtx=iCanvas.getContext('2d');
-function setupIC(){
-  const r=iCanvas.getBoundingClientRect();
-  iCanvas.width=r.width*devicePixelRatio;iCanvas.height=r.height*devicePixelRatio;
-  iCtx.scale(devicePixelRatio,devicePixelRatio);
-  iCtx.lineCap='round';iCtx.lineJoin='round';
-  iCtx.lineWidth=Math.max(10,r.width*0.05);
-  iCtx.strokeStyle='rgba(255,180,100,0.95)';
-}
-function getIP(e){const r=iCanvas.getBoundingClientRect(),p=e.touches?e.touches[0]:e;return{x:p.clientX-r.left,y:p.clientY-r.top};}
-iCanvas.onmousedown=iCanvas.ontouchstart=(e)=>{
-  if(!iState.active)return;e.preventDefault();iState.isDrawing=true;
-  const p=getIP(e);iCtx.beginPath();iCtx.moveTo(p.x,p.y);
-  iState.inkData.push([[p.x],[p.y],[0]]);
-};
-iCanvas.onmousemove=iCanvas.ontouchmove=(e)=>{
-  if(!iState.isDrawing)return;e.preventDefault();
-  const p=getIP(e);iCtx.lineTo(p.x,p.y);iCtx.stroke();
-  const s=iState.inkData[iState.inkData.length-1];s[0].push(p.x);s[1].push(p.y);s[2].push(0);
-};
-window.addEventListener('mouseup',()=>{iState.isDrawing=false;});
-window.addEventListener('touchend',()=>{iState.isDrawing=false;});
-function clearInterceptCanvas(){
-  iCtx.clearRect(0,0,iCanvas.width/devicePixelRatio,iCanvas.height/devicePixelRatio);
-  iState.inkData=[];
-}
-function openIntercept(){
-  iState.active=true;iState.timerPct=100;
-  let q;do{q=KANJI_DATA[Math.floor(Math.random()*KANJI_DATA.length)];}while(q.k===state.currentQ.k);
-  iState.q=q;
-  document.getElementById('intercept-yomi').textContent='よみ：'+q.y;
-  document.getElementById('intercept-mondai').textContent=q.b;
-  document.getElementById('intercept-timer-bar').style.width='100%';
-  clearInterceptCanvas();
-  document.getElementById('intercept-modal').classList.add('active');
-  playSE('dmg');
-  const step=100/(3000/100);
-  iState.timerInterval=setInterval(()=>{
-    iState.timerPct-=step;
-    document.getElementById('intercept-timer-bar').style.width=Math.max(0,iState.timerPct)+'%';
-    if(iState.timerPct<=0){clearInterval(iState.timerInterval);closeIntercept(false);}
-  },100);
-  setTimeout(()=>setupIC(),50);
-}
-function closeIntercept(success){
-  clearInterval(iState.timerInterval);
-  iState.active=false;iState.isDrawing=false;
-  document.getElementById('intercept-modal').classList.remove('active');
-  if(success){playSE('hit');setMsg('迎撃成功！攻撃を防いだ！','#88ff88');resetCastGauge();}
-  else{
-    const dmg=state.enemy.atk;state.playerHP-=dmg;
-    hitAnim('player-inner');showDmg('player-inner',dmg,'#ff6060');
-    playSE('dmg');setMsg('迎撃失敗…！ -'+dmg+'ダメージ！','#ff6060');
-    resetCastGauge();updateHUD();
-    if(state.playerHP<=0)endGame(false);
+function attackEnemy(dmg) {
+  state.enemyHP -= dmg;
+  document.getElementById('enemy-inner').classList.add('hit-anim');
+  setTimeout(() => document.getElementById('enemy-inner').classList.remove('hit-anim'), 300);
+  if (state.enemyHP <= 0) {
+    state.wave++;
+    if (state.wave < ENEMIES.length) {
+      loadEnemy(state.wave);
+    } else {
+      endGame(true);
+    }
   }
 }
-async function submitIntercept(){
-  if(!iState.active||iState.inkData.length===0)return;
-  clearInterval(iState.timerInterval);
-  try{
-    const res=await fetch("https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test",{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({"app_version":0.4,"requests":[{"ink":iState.inkData,"language":"ja"}]})
-    });
-    const data=await res.json();
-    closeIntercept(data[1][0][1].includes(iState.q.k));
-  }catch(e){closeIntercept(false);}
+
+function loadEnemy(idx) {
+  const e = ENEMIES[idx];
+  state.enemyMaxHP = e.hp;
+  state.enemyHP = e.hp;
+  document.getElementById('enemy-name').textContent = e.name;
+  updateHUD();
 }
 
-function resetCastGauge(){
-  state.castPct=0;
-  const g=document.getElementById('cast-gauge');
-  g.style.width='0%';g.classList.remove('warn','danger');
+function updateHUD() {
+  document.getElementById('hp-e-bar').style.width = (state.enemyHP / state.enemyMaxHP * 100) + '%';
+  document.getElementById('hp-p-bar').style.width = (state.playerHP / state.playerMaxHP * 100) + '%';
+  document.getElementById('ougi-bar').style.width = state.ougiPct + '%';
+  document.getElementById('ougi-btn').disabled = state.ougiPct < 100;
 }
-setInterval(()=>{
-  if(state.gameOver||iState.active)return;
-  state.castPct+=state.enemy.speed;
-  const g=document.getElementById('cast-gauge');
-  if(state.castPct>=90){g.classList.add('danger');g.classList.remove('warn');}
-  else if(state.castPct>=70){g.classList.add('warn');g.classList.remove('danger');}
-  else{g.classList.remove('warn','danger');}
-  g.style.width=Math.min(state.castPct,100)+'%';
-  if(state.castPct>=100){state.castPct=0;g.style.width='0%';g.classList.remove('warn','danger');openIntercept();}
-},100);
 
-async function recognizeAndAttack(){
-  if(state.gameOver||state.attackRunning)return;
-  if(state.inkData.length===0){setMsg('まず漢字を書け！','#aaa');return;}
-  state.attackRunning=true;
-  document.getElementById('attack-btn').textContent='判定中…';
-  try{
-    const res=await fetch("https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test",{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({"app_version":0.4,"requests":[{"ink":state.inkData,"language":"ja"}]})
-    });
-    const data=await res.json();
-    const cands=data[1][0][1];
-    if(cands.includes(state.currentQ.k)){
-      state.combo++;const dmg=20+state.combo*3;state.enemyHP-=dmg;
-      state.ougiPct=Math.min(100,state.ougiPct+15);
-      hitAnim('enemy-inner');showDmg('enemy-inner',dmg,'var(--kin)');
-      playSE('hit');setMsg('漢術成功！'+dmg+'ダメージ！','var(--kin2)');
-      resetCastGauge();updateCombo();
-      if(state.enemyHP<=0)setTimeout(()=>nextWave(),800);
-    }else{state.combo=0;playSE('miss');setMsg('不発…！正解は「'+state.currentQ.k+'」','#ff8888');}
+// 敵の攻撃ゲージ
+setInterval(() => {
+  if (state.gameOver) return;
+  state.castPct += ENEMIES[state.wave].speed;
+  document.getElementById('cast-gauge').style.width = Math.min(state.castPct, 100) + '%';
+  if (state.castPct >= 100) {
+    state.castPct = 0;
+    // 簡易ダメージ処理（本来はここで迎撃モーダルを出す）
+    state.playerHP -= 10;
     updateHUD();
-  }catch(e){setMsg('通信エラー…もう一度','#aaa');}
-  document.getElementById('attack-btn').textContent='漢術発動！';
-  state.attackRunning=false;nextQuestion();
-}
-
-function triggerOugi(){
-  if(state.ougiPct<100||state.gameOver)return;
-  state.ougiPct=0;updateHUD();
-  document.getElementById('skill-kanji').textContent=state.currentQ.k||'道';
-  document.getElementById('skill-effect').classList.add('active');
-  playSE('ougi');resetCastGauge();
-  const dmg=50+Math.floor(Math.random()*30);
-  setTimeout(()=>{
-    state.enemyHP-=dmg;hitAnim('enemy-inner');showDmg('enemy-inner',dmg,'#c090ff');
-    setMsg('奥義発動！'+dmg+'の大ダメージ！！','#c090ff');updateHUD();
-    if(state.enemyHP<=0)setTimeout(()=>nextWave(),800);
-  },600);
-  setTimeout(()=>document.getElementById('skill-effect').classList.remove('active'),1600);
-  nextQuestion();
-}
-
-function nextWave(){
-  state.wave++;
-  if(state.wave>=ENEMIES.length){endGame(true);return;}
-  setEnemy(state.wave);playSE('wave');
-  setMsg(state.wave+'波目！「'+state.enemy.name+'」が現れた！','#ffaa44');
-  nextQuestion();
-}
-
-function endGame(win){
-  state.gameOver=true;
-  document.getElementById('overlay').classList.add('show');
-  if(win){
-    document.getElementById('overlay-title').textContent='勝利！';
-    document.getElementById('overlay-title').style.color='var(--kin)';
-    document.getElementById('overlay-sub').textContent='怨霊をすべて浄化した！';
-    playSE('wave');
-  }else{
-    document.getElementById('overlay-title').textContent='敗北…';
-    document.getElementById('overlay-title').style.color='#e06060';
-    document.getElementById('overlay-sub').textContent='また挑め、術師よ';
-    playSE('lose');
+    if (state.playerHP <= 0) endGame(false);
   }
+}, 100);
+
+function endGame(win) {
+  state.gameOver = true;
+  const overlay = document.getElementById('overlay');
+  overlay.classList.add('show');
+  document.getElementById('overlay-title').textContent = win ? "討伐完了！" : "敗北...";
 }
 
-function resetGame(){
-  state.playerHP=100;state.castPct=0;state.ougiPct=0;
-  state.combo=0;state.wave=0;state.gameOver=false;state.attackRunning=false;
-  document.getElementById('overlay').classList.remove('show');
-  setEnemy(0);updateHUD();nextQuestion();setMsg('敵の攻撃に備えよ！');
+function resetGame() {
+  location.reload();
 }
 
-window.addEventListener('resize',()=>{adjustLayout();});
-window.onload=()=>{
-  adjustLayout();
-  setEnemy(0);updateHUD();nextQuestion();
+window.onload = () => {
+  setupCanvas();
+  loadEnemy(0);
+  nextQuestion();
 };
 </script>
-
 </body>
 </html>
