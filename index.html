@@ -99,16 +99,19 @@ overflow:hidden;
 }
 
 /* ===== LANDSCAPE：左キャラ | 中央UI | 右キャラ ===== */
-#enemy-slot, #player-slot{
-flex:0 0 26%;
-display:flex;align-items:flex-end;justify-content:center;
-overflow:hidden;
+#enemy-slot, #player-slot {
+  flex: 0 0 26%;
+  display: flex; align-items: flex-end; justify-content: center;
+  overflow: hidden;
+  height: 100%;        /* ← 追加 */
+  align-self: stretch; /* ← 追加 */
 }
-#enemy-slot img, #player-slot img{
-width:auto;max-width:100%;
-height:auto;max-height:100%;
-object-fit:contain;
-filter:drop-shadow(0 0 20px rgba(0,0,0,0.9));
+#enemy-slot img, #player-slot img {
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 100%; /* ← これが効くようになる */
+  object-fit: contain;
 }
 #center-col{
 flex:1;
