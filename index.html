@@ -3,17 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>真・漢術師 ～怨霊討伐録～</title>
+<title>真・漢術師 ～怨霊討伐録～ バージョン2.1</title>
 <style>
-:root { --kin: #d4af37; --kin2: #f0d070; --danger: #ff4444; }
+:root { 
+  --kin: #f0d070; /* 文字用金色 */
+  --kin-border: #d4af37; /* 枠線用金色 */
+  --danger: #ff4444; 
+}
 * { margin:0; padding:0; box-sizing:border-box; touch-action:none; }
 
 html, body {
   overflow: hidden; height: 100%; width: 100%;
-  background: #000; color: #fff;
+  color: #fff;
   font-family: 'Hiragino Mincho ProN', serif;
 }
 
+/* 1. 背景画像の設定 */
+body {
+  /* 以下のいずれかの方法で背景画像を設定してください */
+  /* 方法A: GitHub上のパスを指定する場合 */
+  background-image: url('https://raw.githubusercontent.com/username/kanjyutu/main/5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png');
+  
+  /* 方法B: このHTMLファイルと同じフォルダーに画像を置いた場合 */
+  /* background-image: url('5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png'); */
+  
+  /* 背景画像が読み込まれるまでのフォールバック用黒 */
+  background-color: #000;
+  
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+#bg-overlay { 
+  position: fixed; inset: 0; 
+  /* 背景画像の上に少し黒を重ねて、和風の雰囲気を強調する */
+  background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.8) 100%); 
+  z-index: 1;
+}
+
+/* 縦持ち警告 */
 @media screen and (orientation: portrait) {
   body::before {
     content: "画面を横向きにしてください";
@@ -22,60 +51,60 @@ html, body {
   }
 }
 
-#bg { position: fixed; inset: 0; z-index: 0; }
-#bg-overlay { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, #000 100%); }
-
 #game-container {
   position: relative; z-index: 10;
   display: flex; flex-direction: column;
   height: 100vh; width: 100%;
-  padding: 5px 10px env(safe-area-inset-bottom);
+  padding: 5px 15px env(safe-area-inset-bottom);
 }
 
-#header { height: 10vh; display: flex; justify-content: space-between; align-items: flex-end; }
+/* 上部ステータス */
+#header { height: 12vh; display: flex; justify-content: space-between; align-items: flex-end; }
 .status-block { width: 30%; }
-.hp-wrap { height: 6px; background: #200; border: 1px solid var(--kin); border-radius: 3px; overflow: hidden; position: relative;}
+.hp-wrap { height: 8px; background: #200; border: 1px solid var(--kin-border); border-radius: 4px; overflow: hidden; position: relative;}
 .hp-bar { height: 100%; width: 100%; transition: width 0.3s; }
 #hp-e-bar { background: linear-gradient(to right, #822, #f44); }
 #hp-p-bar { background: linear-gradient(to right, #228, #4af); }
 .cast-wrap { height: 3px; background: #100; margin-top: 2px; border-radius: 2px; overflow: hidden; }
 #cast-gauge { height: 100%; width: 0%; background: var(--danger); }
-.hp-label { font-size: 9px; color: var(--kin); display: flex; justify-content: space-between; margin-bottom: 1px; }
+.hp-label { font-size: 10px; color: var(--kin); display: flex; justify-content: space-between; margin-bottom: 1px; }
 
+/* 2. メインエリア：キャラクター表示を大きく */
 #main-stage { flex: 1; display: flex; align-items: center; justify-content: space-between; overflow: hidden; gap: 5px; }
-.char-box { flex: 0.8; display: flex; justify-content: center; align-items: center; height: 100%; }
-.char-box img { max-width: 100%; max-height: 75%; object-fit: contain; }
+.char-box { flex: 1.2; display: flex; justify-content: center; align-items: center; height: 100%; }
+/* 画像サイズを大きく設定 */
+.char-box img { max-width: 100%; max-height: 90%; object-fit: contain; filter: drop-shadow(0 0 10px rgba(0,0,0,0.8));}
 
-#interaction-box { flex: 1.4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 100%; }
-#question-display { 
-  background: rgba(0,0,0,0.8); border: 1px solid var(--kin); border-radius: 6px; 
-  padding: 4px 8px; text-align: center; width: 100%; min-height: 45px;
-  display: flex; flex-direction: column; justify-content: center;
-}
-#yomi-text { font-size: 10px; color: var(--kin2); margin-bottom: 2px; }
-#mondai-text { font-size: clamp(12px, 2.5vh, 16px); font-weight: bold; line-height: 1.2; }
+#interaction-box { flex: 1.1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 100%; }
+#question-display { background: rgba(0,0,0,0.8); border: 1px solid var(--kin-border); border-radius: 6px; padding: 2px 5px; text-align: center; width: 100%; min-height: 40px; display: flex; flex-direction: column; justify-content: center;}
+#yomi-text { font-size: 9px; color: var(--kin2); margin-bottom: 1px; }
+#mondai-text { font-size: clamp(12px, 3vh, 16px); font-weight: bold; line-height: 1.1; color: var(--kin); }
 
+/* キャンバスサイズを微調整 */
 #canvas-wrap {
-  height: 45vh; aspect-ratio: 1/1; 
-  background: rgba(255,255,255,0.08); border: 2px solid var(--kin); border-radius: 10px;
+  height: 40vh; aspect-ratio: 1/1;
+  background: rgba(255,255,255,0.08); border: 2px solid var(--kin-border); border-radius: 10px;
   position: relative;
+  /* 文字書きエフェクトのためのglow効果 */
+  box-shadow: 0 0 10px rgba(240, 208, 112, 0.3);
 }
 canvas { width: 100%; height: 100%; touch-action: none; }
 
+/* 下部ボタン */
 #footer { height: 18vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
 .btn-row { display: flex; gap: 10px; margin-bottom: 2px; }
-.sub-btn { padding: 4px 10px; background: rgba(30,30,30,0.9); border: 1px solid var(--kin); color: var(--kin); border-radius: 4px; font-size: 10px; font-weight: bold; }
-#attack-btn { width: 200px; height: 34px; border: none; border-radius: 17px; background: linear-gradient(#f0d080, #b08030); color: #210; font-size: 16px; font-weight: bold; }
+.sub-btn { padding: 4px 10px; background: rgba(30,30,30,0.9); border: 1px solid var(--kin-border); color: var(--kin); border-radius: 4px; font-size: 10px; font-weight: bold; }
+#attack-btn { width: 220px; height: 36px; border: none; border-radius: 18px; background: linear-gradient(#f0d080, #b08030); color: #210; font-size: 17px; font-weight: bold; }
 
-#intercept-overlay { position: fixed; inset: 0; background: rgba(40, 0, 0, 0.95); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; border: 4px solid var(--danger); }
-.hit { animation: shake 0.3s; }
-@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(10px)} }
+/* 終了画面 */
 #game-over { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+.hit { animation: shake 0.3s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
 </style>
 </head>
 <body>
 
-<div id="bg"><div id="bg-overlay"></div></div>
+<div id="bg-overlay"></div>
 
 <div id="game-container">
   <div id="header">
@@ -84,7 +113,7 @@ canvas { width: 100%; height: 100%; touch-action: none; }
       <div class="hp-wrap"><div id="hp-e-bar" class="hp-bar"></div></div>
       <div class="cast-wrap"><div id="cast-gauge"></div></div>
     </div>
-    <div id="center-msg" style="font-size:10px; color:var(--kin)">精神を研ぎ澄ませ</div>
+    <div id="center-msg" style="font-size:10px; color:var(--kin)">精神を集中せよ</div>
     <div class="status-block">
       <div class="hp-label"><span>HP: <span id="hp-p-val">100</span>/100</span><span>漢術師</span></div>
       <div class="hp-wrap"><div id="hp-p-bar" class="hp-bar"></div></div>
@@ -112,98 +141,69 @@ canvas { width: 100%; height: 100%; touch-action: none; }
   </div>
 </div>
 
-<div id="intercept-overlay">
-  <div style="color:var(--danger); font-size:18px; font-weight:bold; margin-bottom:5px;">⚠ 迎撃せよ！</div>
-  <div id="intercept-kanji" style="font-size: 40px; color: #fff; margin-bottom: 5px; font-weight: bold;"></div>
-  <div id="intercept-canvas-wrap" style="height: 45vh; aspect-ratio: 1/1; background: #1a1a1a; border: 2px solid var(--danger); border-radius: 10px;">
-    <canvas id="intercept-canvas"></canvas>
-  </div>
-  <button class="sub-btn" style="margin-top: 10px;" onclick="clearInterceptCanvas()">墨を拭く</button>
-</div>
-
 <div id="game-over">
   <h1 id="res-title" style="color:var(--kin); font-size:40px; margin-bottom:20px;"></h1>
   <button style="padding:10px 30px; font-size:20px;" onclick="location.reload()">再戦</button>
 </div>
 
 <script>
-// 全100問実装
 const KANJI_DATA = [
-  /* 第1部: 1年生 (1-40) */
-  {k:'一',y:'いち',b:'（　）年生になる'}, {k:'二',y:'に',b:'（　）年生のあね'}, {k:'三',y:'みっか',b:'（　）日（　）日'}, {k:'四',y:'よ',b:'（　）つかど'}, {k:'五',y:'ご',b:'（　）円だま'},
-  {k:'六',y:'ろっ',b:'（　）か月'}, {k:'七',y:'たな',b:'（　）夕まつり'}, {k:'八',y:'はっ',b:'（　）さいになる'}, {k:'九',y:'きゅう',b:'（　）しゅう'}, {k:'十',y:'じゅう',b:'（　）円'},
-  {k:'百',y:'ひゃく',b:'（　）円さつ'}, {k:'千',y:'せん',b:'（　）羽づる'}, {k:'上',y:'うえ',b:'机の（　）'}, {k:'下',y:'お',b:'階段を（　）りる'}, {k:'左',y:'ひだり',b:'（　）手'},
-  {k:'右',y:'みぎ',b:'（　）にまがる'}, {k:'中',y:'なか',b:'かばんの（　）'}, {k:'大',y:'おお',b:'（　）きな声'}, {k:'小',y:'ちい',b:'（　）さな石'}, {k:'本',y:'ほん',b:'（　）をよむ'},
-  {k:'山',y:'さん',b:'富士（　）'}, {k:'川',y:'かわ',b:'（　）あそび'}, {k:'水',y:'みず',b:'（　）をのむ'}, {k:'火',y:'ひ',b:'（　）がおこる'}, {k:'木',y:'き',b:'（　）の下'},
-  {k:'金',y:'きん',b:'（　）ようび'}, {k:'土',y:'つち',b:'（　）をいじる'}, {k:'日',y:'にち',b:'（　）ようび'}, {k:'月',y:'づき',b:'三日（　）'}, {k:'空',y:'そら',b:'（　）をあおぐ'},
-  {k:'天',y:'てん',b:'（　）きがいい'}, {k:'気',y:'き',b:'（　）もちがいい'}, {k:'雨',y:'あめ',b:'（　）がふる'}, {k:'夕',y:'ゆう',b:'（　）やけ'}, {k:'石',y:'いし',b:'（　）をひろう'},
-  {k:'花',y:'はな',b:'ひまわりの（　）'}, {k:'草',y:'くさ',b:'（　）原'}, {k:'竹',y:'たけ',b:'（　）の子'}, {k:'林',y:'はやし',b:'（　）の中'}, {k:'森',y:'もり',b:'（　）をまもる'},
-  /* 第2部: 2年生 (41-70) */
-  {k:'絵',y:'え',b:'（　）をかく'}, {k:'海',y:'うみ',b:'（　）をみる'}, {k:'中',y:'なか',b:'お（　）がすく'}, {k:'字',y:'じ',b:'（　）をかく'}, {k:'母',y:'かあ',b:'お（　）さん'},
-  {k:'父',y:'とう',b:'お（　）さん'}, {k:'家',y:'いえ',b:'（　）に帰る'}, {k:'会',y:'あ',b:'友だちに（　）う'}, {k:'行',y:'い',b:'学校へ（　）く'}, {k:'食',y:'た',b:'ご飯を（　）べる'},
-  {k:'歌',y:'うた',b:'（　）をよむ'}, {k:'青',y:'あお',b:'（　）い空'}, {k:'赤',y:'あか',b:'（　）い花'}, {k:'白',y:'しろ',b:'（　）い雲'}, {k:'黒',y:'くろ',b:'（　）い土'},
-  {k:'黄',y:'き',b:'（　）色のハンカチ'}, {k:'背',y:'せ',b:'（　）が高い'}, {k:'手',y:'て',b:'（　）をあらう'}, {k:'目',y:'め',b:'（　）がいい'}, {k:'耳',y:'みみ',b:'（　）でおとをきく'},
-  {k:'足',y:'あし',b:'（　）ではしる'}, {k:'声',y:'こえ',b:'（　）がでる'}, {k:'力',y:'ちから',b:'（　）をだす'}, {k:'門',y:'もん',b:'（　）のまえ'}, {k:'車',y:'くるま',b:'（　）にのる'},
-  {k:'船',y:'ふね',b:'（　）にのる'}, {k:'鳥',y:'とり',b:'（　）がとぶ'}, {k:'虫',y:'むし',b:'（　）をつかまえる'}, {k:'犬',y:'いぬ',b:'（　）をかう'}, {k:'猫',y:'ねこ',b:'（　）をかう'},
-  /* 第3部: 3年生 (71-100) */
-  {k:'漢',y:'かん',b:'（　）字の練習'}, {k:'詩',y:'し',b:'（　）をかく'}, {k:'酒',y:'さけ',b:'お（　）をのむ'}, {k:'祭',y:'まつり',b:'（　）をおこなう'}, {k:'魚',y:'さかな',b:'（　）をたべる'},
-  {k:'歯',y:'は',b:'（　）をみがく'}, {k:'習',y:'なら',b:'ピアノを（　）う'}, {k:'皿',y:'さら',b:'お（　）をあらう'}, {k:'寺',y:'てら',b:'お（　）においる'}, {k:'湖',y:'みずうみ',b:'（　）でおよぐ'},
-  {k:'港',y:'みなと',b:'（　）で荷物をまつ'}, {k:'橋',y:'はし',b:'（　）の上をわたる'}, {k:'頭',y:'あたま',b:'（　）がいたい'}, {k:'窓',y:'まど',b:'（　）をあける'}, {k:'寺',y:'てら',b:'お（　）におくる'},
-  {k:'冬',y:'ふゆ',b:'（　）がくる'}, {k:'春',y:'はる',b:'（　）のひかり'}, {k:'夏',y:'なつ',b:'（　）休み'}, {k:'秋',y:'あき',b:'（　）の風'}, {k:'駅',y:'えき',b:'（　）にいく'},
-  {k:'答',y:'こたえ',b:'（　）をだす'}, {k:'先',y:'さき',b:'（　）をきめる'}, {k:'指',y:'ゆび',b:'（　）をつかう'}, {k:'電',y:'でんしゃ',b:'（　）にのる'}, {k:'町',y:'まち',b:'（　）に住む'},
-  {k:'国',y:'くに',b:'（　）のなまえ'}, {k:'病',y:'びょうき',b:'（　）にかかる'}, {k:'荷',y:'にもつ',b:'（　）をはこぶ'}, {k:'南',y:'みなみ',b:'（　）にむかう'}, {k:'北',y:'きた',b:'（　）にすすむ'}
+  {k:'火',y:'ひ',b:'（　）が燃える'}, {k:'水',y:'みず',b:'（　）を飲む'},
+  {k:'木',y:'き',b:'大きな（　）'}, {k:'漢',y:'かん',b:'（　）字を練習する'}
 ];
-
-const COUNTER_KANJI = ['守', '返', '刀', '盾'];
-let state = { eHP:120, eMax:120, pHP:100, pMax:100, cast:0, isIntercept:false, ink:[], over:false };
-
+let state = { eHP:120, eMax:120, pHP:100, pMax:100, cast:0, ink:[], over:false };
 const canvas = document.getElementById('draw-canvas');
-const iCanvas = document.getElementById('intercept-canvas');
 const ctx = canvas.getContext('2d');
-const iCtx = iCanvas.getContext('2d');
 
-function initCanvas(c, context) {
-  const rect = c.parentElement.getBoundingClientRect();
+function initCanvas() {
+  const rect = canvas.parentElement.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  c.width = rect.width * dpr;
-  c.height = rect.height * dpr;
-  context.scale(dpr, dpr);
-  context.lineWidth = 10;
-  context.lineCap = 'round';
-  context.strokeStyle = '#fff';
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  ctx.lineWidth = 10;
+  ctx.lineCap = 'round';
+  
+  // 3. 文字書きエフェクト（金色に輝く）
+  // 線の色を金色に設定
+  ctx.strokeStyle = '#f0d070'; 
+  // 影の設定（輝き効果）
+  ctx.shadowColor = 'rgba(240, 208, 112, 0.8)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
 }
 
-function setupDrawing(c, context) {
+function setupDrawing() {
   let drawing = false;
   const start = (e) => {
     if(state.over) return;
     drawing = true;
-    const p = getP(e, c);
-    context.beginPath(); context.moveTo(p.x, p.y);
+    const p = getP(e);
+    ctx.beginPath(); ctx.moveTo(p.x, p.y);
     state.ink.push([[p.x], [p.y], [0]]);
   };
   const move = (e) => {
     if(!drawing) return;
-    const p = getP(e, c);
-    context.lineTo(p.x, p.y); context.stroke();
+    const p = getP(e);
+    ctx.lineTo(p.x, p.y); ctx.stroke();
     const s = state.ink[state.ink.length-1];
     s[0].push(p.x); s[1].push(p.y); s[2].push(0);
   };
-  c.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); });
-  c.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); });
-  c.addEventListener('touchend', () => drawing = false);
+  canvas.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); });
+  canvas.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); });
+  canvas.addEventListener('touchend', () => drawing = false);
 }
 
-function getP(e, c) {
-  const rect = c.getBoundingClientRect();
+function getP(e) {
+  const rect = canvas.getBoundingClientRect();
   const touch = e.touches[0];
-  const x = (touch.clientX - rect.left) * (c.width / rect.width / (window.devicePixelRatio || 1));
-  const y = (touch.clientY - rect.top) * (c.height / rect.height / (window.devicePixelRatio || 1));
+  const x = (touch.clientX - rect.left) * (canvas.width / rect.width / (window.devicePixelRatio || 1));
+  const y = (touch.clientY - rect.top) * (canvas.height / rect.height / (window.devicePixelRatio || 1));
   return { x, y };
 }
 
 function clearCanvas() { ctx.clearRect(0,0,canvas.width,canvas.height); state.ink = []; }
-function clearInterceptCanvas() { iCtx.clearRect(0,0,iCanvas.width,iCanvas.height); state.ink = []; }
 
 function nextQ() {
   state.currentQ = KANJI_DATA[Math.floor(Math.random()*KANJI_DATA.length)];
@@ -213,7 +213,7 @@ function nextQ() {
 }
 
 async function recognizeAndAttack() {
-  if(state.ink.length === 0 || state.over || state.isIntercept) return;
+  if(state.ink.length === 0 || state.over) return;
   const btn = document.getElementById('attack-btn');
   btn.disabled = true;
   const result = await googleHandwriting(state.ink);
@@ -247,44 +247,17 @@ function updateHUD() {
 }
 
 setInterval(() => {
-  if (state.over || state.isIntercept) return;
+  if (state.over) return;
   state.cast += 0.3; 
   updateHUD();
-  if (state.cast >= 100) startIntercept();
+  if (state.cast >= 100) {
+    state.cast = 0; state.pHP -= 15;
+    document.getElementById('img-p').classList.add('hit');
+    setTimeout(()=>document.getElementById('img-p').classList.remove('hit'), 300);
+    updateHUD();
+    if(state.pHP <= 0) endGame(false);
+  }
 }, 100);
-
-function startIntercept() {
-  state.isIntercept = true;
-  state.cast = 0; state.ink = [];
-  const target = COUNTER_KANJI[Math.floor(Math.random()*COUNTER_KANJI.length)];
-  state.currentInterceptK = target;
-  document.getElementById('intercept-kanji').textContent = target;
-  document.getElementById('intercept-overlay').style.display = 'flex';
-  initCanvas(iCanvas, iCtx);
-
-  const checkLoop = setInterval(async () => {
-    if(!state.isIntercept) { clearInterval(checkLoop); return; }
-    if(state.ink.length >= 1) {
-      const res = await googleHandwriting(state.ink);
-      if(res.includes(state.currentInterceptK)) {
-        clearInterval(checkLoop); finishIntercept(true);
-      }
-    }
-  }, 1000);
-
-  state.interceptTimer = setTimeout(() => {
-    if(state.isIntercept) { clearInterval(checkLoop); finishIntercept(false); }
-  }, 5000);
-}
-
-function finishIntercept(success) {
-  state.isIntercept = false;
-  document.getElementById('intercept-overlay').style.display = 'none';
-  if(success) { state.eHP -= 20; } 
-  else { state.pHP -= 25; document.getElementById('img-p').classList.add('hit'); setTimeout(()=>document.getElementById('img-p').classList.remove('hit'), 300); }
-  updateHUD();
-  if(state.pHP <= 0) endGame(false); else if(state.eHP <= 0) endGame(true);
-}
 
 function endGame(win) {
   state.over = true;
@@ -293,9 +266,8 @@ function endGame(win) {
 }
 
 window.onload = () => {
-  initCanvas(canvas, ctx);
-  setupDrawing(canvas, ctx);
-  setupDrawing(iCanvas, iCtx);
+  initCanvas();
+  setupDrawing();
   nextQ();
 };
 </script>
