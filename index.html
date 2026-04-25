@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>真・漢術師 ～怨霊討伐録～ 究極演出版</title>
+<title>真・漢術師 ～怨霊討伐録～ 完結編</title>
 <style>
 :root { 
   --kin: #f0d070; 
@@ -15,20 +15,18 @@
 
 html, body {
   overflow: hidden; height: 100%; width: 100%;
-  background-color: #000;
-  color: #fff;
+  background-color: #000; color: #fff;
   font-family: 'Hiragino Mincho ProN', serif;
 }
 
 body {
   background-image: url('5B4C5B36-1A3E-4C27-B6C4-95D11725EDDE.png');
-  background-size: cover;
-  background-position: center;
+  background-size: cover; background-position: center;
 }
 
 #bg-overlay { 
   position: fixed; inset: 0; 
-  background: radial-gradient(circle, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%); 
+  background: radial-gradient(circle, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.9) 100%); 
   z-index: 1;
 }
 
@@ -36,65 +34,64 @@ body {
   position: relative; z-index: 10;
   display: flex; flex-direction: column;
   height: 100vh; width: 100%;
-  padding: 5px 15px env(safe-area-inset-bottom);
+  padding: 10px 20px env(safe-area-inset-bottom);
 }
 
-/* ヘッダー周り */
+/* ヘッダー */
 #header { height: 12vh; display: flex; justify-content: space-between; align-items: flex-end; }
-.status-block { width: 30%; }
-.hp-wrap { height: 8px; background: #200; border: 1px solid var(--kin-border); border-radius: 4px; overflow: hidden; }
-.hp-bar { height: 100%; width: 100%; transition: width 0.3s; box-shadow: 0 0 10px rgba(255,0,0,0.5); }
-#hp-e-bar { background: linear-gradient(to right, #822, #f44); }
-#hp-p-bar { background: linear-gradient(to right, #228, #4af); }
-.hp-label { font-size: 10px; color: var(--kin); display: flex; justify-content: space-between; margin-bottom: 2px; text-shadow: 0 0 5px #000; }
+.status-block { width: 35%; }
+.hp-wrap { height: 10px; background: #200; border: 1px solid var(--kin-border); border-radius: 5px; overflow: hidden; margin-bottom: 4px; }
+.hp-bar { height: 100%; transition: width 0.3s; box-shadow: 0 0 15px rgba(255,255,255,0.2); }
+#hp-e-bar { background: linear-gradient(to right, #600, #f00); width: 100%; }
+#hp-p-bar { background: linear-gradient(to right, #006, #0af); width: 100%; }
+.gauge-wrap { height: 4px; background: #111; border-radius: 2px; overflow: hidden; }
+#enemy-cast-bar { height: 100%; width: 0%; background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+.hp-label { font-size: 11px; color: var(--kin); display: flex; justify-content: space-between; text-shadow: 0 0 5px #000; }
 
-/* メインステージ */
-#main-stage { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.char-box { flex: 1.2; display: flex; justify-content: center; align-items: center; height: 100%; position: relative; }
-.char-box img { max-width: 110%; max-height: 95%; object-fit: contain; filter: drop-shadow(0 0 15px rgba(0,0,0,0.9)); transition: transform 0.1s; }
+/* メイン */
+#main-stage { flex: 1; display: flex; align-items: center; justify-content: space-between; }
+.char-box { flex: 1; display: flex; justify-content: center; align-items: center; height: 100%; }
+.char-box img { max-width: 120%; max-height: 95%; object-fit: contain; filter: drop-shadow(0 0 20px #000); }
 
-/* 中央の入力エリア */
-#interaction-box { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+/* 入力エリア */
+#interaction-box { flex: 1.2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
 #question-display { 
-  background: rgba(0,0,0,0.7); border: 1px solid var(--kin-border); border-radius: 8px; 
-  padding: 8px; text-align: center; width: 100%;
-  box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);
+  background: rgba(0,0,0,0.85); border: 2px solid var(--kin-border); border-radius: 10px; 
+  padding: 10px; text-align: center; width: 100%;
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
 }
-#mondai-text { font-size: clamp(14px, 3.5vh, 20px); font-weight: bold; color: var(--kin); text-shadow: 0 0 8px rgba(240,208,112,0.6); }
+#mondai-text { font-size: 22px; font-weight: bold; color: var(--kin); text-shadow: 0 0 10px rgba(240,208,112,0.8); }
 
-/* キャンバス：浮かび上がる演出 */
 #canvas-wrap {
-  height: 42vh; aspect-ratio: 1/1;
-  background: rgba(20, 20, 20, 0.6); 
-  border: 2px solid var(--kin-border); 
-  border-radius: 12px;
+  height: 45vh; aspect-ratio: 1/1;
+  background: rgba(10, 10, 10, 0.7); 
+  border: 3px solid var(--kin-border); border-radius: 15px;
   position: relative;
-  /* 浮き上がり効果 */
-  box-shadow: 0 0 30px rgba(212, 175, 55, 0.3), inset 0 0 20px rgba(0,0,0,0.8);
-  animation: float-glow 3s infinite ease-in-out;
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+  animation: float 4s infinite ease-in-out;
 }
-@keyframes float-glow {
-  0%, 100% { transform: translateY(0); box-shadow: 0 0 25px rgba(212, 175, 55, 0.3); }
-  50% { transform: translateY(-5px); box-shadow: 0 0 45px rgba(212, 175, 55, 0.5); }
-}
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+canvas { position: absolute; top:0; left:0; width: 100%; height: 100%; }
 
-canvas { position: absolute; top:0; left:0; width: 100%; height: 100%; touch-action: none; }
+/* 迎撃オーバーレイ */
+#intercept-overlay {
+  position: fixed; inset: 0; background: rgba(40, 0, 0, 0.85);
+  z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center;
+  border: 10px solid var(--danger); animation: pulse-red 1s infinite;
+}
+@keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
 
 /* フッター */
-#footer { height: 18vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; }
+#footer { height: 15vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
 #attack-btn { 
-  width: 240px; height: 44px; border: none; border-radius: 22px; 
+  width: 260px; height: 50px; border: none; border-radius: 25px; 
   background: linear-gradient(#f0d080, #b08030); color: #210; 
-  font-size: 20px; font-weight: bold; cursor: pointer;
-  box-shadow: 0 0 20px rgba(240, 208, 112, 0.5);
-  transition: 0.2s;
+  font-size: 22px; font-weight: bold; box-shadow: 0 0 25px rgba(240, 208, 112, 0.6);
 }
-#attack-btn:active { transform: scale(0.95); filter: brightness(1.2); }
-.sub-btn { padding: 6px 15px; background: rgba(0,0,0,0.8); border: 1px solid var(--kin-border); color: var(--kin); border-radius: 5px; font-size: 11px; }
 
-#game-over { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-.hit { animation: shake 0.3s; }
-@keyframes shake { 0%,100%{transform:translate(0)} 20%{transform:translate(-10px,5px)} 60%{transform:translate(10px,-5px)} }
+#game-over { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+.hit { animation: shake 0.4s; }
+@keyframes shake { 0%,100%{transform:translate(0)} 25%{transform:translate(-15px,10px)} 75%{transform:translate(15px,-10px)} }
 </style>
 </head>
 <body>
@@ -104,10 +101,11 @@ canvas { position: absolute; top:0; left:0; width: 100%; height: 100%; touch-act
 <div id="game-container">
   <div id="header">
     <div class="status-block">
-      <div class="hp-label"><span>怨霊</span><span id="hp-e-val">120/120</span></div>
+      <div class="hp-label"><span>怨霊 (Lv.99)</span><span id="hp-e-val">500/500</span></div>
       <div class="hp-wrap"><div id="hp-e-bar" class="hp-bar"></div></div>
+      <div class="gauge-wrap"><div id="enemy-cast-bar"></div></div>
     </div>
-    <div id="center-msg" style="font-size:12px; color:var(--kin); text-shadow:0 0 10px var(--kin)">漢術で怨念を祓え</div>
+    <div id="center-msg" style="font-size:12px; color:var(--kin);">精神を研ぎ澄ませ</div>
     <div class="status-block">
       <div class="hp-label"><span>HP: <span id="hp-p-val">100</span>/100</span><span>漢術師</span></div>
       <div class="hp-wrap"><div id="hp-p-bar" class="hp-bar"></div></div>
@@ -118,180 +116,154 @@ canvas { position: absolute; top:0; left:0; width: 100%; height: 100%; touch-act
     <div class="char-box"><img src="Untitled design.png" id="img-e"></div>
     <div id="interaction-box">
       <div id="question-display">
-        <div id="yomi-text" style="font-size:10px; color:var(--kin-bright); opacity:0.8;">よみ：みず</div>
-        <div id="mondai-text">（　）をのむ</div>
+        <div id="yomi-text" style="font-size:11px; color:#fff5d7;">よみ：？？？</div>
+        <div id="mondai-text">読み込み中...</div>
       </div>
       <div id="canvas-wrap">
-        <canvas id="particle-canvas"></canvas>
-        <canvas id="draw-canvas"></canvas>
+        <canvas id="p-canvas"></canvas>
+        <canvas id="d-canvas"></canvas>
       </div>
     </div>
     <div class="char-box"><img src="Untitled design - 1.png" id="img-p"></div>
   </div>
 
   <div id="footer">
-    <div class="btn-row">
-      <button class="sub-btn" onclick="clearCanvas()">墨を拭く</button>
-      <button class="sub-btn" style="opacity:0.5">奥義解放(Lv.10)</button>
-    </div>
-    <button id="attack-btn" onclick="recognizeAndAttack()">漢 術 発 動</button>
+    <button class="sub-btn" style="padding:5px 20px; background:transparent; border:1px solid var(--kin); color:var(--kin); border-radius:5px; margin-bottom:5px;" onclick="clearCanvas()">墨を拭く</button>
+    <button id="attack-btn" onclick="executeKanjyutu()">漢 術 発 動</button>
   </div>
 </div>
 
+<div id="intercept-overlay">
+  <div style="color:var(--danger); font-size:24px; font-weight:bold; margin-bottom:10px;">怨霊の反撃！迎撃せよ！</div>
+  <div id="intercept-target" style="font-size: 80px; color: #fff; text-shadow: 0 0 20px #f00; font-weight: bold; margin-bottom: 20px;">守</div>
+  <div style="font-size:14px; color:#fcc;">※この文字をキャンバスに書け！</div>
+</div>
+
 <div id="game-over">
-  <h1 id="res-title" style="color:var(--kin); font-size:48px; text-shadow:0 0 20px var(--kin); margin-bottom:30px;"></h1>
-  <button style="padding:12px 40px; font-size:20px; border-radius:30px; background:var(--kin); color:#000; font-weight:bold;" onclick="location.reload()">再戦を誓う</button>
+  <h1 id="res-title" style="color:var(--kin); font-size:50px; text-shadow:0 0 20px var(--kin);"></h1>
+  <button style="margin-top:40px; padding:15px 50px; font-size:24px; background:var(--kin); border:none; font-weight:bold;" onclick="location.reload()">再 臨</button>
 </div>
 
 <script>
+// 問題データ（100問から抜粋・長期戦用に調整）
 const KANJI_DATA = [
-  {k:'火',y:'ひ',b:'（　）がおこる'}, {k:'水',y:'みず',b:'（　）をのむ'},
-  {k:'木',y:'き',b:'（　）の下で休む'}, {k:'漢',y:'かん',b:'（　）字の練習'}
+  {k:'火',y:'ひ',b:'（　）がおこる'}, {k:'水',y:'みず',b:'（　）を飲む'}, {k:'木',y:'き',b:'大きな（　）'},
+  {k:'天',y:'てん',b:'（　）きがいい'}, {k:'空',y:'そら',b:'（　）を見上げる'}, {k:'山',y:'やま',b:'ふじ（　）'},
+  {k:'川',y:'かわ',b:'（　）あそび'}, {k:'石',y:'いし',b:'（　）をひろう'}, {k:'花',y:'はな',b:'（　）がさく'},
+  {k:'雨',y:'あめ',b:'（　）がふる'}, {k:'右',y:'みぎ',b:'（　）にまがる'}, {k:'左',y:'ひだり',b:'（　）をみる'}
 ];
+const DEFENSE_KANJI = ['守', '消', '断', '正'];
 
-let state = { eHP:120, pHP:100, ink:[], over:false, particles:[] };
-const canvas = document.getElementById('draw-canvas');
-const pCanvas = document.getElementById('particle-canvas'); // パーティクル専用
-const ctx = canvas.getContext('2d');
+let state = { 
+  eHP: 500, eMax: 500, pHP: 100, pMax: 100, 
+  ink: [], over: false, eCast: 0, 
+  isIntercept: false, currentDefenseK: '', particles: [] 
+};
+
+const dCanvas = document.getElementById('d-canvas');
+const pCanvas = document.getElementById('p-canvas');
+const dCtx = dCanvas.getContext('2d');
 const pCtx = pCanvas.getContext('2d');
 
-function initCanvas() {
-  const rect = canvas.parentElement.getBoundingClientRect();
+function init() {
+  const rect = dCanvas.parentElement.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
-  [canvas, pCanvas].forEach(c => {
+  [dCanvas, pCanvas].forEach(c => {
     c.width = rect.width * dpr;
     c.height = rect.height * dpr;
   });
-  ctx.scale(dpr, dpr);
-  pCtx.scale(dpr, dpr);
-  
-  ctx.lineWidth = 8;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  // 文字の基本色（金色）
-  ctx.strokeStyle = '#f0d070';
-  // 文字の輝き（初期状態）
-  ctx.shadowColor = 'rgba(240, 208, 112, 0.8)';
-  ctx.shadowBlur = 15;
+  dCtx.scale(dpr, dpr); pCtx.scale(dpr, dpr);
+  dCtx.lineWidth = 10; dCtx.lineCap = 'round'; dCtx.strokeStyle = '#f0d070';
+  dCtx.shadowColor = 'rgba(240, 208, 112, 0.9)';
 }
 
-// キラキラパーティクル作成
-function createParticle(x, y) {
-  for(let i=0; i<3; i++) {
-    state.particles.push({
-      x, y,
-      vx: (Math.random() - 0.5) * 4,
-      vy: (Math.random() - 0.5) * 4,
-      size: Math.random() * 4 + 1,
-      life: 1.0,
-      color: Math.random() > 0.5 ? '#fff5d7' : '#f0d070'
-    });
+// 描画とキラキラ
+function createP(x, y) {
+  for(let i=0; i<4; i++) {
+    state.particles.push({ x, y, vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5, life: 1, s: Math.random()*5 });
   }
 }
 
-// パーティクルと輝きの更新ループ
-let glowValue = 0;
-function animate() {
-  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
-  
-  // 文字自体の輝きを脈動させる
-  glowValue = Math.sin(Date.now() / 200) * 10 + 20;
-  ctx.shadowBlur = glowValue;
+function loop() {
+  pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
+  dCtx.shadowBlur = Math.sin(Date.now()/150)*10 + 20; // 浮かび上がる輝き
 
-  // パーティクル描画
   state.particles.forEach((p, i) => {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.life -= 0.02;
-    if(p.life <= 0) {
-      state.particles.splice(i, 1);
-      return;
-    }
-    pCtx.globalAlpha = p.life;
-    pCtx.fillStyle = p.color;
-    pCtx.beginPath();
-    pCtx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-    pCtx.fill();
-    // パーティクルにも光彩
-    pCtx.shadowBlur = 10;
-    pCtx.shadowColor = p.color;
+    p.x += p.vx; p.y += p.vy; p.life -= 0.03;
+    if(p.life <= 0) return state.particles.splice(i, 1);
+    pCtx.fillStyle = `rgba(240, 208, 112, ${p.life})`;
+    pCtx.beginPath(); pCtx.arc(p.x, p.y, p.s, 0, 7); pCtx.fill();
   });
-  requestAnimationFrame(animate);
+
+  // 怨霊の反撃ゲージ蓄積
+  if(!state.over && !state.isIntercept) {
+    state.eCast += 0.15; // 約15秒で満タン
+    document.getElementById('enemy-cast-bar').style.width = state.eCast + '%';
+    if(state.eCast >= 100) startIntercept();
+  }
+  requestAnimationFrame(loop);
 }
 
-function setupDrawing() {
-  let drawing = false;
-  const start = (e) => {
-    if(state.over) return;
-    drawing = true;
-    const p = getP(e);
-    ctx.beginPath(); ctx.moveTo(p.x, p.y);
-    state.ink.push([[p.x], [p.y], [0]]);
-    createParticle(p.x, p.y);
-  };
-  const move = (e) => {
-    if(!drawing) return;
-    const p = getP(e);
-    ctx.lineTo(p.x, p.y); ctx.stroke();
-    const s = state.ink[state.ink.length-1];
-    s[0].push(p.x); s[1].push(p.y); s[2].push(0);
-    // 書いている最中にキラキラを出す
-    createParticle(p.x, p.y);
-  };
-  canvas.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); });
-  canvas.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); });
-  canvas.addEventListener('touchend', () => drawing = false);
-}
-
-function getP(e) {
-  const rect = canvas.getBoundingClientRect();
-  const touch = e.touches[0];
-  const scale = canvas.width / rect.width / (window.devicePixelRatio || 1);
-  return {
-    x: (touch.clientX - rect.left) * scale,
-    y: (touch.clientY - rect.top) * scale
-  };
-}
-
-function clearCanvas() { ctx.clearRect(0,0,canvas.width,canvas.height); state.ink = []; }
-
-function nextQ() {
-  state.currentQ = KANJI_DATA[Math.floor(Math.random()*KANJI_DATA.length)];
-  document.getElementById('mondai-text').textContent = state.currentQ.b;
-  document.getElementById('yomi-text').textContent = 'よみ：' + state.currentQ.y;
+function startIntercept() {
+  state.isIntercept = true;
+  state.eCast = 0;
+  state.currentDefenseK = DEFENSE_KANJI[Math.floor(Math.random()*DEFENSE_KANJI.length)];
+  document.getElementById('intercept-target').textContent = state.currentDefenseK;
+  document.getElementById('intercept-overlay').style.display = 'flex';
   clearCanvas();
+  
+  // 5秒以内に書かないとダメージ
+  state.interceptTimer = setTimeout(() => {
+    if(state.isIntercept) failIntercept();
+  }, 5000);
 }
 
-async function recognizeAndAttack() {
+async function executeKanjyutu() {
   if(state.ink.length === 0 || state.over) return;
-  const btn = document.getElementById('attack-btn');
-  btn.disabled = true;
+  const result = await googleAPI(state.ink);
   
-  // 攻撃時のフラッシュ演出
-  canvas.style.filter = 'brightness(2) blur(2px)';
-  
-  const result = await googleHandwriting(state.ink);
-  
-  setTimeout(() => {
-    canvas.style.filter = 'none';
-    if(result.includes(state.currentQ.k)) {
-      state.eHP -= 40;
-      document.getElementById('img-e').classList.add('hit');
-      setTimeout(()=>document.getElementById('img-e').classList.remove('hit'), 300);
-    } else {
-      state.pHP -= 20;
-      document.getElementById('img-p').classList.add('hit');
-      setTimeout(()=>document.getElementById('img-p').classList.remove('hit'), 300);
+  if(state.isIntercept) {
+    if(result.includes(state.currentDefenseK)) {
+      successIntercept();
     }
-    updateHUD();
-    btn.disabled = false;
-    if(state.eHP <= 0) endGame(true); 
-    else if(state.pHP <= 0) endGame(false);
-    else nextQ();
-  }, 300);
+    return;
+  }
+
+  // 通常攻撃
+  if(result.includes(state.currentQ.k)) {
+    state.eHP -= 50; // 10問で倒せる計算
+    document.getElementById('img-e').classList.add('hit');
+    setTimeout(()=>document.getElementById('img-e').classList.remove('hit'), 400);
+  } else {
+    state.pHP -= 10;
+    document.getElementById('img-p').classList.add('hit');
+    setTimeout(()=>document.getElementById('img-p').classList.remove('hit'), 400);
+  }
+  updateUI();
+  if(state.eHP <= 0) endGame(true); else nextQ();
 }
 
-async function googleHandwriting(ink) {
+function successIntercept() {
+  clearTimeout(state.interceptTimer);
+  state.isIntercept = false;
+  document.getElementById('intercept-overlay').style.display = 'none';
+  // 迎撃成功演出
+  document.body.style.backgroundColor = "#fff";
+  setTimeout(()=>document.body.style.backgroundColor = "", 100);
+  nextQ();
+}
+
+function failIntercept() {
+  state.isIntercept = false;
+  document.getElementById('intercept-overlay').style.display = 'none';
+  state.pHP -= 30;
+  document.getElementById('img-p').classList.add('hit');
+  setTimeout(()=>document.getElementById('img-p').classList.remove('hit'), 500);
+  updateUI();
+  if(state.pHP <= 0) endGame(false); else nextQ();
+}
+
+async function googleAPI(ink) {
   try {
     const res = await fetch("https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test", {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -302,25 +274,52 @@ async function googleHandwriting(ink) {
   } catch(e) { return []; }
 }
 
-function updateHUD() {
-  document.getElementById('hp-e-bar').style.width = (state.eHP/120*100)+'%';
-  document.getElementById('hp-p-bar').style.width = (state.pHP/100*100)+'%';
-  document.getElementById('hp-e-val').textContent = `${Math.max(0, state.eHP)}/120`;
-  document.getElementById('hp-p-val').textContent = Math.max(0, state.pHP);
+// 描画イベント
+let drawing = false;
+dCanvas.addEventListener('touchstart', (e) => {
+  e.preventDefault(); drawing = true;
+  const p = getCoords(e);
+  dCtx.beginPath(); dCtx.moveTo(p.x, p.y);
+  state.ink.push([[p.x], [p.y], [0]]);
+});
+dCanvas.addEventListener('touchmove', (e) => {
+  if(!drawing) return;
+  const p = getCoords(e);
+  dCtx.lineTo(p.x, p.y); dCtx.stroke();
+  state.ink[state.ink.length-1][0].push(p.x);
+  state.ink[state.ink.length-1][1].push(p.y);
+  state.ink[state.ink.length-1][2].push(0);
+  createP(p.x, p.y);
+});
+dCanvas.addEventListener('touchend', () => drawing = false);
+
+function getCoords(e) {
+  const r = dCanvas.getBoundingClientRect();
+  const t = e.touches[0];
+  const s = dCanvas.width / r.width / (window.devicePixelRatio || 1);
+  return { x: (t.clientX - r.left)*s, y: (t.clientY - r.top)*s };
 }
 
+function clearCanvas() { dCtx.clearRect(0,0,dCanvas.width,dCanvas.height); state.ink = []; }
+function nextQ() {
+  state.currentQ = KANJI_DATA[Math.floor(Math.random()*KANJI_DATA.length)];
+  document.getElementById('mondai-text').textContent = state.currentQ.b;
+  document.getElementById('yomi-text').textContent = 'よみ：' + state.currentQ.y;
+  clearCanvas();
+}
+function updateUI() {
+  document.getElementById('hp-e-bar').style.width = (state.eHP/state.eMax*100)+'%';
+  document.getElementById('hp-p-bar').style.width = (state.pHP/state.pMax*100)+'%';
+  document.getElementById('hp-e-val').textContent = `${Math.max(0, state.eHP)}/${state.eMax}`;
+  document.getElementById('hp-p-val').textContent = Math.max(0, state.pHP);
+}
 function endGame(win) {
   state.over = true;
   document.getElementById('game-over').style.display = 'flex';
-  document.getElementById('res-title').textContent = win ? "怨 霊 退 散" : "力 尽 き た";
+  document.getElementById('res-title').textContent = win ? "怨 霊 完 全 封 印" : "無 念 ...";
 }
 
-window.onload = () => {
-  initCanvas();
-  setupDrawing();
-  animate(); // エフェクト開始
-  nextQ();
-};
+window.onload = () => { init(); loop(); nextQ(); };
 </script>
 </body>
 </html>
