@@ -32,7 +32,6 @@ html, body {
   padding: 5px 10px env(safe-area-inset-bottom);
 }
 
-/* 上部ステータス（さらにコンパクト化） */
 #header { height: 10vh; display: flex; justify-content: space-between; align-items: flex-end; }
 .status-block { width: 30%; }
 .hp-wrap { height: 6px; background: #200; border: 1px solid var(--kin); border-radius: 3px; overflow: hidden; position: relative;}
@@ -43,30 +42,31 @@ html, body {
 #cast-gauge { height: 100%; width: 0%; background: var(--danger); }
 .hp-label { font-size: 9px; color: var(--kin); display: flex; justify-content: space-between; margin-bottom: 1px; }
 
-/* メインステージ（中央を広く） */
 #main-stage { flex: 1; display: flex; align-items: center; justify-content: space-between; overflow: hidden; gap: 5px; }
 .char-box { flex: 0.8; display: flex; justify-content: center; align-items: center; height: 100%; }
 .char-box img { max-width: 100%; max-height: 75%; object-fit: contain; }
 
-/* 中央：キャンバスエリアを拡大 */
 #interaction-box { flex: 1.4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 100%; }
-#question-display { background: rgba(0,0,0,0.8); border: 1px solid var(--kin); border-radius: 6px; padding: 2px 5px; text-align: center; width: 100%; }
-#mondai-text { font-size: clamp(14px, 3vh, 18px); font-weight: bold; }
+#question-display { 
+  background: rgba(0,0,0,0.8); border: 1px solid var(--kin); border-radius: 6px; 
+  padding: 4px 8px; text-align: center; width: 100%; min-height: 45px;
+  display: flex; flex-direction: column; justify-content: center;
+}
+#yomi-text { font-size: 10px; color: var(--kin2); margin-bottom: 2px; }
+#mondai-text { font-size: clamp(12px, 2.5vh, 16px); font-weight: bold; line-height: 1.2; }
 
 #canvas-wrap {
-  height: 45vh; aspect-ratio: 1/1; /* 45vhに拡大 */
+  height: 45vh; aspect-ratio: 1/1; 
   background: rgba(255,255,255,0.08); border: 2px solid var(--kin); border-radius: 10px;
-  position: relative; box-shadow: 0 0 15px rgba(212,175,55,0.2);
+  position: relative;
 }
 canvas { width: 100%; height: 100%; touch-action: none; }
 
-/* 下部ボタン */
-#footer { height: 20vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+#footer { height: 18vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
 .btn-row { display: flex; gap: 10px; margin-bottom: 2px; }
 .sub-btn { padding: 4px 10px; background: rgba(30,30,30,0.9); border: 1px solid var(--kin); color: var(--kin); border-radius: 4px; font-size: 10px; font-weight: bold; }
-#attack-btn { width: 200px; height: 34px; border: none; border-radius: 17px; background: linear-gradient(#f0d080, #b08030); color: #210; font-size: 16px; font-weight: bold; box-shadow: 0 2px 5px #000; }
+#attack-btn { width: 200px; height: 34px; border: none; border-radius: 17px; background: linear-gradient(#f0d080, #b08030); color: #210; font-size: 16px; font-weight: bold; }
 
-/* 反撃・終了画面 */
 #intercept-overlay { position: fixed; inset: 0; background: rgba(40, 0, 0, 0.95); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; border: 4px solid var(--danger); }
 .hit { animation: shake 0.3s; }
 @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(10px)} }
@@ -95,7 +95,7 @@ canvas { width: 100%; height: 100%; touch-action: none; }
     <div class="char-box"><img src="Untitled design.png" id="img-e"></div>
     <div id="interaction-box">
       <div id="question-display">
-        <div id="yomi-text" style="font-size:10px; color:var(--kin2)">よみ：？？？</div>
+        <div id="yomi-text">よみ：？？？</div>
         <div id="mondai-text">―――</div>
       </div>
       <div id="canvas-wrap"><canvas id="draw-canvas"></canvas></div>
@@ -127,13 +127,34 @@ canvas { width: 100%; height: 100%; touch-action: none; }
 </div>
 
 <script>
+// 全100問実装
 const KANJI_DATA = [
-  {k:'火',y:'ひ',b:'キャンプの___'}, {k:'水',y:'みず',b:'___をのむ'},
-  {k:'木',y:'き',b:'大きな___'}, {k:'漢',y:'かん',b:'___字を練習する'},
-  {k:'王',y:'おう',b:'一国の___'}, {k:'心',y:'こころ',b:'___を落ち着ける'}
+  /* 第1部: 1年生 (1-40) */
+  {k:'一',y:'いち',b:'（　）年生になる'}, {k:'二',y:'に',b:'（　）年生のあね'}, {k:'三',y:'みっか',b:'（　）日（　）日'}, {k:'四',y:'よ',b:'（　）つかど'}, {k:'五',y:'ご',b:'（　）円だま'},
+  {k:'六',y:'ろっ',b:'（　）か月'}, {k:'七',y:'たな',b:'（　）夕まつり'}, {k:'八',y:'はっ',b:'（　）さいになる'}, {k:'九',y:'きゅう',b:'（　）しゅう'}, {k:'十',y:'じゅう',b:'（　）円'},
+  {k:'百',y:'ひゃく',b:'（　）円さつ'}, {k:'千',y:'せん',b:'（　）羽づる'}, {k:'上',y:'うえ',b:'机の（　）'}, {k:'下',y:'お',b:'階段を（　）りる'}, {k:'左',y:'ひだり',b:'（　）手'},
+  {k:'右',y:'みぎ',b:'（　）にまがる'}, {k:'中',y:'なか',b:'かばんの（　）'}, {k:'大',y:'おお',b:'（　）きな声'}, {k:'小',y:'ちい',b:'（　）さな石'}, {k:'本',y:'ほん',b:'（　）をよむ'},
+  {k:'山',y:'さん',b:'富士（　）'}, {k:'川',y:'かわ',b:'（　）あそび'}, {k:'水',y:'みず',b:'（　）をのむ'}, {k:'火',y:'ひ',b:'（　）がおこる'}, {k:'木',y:'き',b:'（　）の下'},
+  {k:'金',y:'きん',b:'（　）ようび'}, {k:'土',y:'つち',b:'（　）をいじる'}, {k:'日',y:'にち',b:'（　）ようび'}, {k:'月',y:'づき',b:'三日（　）'}, {k:'空',y:'そら',b:'（　）をあおぐ'},
+  {k:'天',y:'てん',b:'（　）きがいい'}, {k:'気',y:'き',b:'（　）もちがいい'}, {k:'雨',y:'あめ',b:'（　）がふる'}, {k:'夕',y:'ゆう',b:'（　）やけ'}, {k:'石',y:'いし',b:'（　）をひろう'},
+  {k:'花',y:'はな',b:'ひまわりの（　）'}, {k:'草',y:'くさ',b:'（　）原'}, {k:'竹',y:'たけ',b:'（　）の子'}, {k:'林',y:'はやし',b:'（　）の中'}, {k:'森',y:'もり',b:'（　）をまもる'},
+  /* 第2部: 2年生 (41-70) */
+  {k:'絵',y:'え',b:'（　）をかく'}, {k:'海',y:'うみ',b:'（　）をみる'}, {k:'中',y:'なか',b:'お（　）がすく'}, {k:'字',y:'じ',b:'（　）をかく'}, {k:'母',y:'かあ',b:'お（　）さん'},
+  {k:'父',y:'とう',b:'お（　）さん'}, {k:'家',y:'いえ',b:'（　）に帰る'}, {k:'会',y:'あ',b:'友だちに（　）う'}, {k:'行',y:'い',b:'学校へ（　）く'}, {k:'食',y:'た',b:'ご飯を（　）べる'},
+  {k:'歌',y:'うた',b:'（　）をよむ'}, {k:'青',y:'あお',b:'（　）い空'}, {k:'赤',y:'あか',b:'（　）い花'}, {k:'白',y:'しろ',b:'（　）い雲'}, {k:'黒',y:'くろ',b:'（　）い土'},
+  {k:'黄',y:'き',b:'（　）色のハンカチ'}, {k:'背',y:'せ',b:'（　）が高い'}, {k:'手',y:'て',b:'（　）をあらう'}, {k:'目',y:'め',b:'（　）がいい'}, {k:'耳',y:'みみ',b:'（　）でおとをきく'},
+  {k:'足',y:'あし',b:'（　）ではしる'}, {k:'声',y:'こえ',b:'（　）がでる'}, {k:'力',y:'ちから',b:'（　）をだす'}, {k:'門',y:'もん',b:'（　）のまえ'}, {k:'車',y:'くるま',b:'（　）にのる'},
+  {k:'船',y:'ふね',b:'（　）にのる'}, {k:'鳥',y:'とり',b:'（　）がとぶ'}, {k:'虫',y:'むし',b:'（　）をつかまえる'}, {k:'犬',y:'いぬ',b:'（　）をかう'}, {k:'猫',y:'ねこ',b:'（　）をかう'},
+  /* 第3部: 3年生 (71-100) */
+  {k:'漢',y:'かん',b:'（　）字の練習'}, {k:'詩',y:'し',b:'（　）をかく'}, {k:'酒',y:'さけ',b:'お（　）をのむ'}, {k:'祭',y:'まつり',b:'（　）をおこなう'}, {k:'魚',y:'さかな',b:'（　）をたべる'},
+  {k:'歯',y:'は',b:'（　）をみがく'}, {k:'習',y:'なら',b:'ピアノを（　）う'}, {k:'皿',y:'さら',b:'お（　）をあらう'}, {k:'寺',y:'てら',b:'お（　）においる'}, {k:'湖',y:'みずうみ',b:'（　）でおよぐ'},
+  {k:'港',y:'みなと',b:'（　）で荷物をまつ'}, {k:'橋',y:'はし',b:'（　）の上をわたる'}, {k:'頭',y:'あたま',b:'（　）がいたい'}, {k:'窓',y:'まど',b:'（　）をあける'}, {k:'寺',y:'てら',b:'お（　）におくる'},
+  {k:'冬',y:'ふゆ',b:'（　）がくる'}, {k:'春',y:'はる',b:'（　）のひかり'}, {k:'夏',y:'なつ',b:'（　）休み'}, {k:'秋',y:'あき',b:'（　）の風'}, {k:'駅',y:'えき',b:'（　）にいく'},
+  {k:'答',y:'こたえ',b:'（　）をだす'}, {k:'先',y:'さき',b:'（　）をきめる'}, {k:'指',y:'ゆび',b:'（　）をつかう'}, {k:'電',y:'でんしゃ',b:'（　）にのる'}, {k:'町',y:'まち',b:'（　）に住む'},
+  {k:'国',y:'くに',b:'（　）のなまえ'}, {k:'病',y:'びょうき',b:'（　）にかかる'}, {k:'荷',y:'にもつ',b:'（　）をはこぶ'}, {k:'南',y:'みなみ',b:'（　）にむかう'}, {k:'北',y:'きた',b:'（　）にすすむ'}
 ];
-const COUNTER_KANJI = ['守', '返', '刀', '盾'];
 
+const COUNTER_KANJI = ['守', '返', '刀', '盾'];
 let state = { eHP:120, eMax:120, pHP:100, pMax:100, cast:0, isIntercept:false, ink:[], over:false };
 
 const canvas = document.getElementById('draw-canvas');
@@ -147,7 +168,7 @@ function initCanvas(c, context) {
   c.width = rect.width * dpr;
   c.height = rect.height * dpr;
   context.scale(dpr, dpr);
-  context.lineWidth = 10; // 線を少し太くして書き心地アップ
+  context.lineWidth = 10;
   context.lineCap = 'round';
   context.strokeStyle = '#fff';
 }
