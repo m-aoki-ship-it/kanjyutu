@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>真・漢術師 ～究極完全版・改～</title>
+<title>真・漢術師 ～怨霊討伐録～ 究極版</title>
 <style>
 :root { 
   --kin: #f0d070; 
@@ -24,7 +24,7 @@ body {
   background-size: cover; background-position: center;
 }
 
-#bg-overlay { position: fixed; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.9) 100%); z-index: 1; }
+#bg-overlay { position: fixed; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%); z-index: 1; }
 
 #game-container {
   position: relative; z-index: 10;
@@ -33,78 +33,84 @@ body {
   padding: 10px 20px env(safe-area-inset-bottom);
 }
 
-/* ヘッダー */
+/* ステータスバー */
 #header { height: 12vh; display: flex; justify-content: space-between; align-items: flex-end; }
-.status-block { width: 35%; }
-.hp-wrap { height: 10px; background: #200; border: 1px solid var(--kin-border); border-radius: 5px; overflow: hidden; margin-bottom: 4px; }
-.hp-bar { height: 100%; transition: width 0.3s; }
+.status-block { width: 38%; }
+.hp-wrap { height: 12px; background: #200; border: 1px solid var(--kin-border); border-radius: 6px; overflow: hidden; margin-bottom: 4px; }
+.hp-bar { height: 100%; transition: width 0.3s; box-shadow: 0 0 10px rgba(255,255,255,0.1); }
 #hp-e-bar { background: linear-gradient(to right, #600, #f00); width: 100%; }
-#hp-p-bar { background: linear-gradient(to right, #006, #0af); width: 100%; }
+#hp-p-bar { background: linear-gradient(to right, #004, #08f); width: 100%; }
 .gauge-wrap { height: 4px; background: #111; border-radius: 2px; overflow: hidden; }
-#enemy-cast-bar { height: 100%; width: 0%; background: var(--danger); box-shadow: 0 0 10px var(--danger); }
-.hp-label { font-size: 11px; color: var(--kin); display: flex; justify-content: space-between; text-shadow: 0 0 5px #000; }
+#enemy-cast-bar { height: 100%; width: 0%; background: var(--danger); box-shadow: 0 0 8px var(--danger); }
+.hp-label { font-size: 10px; color: var(--kin); display: flex; justify-content: space-between; text-shadow: 1px 1px 2px #000; }
 
-/* メイン */
+/* メインステージ */
 #main-stage { flex: 1; display: flex; align-items: center; justify-content: space-between; }
-.char-box { flex: 1.2; display: flex; justify-content: center; align-items: center; height: 100%; }
-.char-box img { max-width: 130%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 0 20px #000); }
+.char-box { flex: 1; display: flex; justify-content: center; align-items: center; height: 100%; }
+.char-box img { max-width: 130%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 0 15px #000); }
 
 /* 入力エリア */
-#interaction-box { flex: 1.1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
+#interaction-box { flex: 1.2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
 #question-display { 
-  background: rgba(0,0,0,0.85); border: 2px solid var(--kin-border); border-radius: 10px; 
-  padding: 10px; text-align: center; width: 100%; z-index: 100;
+  background: rgba(0,0,0,0.8); border: 2px solid var(--kin-border); border-radius: 10px; 
+  padding: 8px; text-align: center; width: 100%;
 }
-#mondai-text { font-size: 20px; font-weight: bold; color: var(--kin); text-shadow: 0 0 10px rgba(240,208,112,0.8); }
+#mondai-text { font-size: 18px; font-weight: bold; color: var(--kin); }
 
-/* キャンバス：ここを一番手前にする */
+/* キャンバス：最前面に配置 */
 #canvas-wrap {
-  height: 45vh; aspect-ratio: 1/1;
-  background: rgba(10, 10, 10, 0.7); 
+  height: 42vh; aspect-ratio: 1/1;
+  background: rgba(10, 10, 10, 0.8); 
   border: 3px solid var(--kin-border); border-radius: 15px;
   position: relative;
-  z-index: 3000; /* 全ての演出より手前に */
-  box-shadow: 0 0 30px rgba(212, 175, 55, 0.2);
+  z-index: 3000; /* 全てのエフェクトより手前 */
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.3);
 }
 canvas { position: absolute; top:0; left:0; width: 100%; height: 100%; }
 
-/* 迎撃オーバーレイ */
+/* 迎撃時の浮かび上がるガイド文字 */
+#guide-text {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 120px; color: rgba(240, 208, 112, 0); /* 通常は見えない */
+  font-weight: bold; pointer-events: none;
+  transition: color 0.5s; text-shadow: 0 0 20px rgba(240, 208, 112, 0);
+}
+.show-guide { color: rgba(240, 208, 112, 0.25) !important; text-shadow: 0 0 30px rgba(240, 208, 112, 0.5) !important; }
+
+/* 迎撃オーバーレイ（背景のみ） */
 #intercept-overlay {
-  position: fixed; inset: 0; background: rgba(60, 0, 0, 0.8);
-  z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center;
-  border: 15px solid var(--danger); animation: pulse-red 1s infinite;
-  pointer-events: none; 
+  position: fixed; inset: 0; background: rgba(50, 0, 0, 0.6);
+  z-index: 2000; display: none;
+  border: 10px solid var(--danger); animation: pulse-red 1s infinite;
+  pointer-events: none;
 }
-@keyframes pulse-red { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+@keyframes pulse-red { 0%, 100% { opacity: 0.8; } 50% { opacity: 0.4; } }
 
-/* 迎撃時の文字ガイド */
-#intercept-guide {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  font-size: 100px; color: rgba(255, 255, 255, 0.2); font-weight: bold;
-  pointer-events: none; z-index: 2500;
-}
-
-/* フッター */
-#footer { height: 15vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+/* 判定ボタン */
+#footer { height: 18vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
 #attack-btn { 
-  width: 260px; height: 50px; border: none; border-radius: 25px; 
+  width: 260px; height: 55px; border: none; border-radius: 30px; 
   background: linear-gradient(#f0d080, #b08030); color: #210; 
-  font-size: 22px; font-weight: bold; box-shadow: 0 0 25px rgba(240, 208, 112, 0.6);
-  cursor: pointer; z-index: 4000;
+  font-size: 24px; font-weight: bold; box-shadow: 0 0 20px rgba(240, 208, 112, 0.5);
+  cursor: pointer; z-index: 4000; transition: all 0.2s;
 }
-#attack-btn.intercept-mode {
-  background: linear-gradient(#ff6666, #990000); color: #fff;
+#attack-btn.intercept-active {
+  background: linear-gradient(#ff4444, #880000); color: #fff;
   box-shadow: 0 0 30px var(--danger);
+  animation: btn-shake 0.2s infinite;
 }
+@keyframes btn-shake { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
 #game-over { position: fixed; inset: 0; background: #000; z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; }
 .hit { animation: shake 0.4s; }
-@keyframes shake { 0%,100%{transform:translate(0)} 25%{transform:translate(-15px,10px)} 75%{transform:translate(15px,-10px)} }
+@keyframes shake { 0%,100%{transform:translate(0)} 25%{transform:translate(-10px,5px)} 75%{transform:translate(10px,-5px)} }
 </style>
 </head>
 <body>
 
 <div id="bg-overlay"></div>
+<div id="intercept-overlay"></div>
 
 <div id="game-container">
   <div id="header">
@@ -113,7 +119,7 @@ canvas { position: absolute; top:0; left:0; width: 100%; height: 100%; }
       <div class="hp-wrap"><div id="hp-e-bar" class="hp-bar"></div></div>
       <div class="gauge-wrap"><div id="enemy-cast-bar"></div></div>
     </div>
-    <div id="center-msg" style="font-size:11px; color:var(--kin);">魂を筆に乗せよ</div>
+    <div style="font-size:12px; color:var(--kin); text-align:center;">精神を研ぎ澄ませ</div>
     <div class="status-block">
       <div class="hp-label"><span>HP: <span id="hp-p-val">100</span>/100</span><span>漢術師</span></div>
       <div class="hp-wrap"><div id="hp-p-bar" class="hp-bar"></div></div>
@@ -124,12 +130,11 @@ canvas { position: absolute; top:0; left:0; width: 100%; height: 100%; }
     <div class="char-box"><img src="Untitled design.png" id="img-e"></div>
     <div id="interaction-box">
       <div id="question-display">
-        <div id="yomi-text" style="font-size:11px; color:#fff5d7;">よみ：？？？</div>
+        <div id="yomi-text" style="font-size:11px; color:#fff5d7; margin-bottom:2px;">よみ：？？？</div>
         <div id="mondai-text">読み込み中...</div>
       </div>
       <div id="canvas-wrap">
-        <div id="intercept-guide"></div>
-        <canvas id="p-canvas"></canvas>
+        <div id="guide-text"></div> <canvas id="p-canvas"></canvas>
         <canvas id="d-canvas"></canvas>
       </div>
     </div>
@@ -137,28 +142,23 @@ canvas { position: absolute; top:0; left:0; width: 100%; height: 100%; }
   </div>
 
   <div id="footer">
-    <button class="sub-btn" style="padding:5px 20px; background:transparent; border:1px solid var(--kin); color:var(--kin); border-radius:5px; margin-bottom:5px; z-index:4000;" onclick="clearCanvas()">墨を拭く</button>
+    <button style="padding:5px 15px; background:rgba(255,255,255,0.1); border:1px solid var(--kin); color:var(--kin); border-radius:5px; font-size:12px;" onclick="clearCanvas()">墨を拭く</button>
     <button id="attack-btn" onclick="executeKanjyutu()">漢 術 発 動</button>
   </div>
 </div>
 
-<div id="intercept-overlay">
-  <div style="color:var(--danger); font-size:24px; font-weight:bold; margin-bottom:200px; text-shadow:0 0 10px #000;">怨霊の反撃！迎撃せよ！</div>
-</div>
-
 <div id="game-over">
-  <h1 id="res-title" style="color:var(--kin); font-size:50px; text-shadow:0 0 20px var(--kin);"></h1>
-  <button style="margin-top:40px; padding:15px 50px; font-size:24px; background:var(--kin); border:none; font-weight:bold;" onclick="location.reload()">再 臨</button>
+  <h1 id="res-title" style="color:var(--kin); font-size:40px;"></h1>
+  <button style="margin-top:30px; padding:15px 40px; font-size:20px; background:var(--kin); border:none; font-weight:bold;" onclick="location.reload()">再 臨</button>
 </div>
 
 <script>
 const KANJI_DATA = [
   {k:'火',y:'ひ',b:'（　）がおこる'}, {k:'水',y:'みず',b:'（　）を飲む'}, {k:'木',y:'き',b:'大きな（　）'},
   {k:'天',y:'てん',b:'（　）きがいい'}, {k:'空',y:'そら',b:'（　）を見上げる'}, {k:'山',y:'やま',b:'ふじ（　）'},
-  {k:'川',y:'かわ',b:'（　）あそび'}, {k:'石',y:'いし',b:'（　）をひろう'}, {k:'花',y:'はな',b:'（　）がさく'},
-  {k:'雨',y:'あめ',b:'（　）がふる'}
+  {k:'川',y:'かわ',b:'（　）あそび'}, {k:'花',y:'はな',b:'（　）がさく'}, {k:'雨',y:'あめ',b:'（　）がふる'}
 ];
-const DEFENSE_KANJI = ['守', '消', '断', '正'];
+const DEFENSE_KANJI = ['守', '消', '断', '正', '滅'];
 
 let state = { 
   eHP: 500, eMax: 500, pHP: 100, pMax: 100, 
@@ -171,6 +171,7 @@ const pCanvas = document.getElementById('p-canvas');
 const dCtx = dCanvas.getContext('2d');
 const pCtx = pCanvas.getContext('2d');
 const attackBtn = document.getElementById('attack-btn');
+const guideText = document.getElementById('guide-text');
 
 function init() {
   const rect = dCanvas.parentElement.getBoundingClientRect();
@@ -181,22 +182,19 @@ function init() {
   });
   dCtx.scale(dpr, dpr); pCtx.scale(dpr, dpr);
   dCtx.lineWidth = 12; dCtx.lineCap = 'round'; dCtx.strokeStyle = '#f0d070';
-  dCtx.shadowColor = 'rgba(240, 208, 112, 0.9)';
+  dCtx.shadowBlur = 15; dCtx.shadowColor = 'rgba(240, 208, 112, 0.8)';
 }
 
 function loop() {
   pCtx.clearRect(0,0,pCanvas.width,pCanvas.height);
-  dCtx.shadowBlur = Math.sin(Date.now()/150)*10 + 20;
-
   state.particles.forEach((p, i) => {
     p.x += p.vx; p.y += p.vy; p.life -= 0.03;
     if(p.life <= 0) return state.particles.splice(i, 1);
     pCtx.fillStyle = `rgba(240, 208, 112, ${p.life})`;
     pCtx.beginPath(); pCtx.arc(p.x, p.y, p.s, 0, 7); pCtx.fill();
   });
-
   if(!state.over && !state.isIntercept) {
-    state.eCast += 0.15; 
+    state.eCast += 0.18; 
     document.getElementById('enemy-cast-bar').style.width = state.eCast + '%';
     if(state.eCast >= 100) startIntercept();
   }
@@ -208,13 +206,13 @@ function startIntercept() {
   state.eCast = 0;
   state.currentDefenseK = DEFENSE_KANJI[Math.floor(Math.random()*DEFENSE_KANJI.length)];
   
-  // ガイド表示
-  document.getElementById('intercept-guide').textContent = state.currentDefenseK;
-  document.getElementById('intercept-overlay').style.display = 'flex';
+  // 浮かび上がる文字演出
+  guideText.textContent = state.currentDefenseK;
+  guideText.classList.add('show-guide');
   
-  // ボタンを赤く「迎撃」に変更
+  document.getElementById('intercept-overlay').style.display = 'block';
   attackBtn.textContent = '迎 撃 ！';
-  attackBtn.classList.add('intercept-mode');
+  attackBtn.classList.add('intercept-active');
   
   clearCanvas();
   
@@ -226,26 +224,24 @@ function startIntercept() {
 async function executeKanjyutu() {
   if(state.ink.length === 0 || state.over) return;
   attackBtn.disabled = true;
-  
   const result = await googleAPI(state.ink);
   
   if(state.isIntercept) {
     if(result.includes(state.currentDefenseK)) {
       successIntercept();
     } else {
-      clearCanvas(); // 間違えたら自動で消して書き直しを促す
+      clearCanvas(); // 失敗したら消して書き直し
     }
     attackBtn.disabled = false;
     return;
   }
 
-  // 通常攻撃
   if(result.includes(state.currentQ.k)) {
     state.eHP -= 50;
     document.getElementById('img-e').classList.add('hit');
     setTimeout(()=>document.getElementById('img-e').classList.remove('hit'), 400);
   } else {
-    state.pHP -= 10;
+    state.pHP -= 15;
     document.getElementById('img-p').classList.add('hit');
     setTimeout(()=>document.getElementById('img-p').classList.remove('hit'), 400);
   }
@@ -260,24 +256,25 @@ async function executeKanjyutu() {
 function successIntercept() {
   clearTimeout(state.interceptTimer);
   state.isIntercept = false;
+  guideText.classList.remove('show-guide');
   document.getElementById('intercept-overlay').style.display = 'none';
-  document.getElementById('intercept-guide').textContent = '';
   attackBtn.textContent = '漢 術 発 動';
-  attackBtn.classList.remove('intercept-mode');
+  attackBtn.classList.remove('intercept-active');
   
-  document.body.style.filter = "brightness(3)";
+  // 迎撃成功フラッシュ
+  document.body.style.filter = "brightness(2) gold(1)";
   setTimeout(()=>document.body.style.filter = "none", 150);
   nextQ();
 }
 
 function failIntercept() {
   state.isIntercept = false;
+  guideText.classList.remove('show-guide');
   document.getElementById('intercept-overlay').style.display = 'none';
-  document.getElementById('intercept-guide').textContent = '';
   attackBtn.textContent = '漢 術 発 動';
-  attackBtn.classList.remove('intercept-mode');
+  attackBtn.classList.remove('intercept-active');
   
-  state.pHP -= 30;
+  state.pHP -= 35;
   document.getElementById('img-p').classList.add('hit');
   setTimeout(()=>document.getElementById('img-p').classList.remove('hit'), 500);
   updateUI();
@@ -309,7 +306,7 @@ dCanvas.addEventListener('touchmove', (e) => {
   state.ink[state.ink.length-1][0].push(p.x);
   state.ink[state.ink.length-1][1].push(p.y);
   state.ink[state.ink.length-1][2].push(0);
-  for(let i=0; i<3; i++) state.particles.push({ x:p.x, y:p.y, vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5, life: 1, s: Math.random()*5 });
+  for(let i=0; i<3; i++) state.particles.push({ x:p.x, y:p.y, vx:(Math.random()-0.5)*4, vy:(Math.random()-0.5)*4, life:1, s:Math.random()*4 });
 });
 dCanvas.addEventListener('touchend', () => drawing = false);
 
