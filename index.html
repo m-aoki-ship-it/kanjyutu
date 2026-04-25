@@ -14,7 +14,6 @@ html, body {
   font-family: 'Hiragino Mincho ProN', serif;
 }
 
-/* 縦持ちの場合の警告と回転 */
 @media screen and (orientation: portrait) {
   body::before {
     content: "画面を横向きにしてください";
@@ -24,91 +23,56 @@ html, body {
 }
 
 #bg { position: fixed; inset: 0; z-index: 0; }
-#bg-overlay { 
-  position: absolute; inset: 0; 
-  background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, #000 100%); 
-}
+#bg-overlay { position: absolute; inset: 0; background: radial-gradient(circle, rgba(0,0,0,0.4) 0%, #000 100%); }
 
 #game-container {
   position: relative; z-index: 10;
   display: flex; flex-direction: column;
   height: 100vh; width: 100%;
-  padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+  padding: 5px 15px env(safe-area-inset-bottom);
 }
 
-/* --- 上部ステータス --- */
-#header {
-  height: 14vh; display: flex; justify-content: space-between; align-items: flex-end;
-  padding-bottom: 5px;
-}
+/* 上部ステータス */
+#header { height: 12vh; display: flex; justify-content: space-between; align-items: flex-end; }
 .status-block { width: 32%; }
-.hp-wrap { height: 10px; background: #200; border: 1px solid var(--kin); border-radius: 5px; overflow: hidden; position: relative;}
+.hp-wrap { height: 7px; background: #200; border: 1px solid var(--kin); border-radius: 4px; overflow: hidden; position: relative;}
 .hp-bar { height: 100%; width: 100%; transition: width 0.3s; }
 #hp-e-bar { background: linear-gradient(to right, #822, #f44); }
 #hp-p-bar { background: linear-gradient(to right, #228, #4af); }
-.cast-wrap { height: 4px; background: #100; margin-top: 3px; border-radius: 2px; overflow: hidden; }
+.cast-wrap { height: 3px; background: #100; margin-top: 2px; border-radius: 2px; overflow: hidden; }
 #cast-gauge { height: 100%; width: 0%; background: var(--danger); }
-.hp-label { font-size: 11px; color: var(--kin); display: flex; justify-content: space-between; margin-bottom: 2px; }
+.hp-label { font-size: 10px; color: var(--kin); display: flex; justify-content: space-between; margin-bottom: 1px; }
 
-/* --- メインバトルエリア --- */
-#main-stage {
-  flex: 1; display: flex; align-items: center; justify-content: space-between;
-  overflow: hidden; gap: 15px; padding: 5px 0;
-}
+/* メインエリア */
+#main-stage { flex: 1; display: flex; align-items: center; justify-content: space-between; overflow: hidden; gap: 8px; }
 .char-box { flex: 1; display: flex; justify-content: center; align-items: center; height: 100%; }
-.char-box img { max-width: 100%; max-height: 90%; object-fit: contain; filter: drop-shadow(0 0 15px #000); }
+.char-box img { max-width: 100%; max-height: 80%; object-fit: contain; }
 
-/* 中央：問題とキャンバス */
-#interaction-box {
-  flex: 1.2; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 5px; height: 100%;
-}
-#question-display {
-  background: rgba(0,0,0,0.8); border: 1px solid var(--kin); border-radius: 6px;
-  padding: 4px; text-align: center; width: 100%;
-}
-#mondai-text { font-size: clamp(16px, 4vh, 24px); font-weight: bold; }
+#interaction-box { flex: 1.1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 100%; }
+#question-display { background: rgba(0,0,0,0.8); border: 1px solid var(--kin); border-radius: 6px; padding: 2px 5px; text-align: center; width: 100%; }
+#mondai-text { font-size: clamp(14px, 3.5vh, 18px); font-weight: bold; }
 
+/* キャンバスサイズを微調整 */
 #canvas-wrap {
-  height: 48vh; aspect-ratio: 1/1;
+  height: 38vh; aspect-ratio: 1/1;
   background: rgba(255,255,255,0.08); border: 2px solid var(--kin); border-radius: 10px;
   position: relative;
 }
-canvas { width: 100%; height: 100%; }
+canvas { width: 100%; height: 100%; touch-action: none; }
 
-/* --- 下部ボタン --- */
-#footer {
-  height: 18vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 6px;
-}
-.btn-row { display: flex; gap: 20px; }
-.sub-btn { 
-  padding: 6px 20px; background: rgba(30,30,30,0.9); border: 1px solid var(--kin); color: var(--kin); 
-  border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer;
-}
-#attack-btn {
-  width: 280px; height: 44px; border: none; border-radius: 22px;
-  background: linear-gradient(#f0d080, #b08030); color: #210;
-  font-size: 20px; font-weight: bold; cursor: pointer;
-}
+/* 下部ボタン */
+#footer { height: 18vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
+.btn-row { display: flex; gap: 15px; }
+.sub-btn { padding: 4px 12px; background: rgba(30,30,30,0.9); border: 1px solid var(--kin); color: var(--kin); border-radius: 4px; font-size: 11px; font-weight: bold; }
+#attack-btn { width: 220px; height: 36px; border: none; border-radius: 18px; background: linear-gradient(#f0d080, #b08030); color: #210; font-size: 17px; font-weight: bold; }
 
-/* --- 反撃（迎撃）モード用オーバーレイ --- */
-#intercept-overlay {
-  position: fixed; inset: 0; background: rgba(60, 0, 0, 0.9); z-index: 2000;
-  display: none; flex-direction: column; align-items: center; justify-content: center;
-  border: 5px solid var(--danger);
-}
-.intercept-title { color: var(--danger); font-size: 24px; font-weight: bold; margin-bottom: 10px; animation: flash 0.5s infinite; }
-@keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+/* 反撃モード */
+#intercept-overlay { position: fixed; inset: 0; background: rgba(40, 0, 0, 0.95); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; border: 4px solid var(--danger); }
 
-/* アニメーション */
 .hit { animation: shake 0.3s; }
-@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-10px)} 75%{transform:translateX(10px)} }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
 
-#game-over {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000;
-  display: none; flex-direction: column; align-items: center; justify-content: center;
-}
+#game-over { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; }
 </style>
 </head>
 <body>
@@ -122,7 +86,7 @@ canvas { width: 100%; height: 100%; }
       <div class="hp-wrap"><div id="hp-e-bar" class="hp-bar"></div></div>
       <div class="cast-wrap"><div id="cast-gauge"></div></div>
     </div>
-    <div id="center-msg" style="font-size:12px; color:var(--kin); padding-bottom:10px;">漢術で討伐せよ</div>
+    <div id="center-msg" style="font-size:11px; color:var(--kin)">精神を集中せよ</div>
     <div class="status-block">
       <div class="hp-label"><span>HP: <span id="hp-p-val">100</span>/100</span><span>漢術師</span></div>
       <div class="hp-wrap"><div id="hp-p-bar" class="hp-bar"></div></div>
@@ -131,15 +95,13 @@ canvas { width: 100%; height: 100%; }
 
   <div id="main-stage">
     <div class="char-box"><img src="Untitled design.png" id="img-e"></div>
-    
     <div id="interaction-box">
       <div id="question-display">
-        <div id="yomi-text" style="font-size:11px; color:var(--kin2); margin-bottom:2px;">よみ：？？？</div>
+        <div id="yomi-text" style="font-size:10px; color:var(--kin2)">よみ：？？？</div>
         <div id="mondai-text">―――</div>
       </div>
       <div id="canvas-wrap"><canvas id="draw-canvas"></canvas></div>
     </div>
-
     <div class="char-box"><img src="Untitled design - 1.png" id="img-p"></div>
   </div>
 
@@ -153,56 +115,46 @@ canvas { width: 100%; height: 100%; }
 </div>
 
 <div id="intercept-overlay">
-  <div class="intercept-title">⚠ 敵の反撃：迎撃せよ！ ⚠</div>
-  <div id="intercept-q" style="font-size: 18px; margin-bottom: 5px;"></div>
-  <div id="intercept-kanji" style="font-size: 50px; color: var(--kin2); margin-bottom: 10px; font-weight: bold;"></div>
-  <div id="intercept-canvas-wrap" style="height: 45vh; aspect-ratio: 1/1; background: #1a1a1a; border: 3px solid var(--danger); border-radius: 10px;">
+  <div style="color:var(--danger); font-size:18px; font-weight:bold; margin-bottom:5px;">⚠ 迎撃せよ！</div>
+  <div id="intercept-kanji" style="font-size: 40px; color: #fff; margin-bottom: 5px; font-weight: bold;"></div>
+  <div id="intercept-canvas-wrap" style="height: 38vh; aspect-ratio: 1/1; background: #1a1a1a; border: 2px solid var(--danger); border-radius: 10px;">
     <canvas id="intercept-canvas"></canvas>
   </div>
-  <button class="sub-btn" style="margin-top: 10px; border-color: var(--danger); color: white;" onclick="clearInterceptCanvas()">墨を拭く</button>
+  <button class="sub-btn" style="margin-top: 10px;" onclick="clearInterceptCanvas()">墨を拭く</button>
 </div>
 
 <div id="game-over">
-  <h1 id="res-title" style="color:var(--kin); font-size:50px; margin-bottom:30px;"></h1>
-  <button style="padding:15px 40px; font-size:24px; cursor:pointer; background:var(--kin); border:none; border-radius:10px;" onclick="location.reload()">再戦</button>
+  <h1 id="res-title" style="color:var(--kin); font-size:40px; margin-bottom:20px;"></h1>
+  <button style="padding:10px 30px; font-size:20px;" onclick="location.reload()">再戦</button>
 </div>
 
 <script>
-// --- データ設定 ---
 const KANJI_DATA = [
   {k:'火',y:'ひ',b:'キャンプの___'}, {k:'水',y:'みず',b:'___をのむ'},
   {k:'木',y:'き',b:'大きな___'}, {k:'漢',y:'かん',b:'___字を練習する'},
   {k:'王',y:'おう',b:'一国の___'}, {k:'心',y:'こころ',b:'___を落ち着ける'}
 ];
+const COUNTER_KANJI = ['守', '返', '刀', '盾'];
 
-const COUNTER_KANJI = ['守', '返', '刀', '盾', '光']; // 反撃時専用漢字
+let state = { eHP:120, eMax:120, pHP:100, pMax:100, cast:0, isIntercept:false, ink:[], over:false };
 
-let state = {
-  eHP: 120, eMax: 120,
-  pHP: 100, pMax: 100,
-  cast: 0, 
-  isIntercept: false,
-  currentQ: {},
-  ink: [],
-  over: false
-};
-
-// キャンバス設定
 const canvas = document.getElementById('draw-canvas');
 const iCanvas = document.getElementById('intercept-canvas');
 const ctx = canvas.getContext('2d');
 const iCtx = iCanvas.getContext('2d');
 
-function initCanvas(targetCanvas, targetCtx) {
-  const r = targetCanvas.parentElement.getBoundingClientRect();
-  targetCanvas.width = r.width;
-  targetCanvas.height = r.height;
-  targetCtx.lineWidth = 10;
-  targetCtx.lineCap = 'round';
-  targetCtx.strokeStyle = '#fff';
+// 高解像度ディスプレイ対応の初期化
+function initCanvas(c, context) {
+  const rect = c.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  c.width = rect.width * dpr;
+  c.height = rect.height * dpr;
+  context.scale(dpr, dpr);
+  context.lineWidth = 8;
+  context.lineCap = 'round';
+  context.strokeStyle = '#fff';
 }
 
-// 描画イベント
 function setupDrawing(c, context) {
   let drawing = false;
   const start = (e) => {
@@ -219,26 +171,23 @@ function setupDrawing(c, context) {
     const s = state.ink[state.ink.length-1];
     s[0].push(p.x); s[1].push(p.y); s[2].push(0);
   };
-  const end = () => { drawing = false; };
-
   c.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); });
   c.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); });
-  c.addEventListener('touchend', end);
-  c.addEventListener('mousedown', start);
-  c.addEventListener('mousemove', move);
-  c.addEventListener('mouseup', end);
+  c.addEventListener('touchend', () => drawing = false);
 }
 
+// 座標取得の修正（getBoundingClientRectのズレを解消）
 function getP(e, c) {
-  const r = c.getBoundingClientRect();
-  const t = e.touches ? e.touches[0] : e;
-  return { x: t.clientX - r.left, y: t.clientY - r.top };
+  const rect = c.getBoundingClientRect();
+  const touch = e.touches[0];
+  // 画面上の位置から要素の左上位置を引き、CSS上のサイズと実際のピクセルサイズの比率を調整
+  const x = (touch.clientX - rect.left) * (c.width / rect.width / (window.devicePixelRatio || 1));
+  const y = (touch.clientY - rect.top) * (c.height / rect.height / (window.devicePixelRatio || 1));
+  return { x, y };
 }
 
 function clearCanvas() { ctx.clearRect(0,0,canvas.width,canvas.height); state.ink = []; }
 function clearInterceptCanvas() { iCtx.clearRect(0,0,iCanvas.width,iCanvas.height); state.ink = []; }
-
-// --- ゲームロジック ---
 
 function nextQ() {
   state.currentQ = KANJI_DATA[Math.floor(Math.random()*KANJI_DATA.length)];
@@ -251,46 +200,26 @@ async function recognizeAndAttack() {
   if(state.ink.length === 0 || state.over || state.isIntercept) return;
   const btn = document.getElementById('attack-btn');
   btn.disabled = true;
-
   const result = await googleHandwriting(state.ink);
   if(result.includes(state.currentQ.k)) {
-    damageEnemy(30);
-  } else {
-    document.getElementById('center-msg').textContent = "失敗！正解は「"+state.currentQ.k+"」";
-    setTimeout(()=> document.getElementById('center-msg').textContent = "漢術で討伐せよ", 1500);
+    state.eHP -= 30;
+    document.getElementById('img-e').classList.add('hit');
+    setTimeout(()=>document.getElementById('img-e').classList.remove('hit'), 300);
   }
+  updateHUD();
   btn.disabled = false;
-  if(state.eHP > 0) nextQ();
+  if(state.eHP <= 0) endGame(true); else nextQ();
 }
 
 async function googleHandwriting(ink) {
   try {
     const res = await fetch("https://inputtools.google.com/request?itc=ja-t-i0-handwrit&app=test", {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ requests: [{ ink: ink, language: "ja" }] })
     });
     const data = await res.json();
     return data[1][0][1] || [];
   } catch(e) { return []; }
-}
-
-function damageEnemy(val) {
-  state.eHP -= val;
-  const el = document.getElementById('img-e');
-  el.classList.add('hit');
-  setTimeout(()=>el.classList.remove('hit'), 300);
-  updateHUD();
-  if(state.eHP <= 0) endGame(true);
-}
-
-function damagePlayer(val) {
-  state.pHP -= val;
-  const el = document.getElementById('img-p');
-  el.classList.add('hit');
-  setTimeout(()=>el.classList.remove('hit'), 300);
-  updateHUD();
-  if(state.pHP <= 0) endGame(false);
 }
 
 function updateHUD() {
@@ -301,65 +230,44 @@ function updateHUD() {
   document.getElementById('cast-gauge').style.width = state.cast + '%';
 }
 
-// 敵の詠唱タイマー
 setInterval(() => {
   if (state.over || state.isIntercept) return;
-  state.cast += 0.8; // ゲージ速度
+  state.cast += 0.3; 
   updateHUD();
-  if (state.cast >= 100) {
-    startIntercept();
-  }
+  if (state.cast >= 100) startIntercept();
 }, 100);
-
-// --- 反撃（迎撃）システム ---
 
 function startIntercept() {
   state.isIntercept = true;
-  state.cast = 0;
-  state.ink = [];
+  state.cast = 0; state.ink = [];
   const target = COUNTER_KANJI[Math.floor(Math.random()*COUNTER_KANJI.length)];
   state.currentInterceptK = target;
-
   document.getElementById('intercept-kanji').textContent = target;
-  document.getElementById('intercept-q').textContent = "この文字を書いて反撃せよ！";
   document.getElementById('intercept-overlay').style.display = 'flex';
-  
   initCanvas(iCanvas, iCtx);
 
-  // 4秒以内に書かないと失敗
-  state.interceptTimer = setTimeout(() => {
-    finishIntercept(false);
-  }, 4000);
-
-  // 描画監視（一定数描いたら自動判定するか、判定ボタンを置くかですが、今回は描き終わりに判定する仕組み）
   const checkLoop = setInterval(async () => {
     if(!state.isIntercept) { clearInterval(checkLoop); return; }
-    if(state.ink.length >= 1 && !state.isRecognizing) {
-      state.isRecognizing = true;
+    if(state.ink.length >= 1) {
       const res = await googleHandwriting(state.ink);
       if(res.includes(state.currentInterceptK)) {
-        clearInterval(checkLoop);
-        finishIntercept(true);
+        clearInterval(checkLoop); finishIntercept(true);
       }
-      state.isRecognizing = false;
     }
   }, 1000);
+
+  state.interceptTimer = setTimeout(() => {
+    if(state.isIntercept) { clearInterval(checkLoop); finishIntercept(false); }
+  }, 5000);
 }
 
 function finishIntercept(success) {
-  clearTimeout(state.interceptTimer);
   state.isIntercept = false;
   document.getElementById('intercept-overlay').style.display = 'none';
-  clearInterceptCanvas();
-
-  if(success) {
-    document.getElementById('center-msg').textContent = "迎撃成功！反撃ダメージ！";
-    damageEnemy(20);
-  } else {
-    document.getElementById('center-msg').textContent = "迎撃失敗！ダメージを受けた！";
-    damagePlayer(25);
-  }
-  setTimeout(()=> document.getElementById('center-msg').textContent = "漢術で討伐せよ", 2000);
+  if(success) { state.eHP -= 20; } 
+  else { state.pHP -= 25; document.getElementById('img-p').classList.add('hit'); setTimeout(()=>document.getElementById('img-p').classList.remove('hit'), 300); }
+  updateHUD();
+  if(state.pHP <= 0) endGame(false); else if(state.eHP <= 0) endGame(true);
 }
 
 function endGame(win) {
