@@ -29,49 +29,47 @@ html, body {
   position: relative; z-index: 10;
   display: flex; flex-direction: column;
   height: 100vh; width: 100%;
-  padding: 5px 15px env(safe-area-inset-bottom);
+  padding: 5px 10px env(safe-area-inset-bottom);
 }
 
-/* 上部ステータス */
-#header { height: 12vh; display: flex; justify-content: space-between; align-items: flex-end; }
-.status-block { width: 32%; }
-.hp-wrap { height: 7px; background: #200; border: 1px solid var(--kin); border-radius: 4px; overflow: hidden; position: relative;}
+/* 上部ステータス（さらにコンパクト化） */
+#header { height: 10vh; display: flex; justify-content: space-between; align-items: flex-end; }
+.status-block { width: 30%; }
+.hp-wrap { height: 6px; background: #200; border: 1px solid var(--kin); border-radius: 3px; overflow: hidden; position: relative;}
 .hp-bar { height: 100%; width: 100%; transition: width 0.3s; }
 #hp-e-bar { background: linear-gradient(to right, #822, #f44); }
 #hp-p-bar { background: linear-gradient(to right, #228, #4af); }
 .cast-wrap { height: 3px; background: #100; margin-top: 2px; border-radius: 2px; overflow: hidden; }
 #cast-gauge { height: 100%; width: 0%; background: var(--danger); }
-.hp-label { font-size: 10px; color: var(--kin); display: flex; justify-content: space-between; margin-bottom: 1px; }
+.hp-label { font-size: 9px; color: var(--kin); display: flex; justify-content: space-between; margin-bottom: 1px; }
 
-/* メインエリア */
-#main-stage { flex: 1; display: flex; align-items: center; justify-content: space-between; overflow: hidden; gap: 8px; }
-.char-box { flex: 1; display: flex; justify-content: center; align-items: center; height: 100%; }
-.char-box img { max-width: 100%; max-height: 80%; object-fit: contain; }
+/* メインステージ（中央を広く） */
+#main-stage { flex: 1; display: flex; align-items: center; justify-content: space-between; overflow: hidden; gap: 5px; }
+.char-box { flex: 0.8; display: flex; justify-content: center; align-items: center; height: 100%; }
+.char-box img { max-width: 100%; max-height: 75%; object-fit: contain; }
 
-#interaction-box { flex: 1.1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 100%; }
+/* 中央：キャンバスエリアを拡大 */
+#interaction-box { flex: 1.4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 100%; }
 #question-display { background: rgba(0,0,0,0.8); border: 1px solid var(--kin); border-radius: 6px; padding: 2px 5px; text-align: center; width: 100%; }
-#mondai-text { font-size: clamp(14px, 3.5vh, 18px); font-weight: bold; }
+#mondai-text { font-size: clamp(14px, 3vh, 18px); font-weight: bold; }
 
-/* キャンバスサイズを微調整 */
 #canvas-wrap {
-  height: 38vh; aspect-ratio: 1/1;
+  height: 45vh; aspect-ratio: 1/1; /* 45vhに拡大 */
   background: rgba(255,255,255,0.08); border: 2px solid var(--kin); border-radius: 10px;
-  position: relative;
+  position: relative; box-shadow: 0 0 15px rgba(212,175,55,0.2);
 }
 canvas { width: 100%; height: 100%; touch-action: none; }
 
 /* 下部ボタン */
-#footer { height: 18vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
-.btn-row { display: flex; gap: 15px; }
-.sub-btn { padding: 4px 12px; background: rgba(30,30,30,0.9); border: 1px solid var(--kin); color: var(--kin); border-radius: 4px; font-size: 11px; font-weight: bold; }
-#attack-btn { width: 220px; height: 36px; border: none; border-radius: 18px; background: linear-gradient(#f0d080, #b08030); color: #210; font-size: 17px; font-weight: bold; }
+#footer { height: 20vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.btn-row { display: flex; gap: 10px; margin-bottom: 2px; }
+.sub-btn { padding: 4px 10px; background: rgba(30,30,30,0.9); border: 1px solid var(--kin); color: var(--kin); border-radius: 4px; font-size: 10px; font-weight: bold; }
+#attack-btn { width: 200px; height: 34px; border: none; border-radius: 17px; background: linear-gradient(#f0d080, #b08030); color: #210; font-size: 16px; font-weight: bold; box-shadow: 0 2px 5px #000; }
 
-/* 反撃モード */
+/* 反撃・終了画面 */
 #intercept-overlay { position: fixed; inset: 0; background: rgba(40, 0, 0, 0.95); z-index: 2000; display: none; flex-direction: column; align-items: center; justify-content: center; border: 4px solid var(--danger); }
-
 .hit { animation: shake 0.3s; }
-@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
-
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(10px)} }
 #game-over { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 3000; display: none; flex-direction: column; align-items: center; justify-content: center; }
 </style>
 </head>
@@ -86,7 +84,7 @@ canvas { width: 100%; height: 100%; touch-action: none; }
       <div class="hp-wrap"><div id="hp-e-bar" class="hp-bar"></div></div>
       <div class="cast-wrap"><div id="cast-gauge"></div></div>
     </div>
-    <div id="center-msg" style="font-size:11px; color:var(--kin)">精神を集中せよ</div>
+    <div id="center-msg" style="font-size:10px; color:var(--kin)">精神を研ぎ澄ませ</div>
     <div class="status-block">
       <div class="hp-label"><span>HP: <span id="hp-p-val">100</span>/100</span><span>漢術師</span></div>
       <div class="hp-wrap"><div id="hp-p-bar" class="hp-bar"></div></div>
@@ -117,7 +115,7 @@ canvas { width: 100%; height: 100%; touch-action: none; }
 <div id="intercept-overlay">
   <div style="color:var(--danger); font-size:18px; font-weight:bold; margin-bottom:5px;">⚠ 迎撃せよ！</div>
   <div id="intercept-kanji" style="font-size: 40px; color: #fff; margin-bottom: 5px; font-weight: bold;"></div>
-  <div id="intercept-canvas-wrap" style="height: 38vh; aspect-ratio: 1/1; background: #1a1a1a; border: 2px solid var(--danger); border-radius: 10px;">
+  <div id="intercept-canvas-wrap" style="height: 45vh; aspect-ratio: 1/1; background: #1a1a1a; border: 2px solid var(--danger); border-radius: 10px;">
     <canvas id="intercept-canvas"></canvas>
   </div>
   <button class="sub-btn" style="margin-top: 10px;" onclick="clearInterceptCanvas()">墨を拭く</button>
@@ -143,14 +141,13 @@ const iCanvas = document.getElementById('intercept-canvas');
 const ctx = canvas.getContext('2d');
 const iCtx = iCanvas.getContext('2d');
 
-// 高解像度ディスプレイ対応の初期化
 function initCanvas(c, context) {
   const rect = c.parentElement.getBoundingClientRect();
   const dpr = window.devicePixelRatio || 1;
   c.width = rect.width * dpr;
   c.height = rect.height * dpr;
   context.scale(dpr, dpr);
-  context.lineWidth = 8;
+  context.lineWidth = 10; // 線を少し太くして書き心地アップ
   context.lineCap = 'round';
   context.strokeStyle = '#fff';
 }
@@ -176,11 +173,9 @@ function setupDrawing(c, context) {
   c.addEventListener('touchend', () => drawing = false);
 }
 
-// 座標取得の修正（getBoundingClientRectのズレを解消）
 function getP(e, c) {
   const rect = c.getBoundingClientRect();
   const touch = e.touches[0];
-  // 画面上の位置から要素の左上位置を引き、CSS上のサイズと実際のピクセルサイズの比率を調整
   const x = (touch.clientX - rect.left) * (c.width / rect.width / (window.devicePixelRatio || 1));
   const y = (touch.clientY - rect.top) * (c.height / rect.height / (window.devicePixelRatio || 1));
   return { x, y };
